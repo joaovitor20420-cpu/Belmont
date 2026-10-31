@@ -15,7 +15,8 @@ async function main() {
   await prisma.bid.deleteMany({})
   await prisma.receipt.deleteMany({})
   await prisma.lot.deleteMany({})
-  console.log('✓ Lotes e lances antigos limpos.')
+  await prisma.externalItemCache.deleteMany({})
+  console.log('✓ Lotes, lances e cache antigos limpos.')
 
   // 2. Criar Leiloeiro Oficial Belmont
   const auctioneer = await prisma.user.upsert({
