@@ -1,6 +1,7 @@
 import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
 import { registerUserController } from './controllers/registerUser.js'
+import { authenticateUserController } from './controllers/authenticateUser.js'
 
 export async function appRoutes(app: FastifyInstance) {
   app.post(
@@ -21,5 +22,20 @@ export async function appRoutes(app: FastifyInstance) {
       },
     },
     registerUserController,
+  )
+app.post(
+    '/sessions',
+    {
+      schema: {
+        tags: ['Autenticação'],
+        summary: 'Login do usuário',
+        description: 'Autentica o usuário e emite o token JWT com cookie HttpOnly',
+        body: z.object({
+          email: z.string().email('Email inválido'),
+          password: z.string().min(6, 'A senha deve ter pelo menos 6 caracteres'),
+        }),
+      },
+    },
+    authenticateUserController,
   )
 }
