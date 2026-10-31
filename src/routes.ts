@@ -4,6 +4,9 @@ import { registerUserController } from './controllers/registerUser.js'
 import { authenticateUserController } from './controllers/authenticateUser.js'
 import { verifyJwt } from './middlewares/verifyJwt.js'
 import { profileController } from './controllers/profile.js'
+import { depositController } from './controllers/deposit.js'
+import { getWalletBalanceController } from './controllers/getWalletBalance.js'
+import { getWalletStatementController } from './controllers/getWalletStatement.js'
 
 export async function appRoutes(app: FastifyInstance) {
   app.post(
@@ -51,5 +54,50 @@ export async function appRoutes(app: FastifyInstance) {
       },
     },
     profileController,
+  )
+  app.post(
+    '/wallet/deposit',
+    {
+      onRequest: [verifyJwt],
+      schema: {
+        tags: ['Carteira'],
+        summary: 'Depositar saldo na carteira',
+        description:
+          'Adiciona saldo simulado em centavos (ex: 5000 para R$ 50,00)',
+        body: z.object({
+          amountInCents: z
+            .number()
+            .int()
+            .positive('O valor deve ser positivo e em centavos'),
+        }),
+      },
+    },
+    depositController,
+  )
+  app.get(
+    '/wallet/balance',
+    {
+      onRequest: [verifyJwt],
+      schema: {
+        tags: ['Carteira'],
+        summary: 'Consultar saldos da carteira',
+        description:
+          'Retorna os saldos Total, Comprometido e Disponível em centavos e formatados em reais',
+      },
+    },
+    getWalletBalanceController,
+  )
+  app.get(
+    '/wallet/statement',
+    {
+      onRequest: [verifyJwt],
+      schema: {
+        tags: ['Carteira'],
+        summary: 'Consultar extrato de transações',
+        description:
+          'Retorna o histórico contábil completo de transações da carteira do usuário logado',
+      },
+    },
+    getWalletStatementController,
   )
 }

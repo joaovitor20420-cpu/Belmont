@@ -26,10 +26,10 @@
   - [x] 3.3 Middlewares Fastify para proteção de rotas e verificação de papéis (RBAC).
   - [x] 3.4 Pseudonimização automática para LGPD (`LIC-XXXX`, `LEI-XXXX`, `J*** V***`).
 
-- [ ] **Módulo 4: Carteira Digital & Saldo Comprometido**
-  - [ ] 4.1 Ledger de transações da carteira (`DEPOSIT`, `BID_LOCK`, `BID_RELEASE`, `SETTLEMENT`).
-  - [ ] 4.2 Endpoint de depósito simulado para licitantes.
-  - [ ] 4.3 Cálculo atômico de saldos: Total, Comprometido e Disponível.
+- [x] **Módulo 4: Carteira Digital & Saldo Comprometido**
+  - [x] 4.1 Ledger de transações da carteira (`DEPOSIT`, `BID_LOCK`, `BID_RELEASE`, `SETTLEMENT`).
+  - [x] 4.2 Endpoint de depósito simulado para licitantes.
+  - [x] 4.3 Cálculo atômico de saldos: Total, Comprometido e Disponível.
 
 - [ ] **Módulo 5: Integração com a API do Art Institute of Chicago**
   - [ ] 5.1 Client HTTP com timeout de 3.5s (`AbortController`) e tratamento de indisponibilidade.

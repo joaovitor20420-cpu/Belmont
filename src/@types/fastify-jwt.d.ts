@@ -5,7 +5,7 @@ declare module '@fastify/jwt' {
     user: {
       sub: string
       role: 'AUCTIONEER' | 'BIDDER'
-      publicCod: string
+      publicCode: string
       maskedName: string
     }
   }
