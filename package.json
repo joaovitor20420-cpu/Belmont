@@ -6,7 +6,9 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "tsx watch src/index.ts",
+    "dev": "concurrently -n \"API,WEB\" -c \"cyan,magenta\" \"npm run dev:server\" \"npm run dev:web\"",
+    "dev:server": "tsx watch src/index.ts",
+    "dev:web": "npm --prefix web run dev",
     "lint": "eslint src",
     "format": "prettier --write ."
   },
@@ -29,6 +31,7 @@
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
     "@types/node": "^26.6.5",
+    "concurrently": "^10.0.6",
     "eslint": "^10.13.0",
     "eslint-config-prettier": "^10.1.8",
     "prettier": "^3.9.10",

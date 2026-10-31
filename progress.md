@@ -52,12 +52,12 @@
   - [x] 8.2 Emissão de Comprovante Oficial com código autenticado e link compartilhável.
   - [x] 8.3 Streaming em tempo real (SSE) para atualização instantânea da sala de pregão.
 
-- [ ] **Módulo 9: Front-End React (Next.js + Tailwind + shadcn/ui)**
-  - [ ] 9.1 Vitrine de lotes com abas (Ao vivo, Agendados, Encerrados).
-  - [ ] 9.2 Sala do lote ao vivo (lances rápidos, ranking, anti-sniping e SSE).
-  - [ ] 9.3 Painel do Leiloeiro (busca na API de arte, criação e cancelamento de lotes).
-  - [ ] 9.4 Carteira do Licitante e tela pública do Comprovante de Arremate.
-  - [ ] 9.5 Verificador visual de auditoria criptográfica com simulador de adulteração.
+- [x] **Módulo 9: Front-End React (Next.js + Tailwind + shadcn/ui)**
+  - [x] 9.1 Vitrine de lotes com abas (Ao vivo, Agendados, Encerrados).
+  - [x] 9.2 Sala do lote ao vivo (lances rápidos, ranking, anti-sniping e SSE).
+  - [x] 9.3 Painel do Leiloeiro (busca na API de arte, criação e cancelamento de lotes).
+  - [x] 9.4 Carteira do Licitante e tela pública do Comprovante de Arremate.
+  - [x] 9.5 Verificador visual de auditoria criptográfica com simulador de adulteração.
 
 - [ ] **Módulo 10: Testes Automatizados, Seeds Obrigatórias & Deploy**
   - [ ] 10.1 Suíte de testes unitários e de integração (concorrência, saldo e integridade).
