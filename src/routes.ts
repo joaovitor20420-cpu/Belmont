@@ -15,6 +15,7 @@ import { listLotsController } from './controllers/listLots.js'
 import { getLotDetailsController } from './controllers/getLotDetails.js'
 import { createBidController } from './controllers/createBid.js'
 import { verifyLotAuditTrailController } from './controllers/verifyLotAuditTrail.js'
+import { settleLotController } from './controllers/settleLot.js'
 
 export async function appRoutes(app: FastifyInstance) {
   app.post(
@@ -276,5 +277,21 @@ export async function appRoutes(app: FastifyInstance) {
       },
     },
     verifyLotAuditTrailController,
+  )
+  app.post(
+    '/lots/:id/settle',
+    {
+      onRequest: [verifyJwt],
+      schema: {
+        tags: ['Liquidação'],
+        summary: 'Encerrar e liquidar lote',
+        description:
+          'Rotina idempotente de encerramento do pregão: debita em definitivo o saldo do vencedor, calcula o selo criptográfico raiz e emite o comprovante oficial.',
+        params: z.object({
+          id: z.string().uuid('ID do lote inválido'),
+        }),
+      },
+    },
+    settleLotController,
   )
 }
