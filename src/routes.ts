@@ -13,6 +13,7 @@ import { getArtworkDetailsController } from './controllers/getArtworkDetails.js'
 import { createLotController } from './controllers/createLot.js'
 import { listLotsController } from './controllers/listLots.js'
 import { getLotDetailsController } from './controllers/getLotDetails.js'
+import { createBidController } from './controllers/createBid.js'
 
 export async function appRoutes(app: FastifyInstance) {
   app.post(
@@ -237,5 +238,27 @@ export async function appRoutes(app: FastifyInstance) {
       },
     },
     getLotDetailsController,
+  )
+  app.post(
+    '/lots/:id/bids',
+    {
+      onRequest: [verifyJwt],
+      schema: {
+        tags: ['Lances'],
+        summary: 'Dar um lance no lote',
+        description:
+          'Registra um novo lance com lock pessimista, validação de incremento mínimo e bloqueio/desbloqueio atômico de saldos.',
+        params: z.object({
+          id: z.string().uuid('ID do lote inválido'),
+        }),
+        body: z.object({
+          amountInCents: z
+            .number()
+            .int()
+            .positive('O valor do lance em centavos deve ser positivo'),
+        }),
+      },
+    },
+    createBidController,
   )
 }

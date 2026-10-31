@@ -37,9 +37,9 @@
   - [x] 5.3 Cache local em PostgreSQL (`ExternalItemCache`) para garantir funcionamento offline.
 
 - [ ] **Módulo 6: Motor de Lances & Anti-Sniping (Core do Desafio)**
-  - [ ] 6.1 Transações ACID interativas com lock pessimista (`SELECT ... FOR UPDATE`).
-  - [ ] 6.2 Regras de incremento mínimo e bloqueio de lances inválidos/auto-cobertura.
-  - [ ] 6.3 Liberação instantânea do saldo do líder superado e bloqueio do novo líder.
+  - [x] 6.1 Transações ACID interativas com lock pessimista (`SELECT ... FOR UPDATE`).
+  - [x] 6.2 Regras de incremento mínimo e bloqueio de lances inválidos/auto-cobertura.
+  - [x] 6.3 Liberação instantânea do saldo do líder superado e bloqueio do novo líder.
   - [ ] 6.4 Mecanismo de Anti-Sniping (+2 minutos nos 2 minutos finais).
 
 - [ ] **Módulo 7: Trilha de Auditoria Criptográfica à Prova de Fraude**
