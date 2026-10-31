@@ -9,8 +9,12 @@
     "dev": "concurrently -n \"API,WEB\" -c \"cyan,magenta\" \"npm run dev:server\" \"npm run dev:web\"",
     "dev:server": "tsx watch src/index.ts",
     "dev:web": "npm --prefix web run dev",
+    "seed": "tsx prisma/seed.ts",
     "lint": "eslint src",
     "format": "prettier --write ."
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
   },
   "keywords": [],
   "author": "",
