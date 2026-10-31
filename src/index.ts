@@ -1,5 +1,6 @@
 import Fastify from 'fastify'
 import fastifyCookie from '@fastify/cookie'
+import fastifyCors from '@fastify/cors'
 import fastifyJwt from '@fastify/jwt'
 import fastifySwagger from '@fastify/swagger'
 import fastifySwaggerUi from '@fastify/swagger-ui'
@@ -18,6 +19,12 @@ const app = Fastify({
 
 app.setValidatorCompiler(validatorCompiler)
 app.setSerializerCompiler(serializerCompiler)
+
+await app.register(fastifyCors, {
+  origin: true,
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+})
 
 await app.register(fastifyCookie)
 await app.register(fastifyJwt, {
