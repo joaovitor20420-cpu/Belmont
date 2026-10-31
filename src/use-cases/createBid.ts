@@ -5,6 +5,7 @@ import { AuctionNotActiveError } from './errors/auction-not-active-error.js'
 import { SelfOutbidError } from './errors/self-outbid-error.js'
 import { InvalidBidAmountError } from './errors/invalid-bid-amount-error.js'
 import { InsufficientFundsError } from './errors/insufficient-funds-error.js'
+import { calculateBidHash } from '../utils/cryptoAudit.js'
 
 export interface BidDTO {
   id: string
@@ -163,8 +164,24 @@ export class CreateBidUseCase {
         },
       })
 
-      // 8. Registro do Lance na tabela de Bids
+      // 8. Registro do Lance com Trilha Criptográfica (Hash Chain HMAC-SHA256)
+      const lastBid = await tx.bid.findFirst({
+        where: { lotId: lot.id },
+        orderBy: { sequenceNumber: 'desc' },
+      })
+
+      const prevHash = lastBid ? lastBid.bidHash : '0'.repeat(64)
       const nextSequence = lot.bidsCount + 1
+      const bidTimestamp = new Date()
+
+      const bidHash = calculateBidHash({
+        lotId: lot.id,
+        sequenceNumber: nextSequence,
+        bidderId: bidder.id,
+        amount: BigInt(amountInCents),
+        timestamp: bidTimestamp,
+        prevHash,
+      })
 
       const bid = await tx.bid.create({
         data: {
@@ -172,8 +189,9 @@ export class CreateBidUseCase {
           bidderId: bidder.id,
           amount: BigInt(amountInCents),
           sequenceNumber: nextSequence,
-          prevHash: '0'.repeat(64),
-          bidHash: '0'.repeat(64),
+          timestamp: bidTimestamp,
+          prevHash,
+          bidHash,
         },
       })
 
