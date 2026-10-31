@@ -31,10 +31,10 @@
   - [x] 4.2 Endpoint de depósito simulado para licitantes.
   - [x] 4.3 Cálculo atômico de saldos: Total, Comprometido e Disponível.
 
-- [ ] **Módulo 5: Integração com a API do Art Institute of Chicago**
-  - [ ] 5.1 Client HTTP com timeout de 3.5s (`AbortController`) e tratamento de indisponibilidade.
-  - [ ] 5.2 Mapeamento de metadados, identificador IIIF de imagens e validação de domínio público.
-  - [ ] 5.3 Cache local em PostgreSQL (`ExternalItemCache`) para garantir funcionamento offline.
+- [x] **Módulo 5: Integração com a API do Art Institute of Chicago**
+  - [x] 5.1 Client HTTP com timeout de 3.5s (`AbortController`) e tratamento de indisponibilidade.
+  - [x] 5.2 Mapeamento de metadados, identificador IIIF de imagens e validação de domínio público.
+  - [x] 5.3 Cache local em PostgreSQL (`ExternalItemCache`) para garantir funcionamento offline.
 
 - [ ] **Módulo 6: Motor de Lances & Anti-Sniping (Core do Desafio)**
   - [ ] 6.1 Transações ACID interativas com lock pessimista (`SELECT ... FOR UPDATE`).

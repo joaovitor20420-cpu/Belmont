@@ -7,6 +7,8 @@ import { profileController } from './controllers/profile.js'
 import { depositController } from './controllers/deposit.js'
 import { getWalletBalanceController } from './controllers/getWalletBalance.js'
 import { getWalletStatementController } from './controllers/getWalletStatement.js'
+import { searchArtworksController } from './controllers/searchArtworks.js'
+import { getArtworkDetailsController } from './controllers/getArtworkDetails.js'
 
 export async function appRoutes(app: FastifyInstance) {
   app.post(
@@ -99,5 +101,54 @@ export async function appRoutes(app: FastifyInstance) {
       },
     },
     getWalletStatementController,
+  )
+  app.get(
+    '/artworks/search',
+    {
+      schema: {
+        tags: ['Catálogo de Obras'],
+        summary: 'Buscar obras no acervo do Art Institute of Chicago',
+        description:
+          'Pesquisa obras de domínio público com imagens IIIF e fallback em cache local',
+        querystring: z.object({
+          query: z
+            .string()
+            .optional()
+            .describe('Termo de busca (ex: Monet, Van Gogh, Landscape)'),
+          page: z
+            .coerce
+            .number()
+            .int()
+            .positive()
+            .optional()
+            .describe('Página da busca'),
+          limit: z
+            .coerce
+            .number()
+            .int()
+            .positive()
+            .optional()
+            .describe('Limite de resultados por página'),
+        }),
+      },
+    },
+    searchArtworksController,
+  )
+  app.get(
+    '/artworks/:id',
+    {
+      schema: {
+        tags: ['Catálogo de Obras'],
+        summary: 'Detalhes de uma obra de arte',
+        description:
+          'Retorna metadados completos da obra a partir do ID do museu com fallback em cache',
+        params: z.object({
+          id: z
+            .string()
+            .describe('ID da obra de arte no Art Institute of Chicago'),
+        }),
+      },
+    },
+    getArtworkDetailsController,
   )
 }
