@@ -3,12 +3,16 @@ import { z } from 'zod'
 import { registerUserController } from './controllers/registerUser.js'
 import { authenticateUserController } from './controllers/authenticateUser.js'
 import { verifyJwt } from './middlewares/verifyJwt.js'
+import { verifyUserRole } from './middlewares/verifyUserRole.js'
 import { profileController } from './controllers/profile.js'
 import { depositController } from './controllers/deposit.js'
 import { getWalletBalanceController } from './controllers/getWalletBalance.js'
 import { getWalletStatementController } from './controllers/getWalletStatement.js'
 import { searchArtworksController } from './controllers/searchArtworks.js'
 import { getArtworkDetailsController } from './controllers/getArtworkDetails.js'
+import { createLotController } from './controllers/createLot.js'
+import { listLotsController } from './controllers/listLots.js'
+import { getLotDetailsController } from './controllers/getLotDetails.js'
 
 export async function appRoutes(app: FastifyInstance) {
   app.post(
@@ -150,5 +154,88 @@ export async function appRoutes(app: FastifyInstance) {
       },
     },
     getArtworkDetailsController,
+  )
+  app.post(
+    '/lots',
+    {
+      onRequest: [verifyJwt, verifyUserRole('AUCTIONEER')],
+      schema: {
+        tags: ['Lotes'],
+        summary: 'Criar novo lote de leilão',
+        description:
+          'Cria um novo lote de obra de arte para leilão. Restrito a usuários com papel AUCTIONEER.',
+        body: z.object({
+          title: z.string().min(3, 'O título deve ter no mínimo 3 caracteres'),
+          description: z
+            .string()
+            .min(5, 'A descrição deve ter no mínimo 5 caracteres'),
+          imageUrl: z.string().url('URL da imagem inválida'),
+          artist: z.string().nullable().optional(),
+          externalApiId: z.string().nullable().optional(),
+          startPriceInCents: z
+            .number()
+            .int()
+            .positive('O preço inicial deve ser positivo e em centavos'),
+          minIncrementInCents: z
+            .number()
+            .int()
+            .positive('O incremento mínimo deve ser positivo e em centavos'),
+          startTime: z
+            .string()
+            .datetime({ message: 'Data de início em formato ISO 8601 inválida' }),
+          endTime: z
+            .string()
+            .datetime({ message: 'Data de término em formato ISO 8601 inválida' }),
+        }),
+      },
+    },
+    createLotController,
+  )
+  app.get(
+    '/lots',
+    {
+      schema: {
+        tags: ['Lotes'],
+        summary: 'Vitrine pública de lotes',
+        description:
+          'Lista os lotes de leilão disponíveis, com filtros opcionais por status (SCHEDULED, LIVE, ENDED, CANCELLED).',
+        querystring: z.object({
+          status: z
+            .enum(['SCHEDULED', 'LIVE', 'ENDED', 'CANCELLED'])
+            .optional()
+            .describe('Status do lote'),
+          page: z
+            .coerce
+            .number()
+            .int()
+            .positive()
+            .optional()
+            .describe('Página da listagem'),
+          limit: z
+            .coerce
+            .number()
+            .int()
+            .positive()
+            .optional()
+            .describe('Limite de lotes por página'),
+        }),
+      },
+    },
+    listLotsController,
+  )
+  app.get(
+    '/lots/:id',
+    {
+      schema: {
+        tags: ['Lotes'],
+        summary: 'Detalhes de um lote',
+        description:
+          'Retorna as informações completas do lote e o status atual do pregão.',
+        params: z.object({
+          id: z.string().uuid('ID do lote inválido'),
+        }),
+      },
+    },
+    getLotDetailsController,
   )
 }
