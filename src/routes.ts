@@ -2,6 +2,8 @@ import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
 import { registerUserController } from './controllers/registerUser.js'
 import { authenticateUserController } from './controllers/authenticateUser.js'
+import { verifyJwt } from './middlewares/verifyJwt.js'
+import { profileController } from './controllers/profile.js'
 
 export async function appRoutes(app: FastifyInstance) {
   app.post(
@@ -38,4 +40,16 @@ app.post(
     },
     authenticateUserController,
   )
+  app.get(
+  '/me',
+  {
+    onRequest: [verifyJwt],
+    schema: {
+      tags: ['Usuários'],
+      summary: 'Perfil do usuário logado',
+      description: 'Retorna os dados do perfil autenticado a partir do token JWT',
+    },
+  },
+  profileController,
+)
 }

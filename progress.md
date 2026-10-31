@@ -22,7 +22,7 @@
 
 - [ ] **Módulo 3: Autenticação, Perfis & Autorização** _(Em andamento)_
   - [x] 3.1 Hash seguro de senhas com `bcryptjs`, Singleton do Prisma e utilitários LGPD.
-  - [ ] 3.2 Emissão e validação de JWT em cookies seguros (`HttpOnly`, `SameSite`).
+  - [x] 3.2 Emissão e validação de JWT em cookies seguros (`HttpOnly`, `SameSite`).
   - [ ] 3.3 Middlewares Fastify para proteção de rotas e verificação de papéis (RBAC).
   - [x] 3.4 Pseudonimização automática para LGPD (`LIC-XXXX`, `LEI-XXXX`, `J*** V***`).
 
