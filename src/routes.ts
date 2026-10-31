@@ -25,7 +25,7 @@ export async function appRoutes(app: FastifyInstance) {
     },
     registerUserController,
   )
-app.post(
+  app.post(
     '/sessions',
     {
       schema: {
@@ -41,15 +41,15 @@ app.post(
     authenticateUserController,
   )
   app.get(
-  '/me',
-  {
-    onRequest: [verifyJwt],
-    schema: {
-      tags: ['Usuários'],
-      summary: 'Perfil do usuário logado',
-      description: 'Retorna os dados do perfil autenticado a partir do token JWT',
+    '/me',
+    {
+      onRequest: [verifyJwt],
+      schema: {
+        tags: ['Usuários'],
+        summary: 'Perfil do usuário logado',
+        description: 'Retorna os dados do perfil autenticado a partir do token JWT',
+      },
     },
-  },
-  profileController,
-)
+    profileController,
+  )
 }

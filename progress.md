@@ -20,10 +20,10 @@
   - [x] 2.4 Modelagem das entidades `Lot`, `Bid`, `WalletTransaction` e `Receipt` (com valores em centavos via `BigInt`).
   - [x] 2.5 Criação e aplicação das migrations no PostgreSQL local.
 
-- [ ] **Módulo 3: Autenticação, Perfis & Autorização** _(Em andamento)_
+- [x] **Módulo 3: Autenticação, Perfis & Autorização**
   - [x] 3.1 Hash seguro de senhas com `bcryptjs`, Singleton do Prisma e utilitários LGPD.
   - [x] 3.2 Emissão e validação de JWT em cookies seguros (`HttpOnly`, `SameSite`).
-  - [ ] 3.3 Middlewares Fastify para proteção de rotas e verificação de papéis (RBAC).
+  - [x] 3.3 Middlewares Fastify para proteção de rotas e verificação de papéis (RBAC).
   - [x] 3.4 Pseudonimização automática para LGPD (`LIC-XXXX`, `LEI-XXXX`, `J*** V***`).
 
 - [ ] **Módulo 4: Carteira Digital & Saldo Comprometido**
