@@ -46,17 +46,17 @@ export function Navbar() {
 
     const fetchBalance = async () => {
       try {
-        const data = await apiRequest<{
-          balances: {
-            availableInCents: number
-            committedInCents: number
-            totalInCents: number
-          }
-        }>('/wallet/balance')
+        const data = await apiRequest<any>('/wallet/balance')
+        const available =
+          data?.balances?.availableInCents ?? data?.balanceAvailable ?? 0
+        const committed =
+          data?.balances?.committedInCents ?? data?.balanceCommitted ?? 0
+        const total =
+          data?.balances?.totalInCents ?? data?.balanceTotal ?? 0
         setBalance({
-          available: data.balances.availableInCents,
-          committed: data.balances.committedInCents,
-          total: data.balances.totalInCents,
+          available,
+          committed,
+          total,
         })
       } catch {
         // Silêncio em caso de falha de polling

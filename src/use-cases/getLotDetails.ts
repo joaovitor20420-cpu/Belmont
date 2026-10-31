@@ -1,13 +1,32 @@
 import type { LotsRepository } from '../repositories/lotsRepository.js'
 import { formatLotToDTO, type LotDTO } from './createLot.js'
 import { ResourceNotFoundError } from './errors/resource-not-found-error.js'
+import { prisma } from '../lib/prisma.js'
+
+export interface LotDetailsDTO extends LotDTO {
+  bids: Array<{
+    id: string
+    amount: number
+    bidHash: string
+    prevHash: string
+    sequenceNumber: number
+    createdAt: Date
+    bidder: {
+      publicCode: string
+      maskedName: string
+    }
+  }>
+  receipt?: {
+    publicCode: string
+  } | null
+}
 
 interface GetLotDetailsRequest {
   id: string
 }
 
 interface GetLotDetailsResponse {
-  lot: LotDTO
+  lot: LotDetailsDTO
 }
 
 export class GetLotDetailsUseCase {
@@ -20,8 +39,44 @@ export class GetLotDetailsUseCase {
       throw new ResourceNotFoundError()
     }
 
+    const [bids, receipt] = await Promise.all([
+      prisma.bid.findMany({
+        where: { lotId: id },
+        orderBy: { sequenceNumber: 'desc' },
+        include: {
+          bidder: {
+            select: {
+              publicCode: true,
+              maskedName: true,
+            },
+          },
+        },
+      }),
+      prisma.receipt.findUnique({
+        where: { lotId: id },
+        select: {
+          code: true,
+        },
+      }),
+    ])
+
     return {
-      lot: formatLotToDTO(lot),
+      lot: {
+        ...formatLotToDTO(lot),
+        bids: bids.map((b) => ({
+          id: b.id,
+          amount: Number(b.amount),
+          bidHash: b.bidHash,
+          prevHash: b.prevHash,
+          sequenceNumber: b.sequenceNumber,
+          createdAt: b.timestamp,
+          bidder: {
+            publicCode: b.bidder.publicCode,
+            maskedName: b.bidder.maskedName,
+          },
+        })),
+        receipt: receipt ? { publicCode: receipt.code } : null,
+      },
     }
   }
 }

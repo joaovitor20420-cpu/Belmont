@@ -69,26 +69,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [refreshUser])
 
   const login = async (email: string, password: string) => {
-    const data = await apiRequest<{ token: string }>('/sessions', {
-      method: 'POST',
-      body: JSON.stringify({ email, password }),
-    })
-
-    // Salva token temporário para permitir o /me
-    const tempSession: UserSession = {
-      id: '',
-      name: '',
-      email,
-      role: 'BIDDER',
-      publicCode: '',
-      maskedName: '',
-      token: data.token,
-    }
-    setStoredSession(tempSession)
-
-    // Busca dados do usuário logado
-    const meData = await apiRequest<{
-      user: {
+    const data = await apiRequest<{
+      token: string
+      user?: {
         id: string
         name: string
         email: string
@@ -96,15 +79,51 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         publicCode: string
         maskedName: string
       }
-    }>('/me')
+    }>('/sessions', {
+      method: 'POST',
+      body: JSON.stringify({ email, password }),
+    })
 
-    const fullSession: UserSession = {
-      ...meData.user,
-      token: data.token,
+    let userSession: UserSession
+
+    if (data.user) {
+      userSession = {
+        ...data.user,
+        token: data.token,
+      }
+    } else {
+      // Salva token temporário para permitir o /me
+      const tempSession: UserSession = {
+        id: '',
+        name: '',
+        email,
+        role: 'BIDDER',
+        publicCode: '',
+        maskedName: '',
+        token: data.token,
+      }
+      setStoredSession(tempSession)
+
+      const meData = await apiRequest<{
+        user: {
+          id: string
+          name: string
+          email: string
+          role: 'AUCTIONEER' | 'BIDDER'
+          publicCode: string
+          maskedName: string
+        }
+      }>('/me')
+
+      userSession = {
+        ...meData.user,
+        token: data.token,
+      }
     }
-    setUser(fullSession)
-    setStoredSession(fullSession)
-    return fullSession
+
+    setUser(userSession)
+    setStoredSession(userSession)
+    return userSession
   }
 
   const register = async (userData: {

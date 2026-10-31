@@ -97,7 +97,10 @@ export default function LotAuctionRoomPage({
     try {
       setIsLoading(true)
       const data = await apiRequest<{ lot: LotDetails }>(`/lots/${id}`)
-      setLot(data.lot)
+      setLot({
+        ...data.lot,
+        bids: data.lot.bids || [],
+      })
     } catch (err: any) {
       setError(err.message || 'Lote não encontrado.')
     } finally {
@@ -156,7 +159,7 @@ export default function LotAuctionRoomPage({
                   publicCode: payload.leaderPublicCode,
                   maskedName: payload.leaderMaskedName,
                 },
-                bids: [newBidRecord, ...prev.bids],
+                bids: [newBidRecord, ...(prev.bids || [])],
               }
             })
 
@@ -633,17 +636,17 @@ export default function LotAuctionRoomPage({
                   </span>
                 </div>
                 <span className="text-xs font-mono font-bold text-amber-400">
-                  {lot.bids.length} computados
+                  {(lot.bids || []).length} computados
                 </span>
               </div>
 
-              {lot.bids.length === 0 ? (
+              {(lot.bids || []).length === 0 ? (
                 <div className="py-12 text-center text-xs text-slate-400">
                   Nenhum lance ofertado ainda.
                 </div>
               ) : (
                 <div className="space-y-2.5 max-h-[360px] overflow-y-auto pr-1">
-                  {lot.bids.map((bid, index) => (
+                  {(lot.bids || []).map((bid, index) => (
                     <div
                       key={bid.id || index}
                       className={`flex items-center justify-between p-3.5 rounded-2xl border text-xs transition-colors ${

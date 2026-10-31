@@ -13,7 +13,14 @@ export async function getWalletBalanceController(
       userId: request.user.sub,
     })
 
-    return reply.status(200).send(balance)
+    return reply.status(200).send({
+      ...balance,
+      balances: {
+        totalInCents: balance.balanceTotal,
+        committedInCents: balance.balanceCommitted,
+        availableInCents: balance.balanceAvailable,
+      },
+    })
   } catch (err) {
     if (err instanceof ResourceNotFoundError) {
       return reply.status(404).send({ message: err.message })

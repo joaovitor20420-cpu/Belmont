@@ -238,7 +238,13 @@ async function main() {
   const receiptCode = 'REC-2026-SEURAT'
   await prisma.receipt.upsert({
     where: { code: receiptCode },
-    update: {},
+    update: {
+      lotId: closedLot.id,
+      winnerId: bidder1.id,
+      finalAmount: BigInt(bid1Amount),
+      lotSealHash: rootSeal,
+      settledAt: pastEndTime,
+    },
     create: {
       code: receiptCode,
       lotId: closedLot.id,

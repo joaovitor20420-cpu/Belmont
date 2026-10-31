@@ -53,24 +53,25 @@ export default function WalletPage() {
     try {
       setIsLoading(true)
       const [balRes, stmtRes] = await Promise.all([
-        apiRequest<{
-          balances: {
-            totalInCents: number
-            committedInCents: number
-            availableInCents: number
-          }
-        }>('/wallet/balance'),
+        apiRequest<any>('/wallet/balance'),
         apiRequest<{
           transactions: TransactionItem[]
         }>('/wallet/statement'),
       ])
 
+      const total =
+        balRes?.balances?.totalInCents ?? balRes?.balanceTotal ?? 0
+      const committed =
+        balRes?.balances?.committedInCents ?? balRes?.balanceCommitted ?? 0
+      const available =
+        balRes?.balances?.availableInCents ?? balRes?.balanceAvailable ?? 0
+
       setBalances({
-        total: balRes.balances.totalInCents,
-        committed: balRes.balances.committedInCents,
-        available: balRes.balances.availableInCents,
+        total,
+        committed,
+        available,
       })
-      setTransactions(stmtRes.transactions || [])
+      setTransactions(stmtRes?.transactions || [])
     } catch (err) {
       console.error('Erro ao carregar carteira:', err)
     } finally {
