@@ -17,6 +17,7 @@ import { createBidController } from './controllers/createBid.js'
 import { verifyLotAuditTrailController } from './controllers/verifyLotAuditTrail.js'
 import { settleLotController } from './controllers/settleLot.js'
 import { getReceiptByCodeController } from './controllers/getReceiptByCode.js'
+import { liveAuctionStreamController } from './controllers/liveAuctionStream.js'
 
 export async function appRoutes(app: FastifyInstance) {
   app.post(
@@ -311,5 +312,20 @@ export async function appRoutes(app: FastifyInstance) {
       },
     },
     getReceiptByCodeController,
+  )
+  app.get(
+    '/lots/:id/live',
+    {
+      schema: {
+        tags: ['Tempo Real'],
+        summary: 'Canal SSE da sala de pregão ao vivo',
+        description:
+          'Streaming de Server-Sent Events (SSE) transmitindo em tempo real novos lances, extensões anti-sniping e liquidação do lote.',
+        params: z.object({
+          id: z.string().uuid('ID do lote inválido'),
+        }),
+      },
+    },
+    liveAuctionStreamController,
   )
 }

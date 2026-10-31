@@ -2,6 +2,7 @@ import crypto from 'node:crypto'
 import type { Lot, User } from '@prisma/client'
 import { prisma } from '../lib/prisma.js'
 import { calculateLotSealHash } from '../utils/cryptoAudit.js'
+import { auctionEvents } from '../lib/auctionEvents.js'
 import { ResourceNotFoundError } from './errors/resource-not-found-error.js'
 
 interface SettleLotRequest {
@@ -34,7 +35,7 @@ export interface SettleLotResponse {
 
 export class SettleLotUseCase {
   async execute({ lotId }: SettleLotRequest): Promise<SettleLotResponse> {
-    return prisma.$transaction(async (tx) => {
+    const result = await prisma.$transaction(async (tx) => {
       // 1. Lock pessimista no Lote para garantir que nenhuma ação concorrente ocorra
       const lotRaw = await tx.$queryRaw<Lot[]>`
         SELECT * FROM lots WHERE id = ${lotId} FOR UPDATE
@@ -172,6 +173,14 @@ export class SettleLotUseCase {
             lotSealHash: receipt.lotSealHash,
             settledAt: receipt.settledAt,
           },
+          broadcast: {
+            type: 'LOT_SETTLED' as const,
+            lotId: updatedLot.id,
+            finalPrice: Number(receipt.finalAmount),
+            winnerPublicCode: winner.publicCode,
+            winnerMaskedName: winner.maskedName,
+            receiptCode: receipt.code,
+          },
         }
       }
 
@@ -204,7 +213,18 @@ export class SettleLotUseCase {
           lotSealHash: updatedLot.lotSealHash,
         },
         receipt: null,
+        broadcast: null,
       }
     })
+
+    if (!result.alreadySettled && result.broadcast) {
+      auctionEvents.emit('update', result.broadcast)
+    }
+
+    return {
+      alreadySettled: result.alreadySettled,
+      lot: result.lot,
+      receipt: result.receipt,
+    }
   }
 }

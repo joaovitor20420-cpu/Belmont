@@ -6,6 +6,7 @@ import { SelfOutbidError } from './errors/self-outbid-error.js'
 import { InvalidBidAmountError } from './errors/invalid-bid-amount-error.js'
 import { InsufficientFundsError } from './errors/insufficient-funds-error.js'
 import { calculateBidHash } from '../utils/cryptoAudit.js'
+import { auctionEvents } from '../lib/auctionEvents.js'
 
 export interface BidDTO {
   id: string
@@ -51,7 +52,7 @@ export class CreateBidUseCase {
       )
     }
 
-    return prisma.$transaction(async (tx) => {
+    const result = await prisma.$transaction(async (tx) => {
       // 1. Lock pessimista no Lote (FOR UPDATE)
       const lotRaw = await tx.$queryRaw<Lot[]>`
         SELECT * FROM lots WHERE id = ${lotId} FOR UPDATE
@@ -240,7 +241,27 @@ export class CreateBidUseCase {
           extended: timeExtended,
           newEndTime,
         },
+        broadcast: {
+          type: 'NEW_BID' as const,
+          lotId: updatedLot.id,
+          currentPrice: Number(updatedLot.currentPrice),
+          minNextBid: Number(updatedLot.currentPrice + lot.minIncrement),
+          bidsCount: updatedLot.bidsCount,
+          leaderPublicCode: bidder.publicCode,
+          leaderMaskedName: bidder.maskedName,
+          antiSnipingExtended: timeExtended,
+          newEndTime: newEndTime.toISOString(),
+        },
       }
     })
+
+    // Transmite a atualização instantânea para todas as salas SSE conectadas
+    auctionEvents.emit('update', result.broadcast)
+
+    return {
+      bid: result.bid,
+      lot: result.lot,
+      antiSniping: result.antiSniping,
+    }
   }
 }

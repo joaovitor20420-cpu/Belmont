@@ -47,10 +47,10 @@
   - [x] 7.2 Cálculo do Selo Raiz do Lote (`lotSealHash`).
   - [x] 7.3 Verificador público de integridade sem login (detectando adulterações, inserções e deleções no banco).
 
-- [ ] **Módulo 8: Encerramento, Liquidação & Comprovantes Oficiais**
+- [x] **Módulo 8: Encerramento, Liquidação & Comprovantes Oficiais**
   - [x] 8.1 Rotina de liquidação financeira idempotente.
   - [x] 8.2 Emissão de Comprovante Oficial com código autenticado e link compartilhável.
-  - [ ] 8.3 Streaming em tempo real (SSE) para atualização instantânea da sala de pregão.
+  - [x] 8.3 Streaming em tempo real (SSE) para atualização instantânea da sala de pregão.
 
 - [ ] **Módulo 9: Front-End React (Next.js + Tailwind + shadcn/ui)**
   - [ ] 9.1 Vitrine de lotes com abas (Ao vivo, Agendados, Encerrados).
