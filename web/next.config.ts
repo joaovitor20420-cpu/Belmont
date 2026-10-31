@@ -9,6 +9,14 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: 'https',
+        hostname: 'openaccess-cdn.clevelandart.org',
+      },
+      {
+        protocol: 'https',
+        hostname: 'images.metmuseum.org',
+      },
+      {
+        protocol: 'https',
         hostname: 'images.unsplash.com',
       },
     ],
