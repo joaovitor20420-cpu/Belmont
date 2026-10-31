@@ -49,7 +49,7 @@
 
 - [ ] **Módulo 8: Encerramento, Liquidação & Comprovantes Oficiais**
   - [x] 8.1 Rotina de liquidação financeira idempotente.
-  - [ ] 8.2 Emissão de Comprovante Oficial com código autenticado e link compartilhável.
+  - [x] 8.2 Emissão de Comprovante Oficial com código autenticado e link compartilhável.
   - [ ] 8.3 Streaming em tempo real (SSE) para atualização instantânea da sala de pregão.
 
 - [ ] **Módulo 9: Front-End React (Next.js + Tailwind + shadcn/ui)**

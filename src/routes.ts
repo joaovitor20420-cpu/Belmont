@@ -16,6 +16,7 @@ import { getLotDetailsController } from './controllers/getLotDetails.js'
 import { createBidController } from './controllers/createBid.js'
 import { verifyLotAuditTrailController } from './controllers/verifyLotAuditTrail.js'
 import { settleLotController } from './controllers/settleLot.js'
+import { getReceiptByCodeController } from './controllers/getReceiptByCode.js'
 
 export async function appRoutes(app: FastifyInstance) {
   app.post(
@@ -293,5 +294,22 @@ export async function appRoutes(app: FastifyInstance) {
       },
     },
     settleLotController,
+  )
+  app.get(
+    '/receipts/:code',
+    {
+      schema: {
+        tags: ['Comprovantes'],
+        summary: 'Consultar comprovante oficial de arremate',
+        description:
+          'Retorna os dados autenticados do arremate, metadados da obra, dados pseudonimizados LGPD do arrematante e o selo de auditoria criptográfica.',
+        params: z.object({
+          code: z
+            .string()
+            .describe('Código oficial do comprovante (ex: REC-2026-A1B2C3)'),
+        }),
+      },
+    },
+    getReceiptByCodeController,
   )
 }
