@@ -247,7 +247,7 @@ export async function appRoutes(app: FastifyInstance) {
         tags: ['Lances'],
         summary: 'Dar um lance no lote',
         description:
-          'Registra um novo lance com lock pessimista, validação de incremento mínimo e bloqueio/desbloqueio atômico de saldos.',
+          'Registra um novo lance com lock pessimista, validação de incremento mínimo, bloqueio/desbloqueio atômico de saldos e mecanismo Anti-Sniping (+2 min nos minutos finais).',
         params: z.object({
           id: z.string().uuid('ID do lote inválido'),
         }),

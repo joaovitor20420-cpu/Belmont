@@ -30,6 +30,11 @@ interface CreateBidResponse {
     currentPrice: number
     bidsCount: number
     currentWinnerId: string | null
+    endTime: Date
+  }
+  antiSniping: {
+    extended: boolean
+    newEndTime: Date
   }
 }
 
@@ -172,13 +177,26 @@ export class CreateBidUseCase {
         },
       })
 
-      // 9. Atualização dos valores do Lote
+      // 9. Mecanismo de Anti-Sniping (+2 minutos nos 2 minutos finais)
+      const twoMinutesInMs = 2 * 60 * 1000 // 120.000 ms
+      const timeRemaining = lot.endTime.getTime() - now.getTime()
+
+      let timeExtended = false
+      let newEndTime = lot.endTime
+
+      if (timeRemaining <= twoMinutesInMs && timeRemaining > 0) {
+        timeExtended = true
+        newEndTime = new Date(lot.endTime.getTime() + twoMinutesInMs)
+      }
+
+      // 10. Atualização dos valores do Lote (com prorrogação se acionado Anti-Sniping)
       const updatedLot = await tx.lot.update({
         where: { id: lot.id },
         data: {
           currentPrice: BigInt(amountInCents),
           currentWinnerId: bidder.id,
           bidsCount: nextSequence,
+          endTime: newEndTime,
         },
       })
 
@@ -198,6 +216,11 @@ export class CreateBidUseCase {
           currentPrice: Number(updatedLot.currentPrice),
           bidsCount: updatedLot.bidsCount,
           currentWinnerId: updatedLot.currentWinnerId,
+          endTime: updatedLot.endTime,
+        },
+        antiSniping: {
+          extended: timeExtended,
+          newEndTime,
         },
       }
     })
