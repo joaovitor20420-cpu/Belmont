@@ -42,10 +42,10 @@
   - [x] 6.3 Liberação instantânea do saldo do líder superado e bloqueio do novo líder.
   - [x] 6.4 Mecanismo de Anti-Sniping (+2 minutos nos 2 minutos finais).
 
-- [ ] **Módulo 7: Trilha de Auditoria Criptográfica à Prova de Fraude**
+- [x] **Módulo 7: Trilha de Auditoria Criptográfica à Prova de Fraude**
   - [x] 7.1 Implementação da Hash Chain HMAC-SHA256 (`prevHash -> bidHash`).
   - [x] 7.2 Cálculo do Selo Raiz do Lote (`lotSealHash`).
-  - [ ] 7.3 Verificador público de integridade sem login (detectando adulterações, inserções e deleções no banco).
+  - [x] 7.3 Verificador público de integridade sem login (detectando adulterações, inserções e deleções no banco).
 
 - [ ] **Módulo 8: Encerramento, Liquidação & Comprovantes Oficiais**
   - [ ] 8.1 Rotina de liquidação financeira idempotente.

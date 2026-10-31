@@ -14,6 +14,7 @@ import { createLotController } from './controllers/createLot.js'
 import { listLotsController } from './controllers/listLots.js'
 import { getLotDetailsController } from './controllers/getLotDetails.js'
 import { createBidController } from './controllers/createBid.js'
+import { verifyLotAuditTrailController } from './controllers/verifyLotAuditTrail.js'
 
 export async function appRoutes(app: FastifyInstance) {
   app.post(
@@ -260,5 +261,20 @@ export async function appRoutes(app: FastifyInstance) {
       },
     },
     createBidController,
+  )
+  app.get(
+    '/audit/verify/:lotId',
+    {
+      schema: {
+        tags: ['Auditoria Criptográfica'],
+        summary: 'Verificador público de integridade da Hash Chain',
+        description:
+          'Recalcula e audita publicamente toda a cadeia criptográfica de lances do lote, detectando qualquer adulteração no banco de dados sem exigir autenticação.',
+        params: z.object({
+          lotId: z.string().uuid('ID do lote inválido'),
+        }),
+      },
+    },
+    verifyLotAuditTrailController,
   )
 }
