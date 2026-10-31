@@ -9,13 +9,17 @@ import { formatCurrency } from '@/lib/utils'
 import {
   Gavel,
   Wallet,
-  ShieldCheck,
-  User,
   LogOut,
   PlusCircle,
   LogIn,
   ChevronDown,
   Sparkles,
+  Layers,
+  ShieldCheck,
+  UserCheck,
+  X,
+  CreditCard,
+  Lock,
 } from 'lucide-react'
 
 export function Navbar() {
@@ -55,12 +59,12 @@ export function Navbar() {
           total: data.balances.totalInCents,
         })
       } catch {
-        // Silêncio se não conseguir buscar
+        // Silêncio em caso de falha de polling
       }
     }
 
     fetchBalance()
-    const interval = setInterval(fetchBalance, 10000)
+    const interval = setInterval(fetchBalance, 8000)
     return () => clearInterval(interval)
   }, [user])
 
@@ -96,113 +100,121 @@ export function Navbar() {
   }
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-slate-800 bg-slate-950/80 backdrop-blur-md">
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-        {/* Logo / Brand */}
-        <Link href="/" className="flex items-center gap-2.5 transition hover:opacity-90">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-400">
-            <Gavel className="h-5 w-5" />
+    <header className="sticky top-0 z-50 w-full border-b border-slate-800/80 bg-slate-950/85 backdrop-blur-xl">
+      <div className="mx-auto flex h-18 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+        {/* Brand / Logo */}
+        <Link href="/" className="group flex items-center gap-3 transition-opacity hover:opacity-95">
+          <div className="relative flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500/20 via-amber-600/10 to-transparent border border-amber-500/30 text-amber-400 shadow-inner shadow-amber-500/20 group-hover:border-amber-400 transition-colors">
+            <Gavel className="h-5 w-5 stroke-[1.75]" />
           </div>
           <div className="flex flex-col">
-            <span className="font-serif text-lg font-bold tracking-tight text-white flex items-center gap-1.5">
-              BELMONT <span className="text-amber-400 text-xs font-sans px-1.5 py-0.5 rounded bg-amber-400/10 border border-amber-400/20">AUCTIONS</span>
-            </span>
-            <span className="text-[10px] tracking-wider uppercase text-slate-400">
-              Casa de Leilões de Belas Artes
+            <div className="flex items-center gap-2">
+              <span className="font-serif text-lg font-bold tracking-tight text-white">
+                BELMONT
+              </span>
+              <span className="text-[10px] font-sans font-bold tracking-wider uppercase px-1.5 py-0.5 rounded bg-amber-400/15 text-amber-300 border border-amber-400/30">
+                AUCTIONS
+              </span>
+            </div>
+            <span className="text-[10px] tracking-widest uppercase font-medium text-slate-400">
+              Fine Art & Antiques • 1892
             </span>
           </div>
         </Link>
 
-        {/* Links Centrais */}
-        <nav className="hidden md:flex items-center gap-6">
+        {/* Links Centrais de Navegação */}
+        <nav className="hidden md:flex items-center gap-1 bg-slate-900/60 p-1 rounded-xl border border-slate-800/80">
           <Link
             href="/"
-            className={`text-sm font-medium transition ${
+            className={`px-4 py-2 rounded-lg text-xs font-semibold transition-all ${
               pathname === '/'
-                ? 'text-amber-400'
-                : 'text-slate-300 hover:text-white'
+                ? 'bg-slate-800 text-amber-400 shadow-sm border border-slate-700/60'
+                : 'text-slate-300 hover:text-white hover:bg-slate-800/50'
             }`}
           >
-            Vitrine de Lotes
+            <span className="flex items-center gap-1.5">
+              <Layers className="h-3.5 w-3.5" />
+              <span>Vitrine de Pregões</span>
+            </span>
           </Link>
 
           {user?.role === 'AUCTIONEER' && (
             <Link
               href="/auctioneer"
-              className={`text-sm font-medium transition flex items-center gap-1.5 ${
+              className={`px-4 py-2 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${
                 pathname === '/auctioneer'
-                  ? 'text-amber-400'
-                  : 'text-slate-300 hover:text-white'
+                  ? 'bg-purple-950/80 text-purple-300 shadow-sm border border-purple-800/60'
+                  : 'text-slate-300 hover:text-white hover:bg-slate-800/50'
               }`}
             >
-              <PlusCircle className="h-4 w-4 text-amber-400" />
-              Painel do Leiloeiro
+              <PlusCircle className="h-3.5 w-3.5 text-purple-400" />
+              <span>Painel do Leiloeiro</span>
             </Link>
           )}
 
           {user && (
             <Link
               href="/wallet"
-              className={`text-sm font-medium transition flex items-center gap-1.5 ${
+              className={`px-4 py-2 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${
                 pathname === '/wallet'
-                  ? 'text-amber-400'
-                  : 'text-slate-300 hover:text-white'
+                  ? 'bg-emerald-950/80 text-emerald-300 shadow-sm border border-emerald-800/60'
+                  : 'text-slate-300 hover:text-white hover:bg-slate-800/50'
               }`}
             >
-              <Wallet className="h-4 w-4 text-emerald-400" />
-              Carteira Digital
+              <Wallet className="h-3.5 w-3.5 text-emerald-400" />
+              <span>Carteira Digital</span>
             </Link>
           )}
         </nav>
 
-        {/* Direita: Auth & Saldo */}
+        {/* Lado Direito: Ações & Perfil */}
         <div className="flex items-center gap-3">
           {user ? (
             <div className="flex items-center gap-3">
-              {/* Saldo Disponível (se tiver) */}
+              {/* Saldo Disponível */}
               {balance !== null && (
                 <Link
                   href="/wallet"
-                  className="hidden sm:flex flex-col items-end px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 hover:border-slate-700 transition"
+                  className="hidden sm:flex flex-col items-end px-3.5 py-1.5 rounded-xl bg-slate-900/90 border border-slate-800 hover:border-emerald-500/40 transition-colors group cursor-pointer"
                   title="Saldo Disponível para Lances"
                 >
-                  <span className="text-[10px] uppercase font-semibold text-slate-400">
+                  <span className="text-[9px] uppercase font-bold tracking-wider text-slate-400 group-hover:text-emerald-400 transition-colors">
                     Disponível
                   </span>
-                  <span className="text-xs font-bold text-emerald-400">
+                  <span className="text-xs font-mono font-bold text-emerald-400">
                     {formatCurrency(balance.available)}
                   </span>
                 </Link>
               )}
 
-              {/* Informações do Usuário & Mascaramento */}
-              <div className="flex items-center gap-2 pl-2 border-l border-slate-800">
+              {/* Informações do Usuário com LGPD */}
+              <div className="flex items-center gap-2.5 pl-3 border-l border-slate-800">
                 <div className="flex flex-col items-end">
                   <div className="flex items-center gap-1.5">
                     <span className="text-xs font-semibold text-white">
                       {user.maskedName || user.name}
                     </span>
                     <span
-                      className={`text-[10px] px-1.5 py-0.2 rounded font-bold uppercase tracking-wider ${
+                      className={`text-[9px] px-1.5 py-0.5 rounded font-mono font-bold uppercase tracking-wider ${
                         user.role === 'AUCTIONEER'
-                          ? 'bg-purple-950 text-purple-300 border border-purple-800'
-                          : 'bg-blue-950 text-blue-300 border border-blue-800'
+                          ? 'bg-purple-950/80 text-purple-300 border border-purple-800/80'
+                          : 'bg-blue-950/80 text-blue-300 border border-blue-800/80'
                       }`}
                     >
                       {user.publicCode}
                     </span>
                   </div>
-                  <span className="text-[10px] text-slate-400 capitalize">
+                  <span className="text-[10px] text-slate-400">
                     {user.role === 'AUCTIONEER' ? 'Leiloeiro Oficial' : 'Licitante Habilitado'}
                   </span>
                 </div>
 
                 <button
                   onClick={logout}
-                  className="p-2 text-slate-400 hover:text-rose-400 hover:bg-slate-900 rounded-lg transition"
+                  className="p-2 text-slate-400 hover:text-rose-400 hover:bg-slate-900 rounded-xl transition-colors cursor-pointer"
                   title="Sair da Conta"
                 >
-                  <LogOut className="h-4 w-4" />
+                  <LogOut className="h-4 w-4 stroke-[1.75]" />
                 </button>
               </div>
             </div>
@@ -212,55 +224,83 @@ export function Navbar() {
               <div className="relative">
                 <button
                   onClick={() => setShowTestAccounts(!showTestAccounts)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-amber-300 bg-amber-950/40 border border-amber-800/60 rounded-lg hover:bg-amber-900/50 transition"
-                  title="Troca rápida para testes do avaliador"
+                  className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-amber-300 bg-amber-950/40 border border-amber-800/60 rounded-xl hover:bg-amber-900/50 hover:border-amber-700 transition shadow-sm cursor-pointer"
+                  title="Acesso com 1 clique para avaliação"
                 >
-                  <Sparkles className="h-3.5 w-3.5" />
+                  <Sparkles className="h-3.5 w-3.5 text-amber-400" />
                   <span>Acesso Rápido (Avaliador)</span>
                   <ChevronDown className="h-3 w-3 opacity-70" />
                 </button>
 
                 {showTestAccounts && (
-                  <div className="absolute right-0 mt-2 w-64 rounded-xl bg-slate-900 border border-slate-800 p-2 shadow-2xl z-50">
-                    <div className="px-2 py-1 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
-                      Contas Semeadas
+                  <div className="absolute right-0 mt-2 w-72 rounded-2xl bg-slate-900/95 backdrop-blur-xl border border-slate-800 p-2.5 shadow-2xl z-50">
+                    <div className="px-2.5 py-1 text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-800/80 pb-1.5 mb-1.5">
+                      Contas Pré-Configuradas (Seeds)
                     </div>
+
                     <button
                       disabled={isLoggingIn}
                       onClick={() => handleTestLogin('auctioneer@belmont.com')}
-                      className="w-full text-left p-2 rounded-lg hover:bg-slate-800 transition flex items-center justify-between text-xs"
+                      className="w-full text-left p-2.5 rounded-xl hover:bg-slate-800 transition flex items-center justify-between text-xs cursor-pointer group"
                     >
-                      <div>
-                        <div className="font-semibold text-purple-300">Leiloeiro Belmont</div>
-                        <div className="text-[10px] text-slate-400">auctioneer@belmont.com</div>
+                      <div className="flex items-center gap-2.5">
+                        <div className="h-7 w-7 rounded-lg bg-purple-950/80 border border-purple-800 text-purple-400 flex items-center justify-center">
+                          <Gavel className="h-3.5 w-3.5" />
+                        </div>
+                        <div>
+                          <div className="font-semibold text-white group-hover:text-purple-300 transition">
+                            Leiloeiro Belmont
+                          </div>
+                          <div className="text-[10px] text-slate-400 font-mono">LEI-0001</div>
+                        </div>
                       </div>
-                      <span className="text-[10px] bg-purple-950 text-purple-400 px-1.5 py-0.5 rounded border border-purple-800">
-                        LEI-0001
+                      <span className="text-[10px] text-purple-400 bg-purple-950 px-2 py-0.5 rounded border border-purple-800 font-mono font-bold">
+                        LEI
                       </span>
                     </button>
+
                     <button
                       disabled={isLoggingIn}
                       onClick={() => handleTestLogin('bidder1@belmont.com')}
-                      className="w-full text-left p-2 rounded-lg hover:bg-slate-800 transition flex items-center justify-between text-xs mt-1"
+                      className="w-full text-left p-2.5 rounded-xl hover:bg-slate-800 transition flex items-center justify-between text-xs mt-1 cursor-pointer group"
                     >
-                      <div>
-                        <div className="font-semibold text-blue-300">Licitante 1 (Carlos)</div>
-                        <div className="text-[10px] text-slate-400">bidder1@belmont.com</div>
+                      <div className="flex items-center gap-2.5">
+                        <div className="h-7 w-7 rounded-lg bg-blue-950/80 border border-blue-800 text-blue-400 flex items-center justify-center">
+                          <UserCheck className="h-3.5 w-3.5" />
+                        </div>
+                        <div>
+                          <div className="font-semibold text-white group-hover:text-blue-300 transition">
+                            Carlos Drummond
+                          </div>
+                          <div className="text-[10px] text-emerald-400 font-mono font-medium">
+                            Saldo: R$ 50.000,00
+                          </div>
+                        </div>
                       </div>
-                      <span className="text-[10px] bg-blue-950 text-blue-400 px-1.5 py-0.5 rounded border border-blue-800">
+                      <span className="text-[10px] text-blue-400 bg-blue-950 px-2 py-0.5 rounded border border-blue-800 font-mono font-bold">
                         LIC-0001
                       </span>
                     </button>
+
                     <button
                       disabled={isLoggingIn}
                       onClick={() => handleTestLogin('bidder2@belmont.com')}
-                      className="w-full text-left p-2 rounded-lg hover:bg-slate-800 transition flex items-center justify-between text-xs mt-1"
+                      className="w-full text-left p-2.5 rounded-xl hover:bg-slate-800 transition flex items-center justify-between text-xs mt-1 cursor-pointer group"
                     >
-                      <div>
-                        <div className="font-semibold text-blue-300">Licitante 2 (Mariana)</div>
-                        <div className="text-[10px] text-slate-400">bidder2@belmont.com</div>
+                      <div className="flex items-center gap-2.5">
+                        <div className="h-7 w-7 rounded-lg bg-blue-950/80 border border-blue-800 text-blue-400 flex items-center justify-center">
+                          <UserCheck className="h-3.5 w-3.5" />
+                        </div>
+                        <div>
+                          <div className="font-semibold text-white group-hover:text-blue-300 transition">
+                            Mariana Ximenes
+                          </div>
+                          <div className="text-[10px] text-emerald-400 font-mono font-medium">
+                            Saldo: R$ 50.000,00
+                          </div>
+                        </div>
                       </div>
-                      <span className="text-[10px] bg-blue-950 text-blue-400 px-1.5 py-0.5 rounded border border-blue-800">
+                      <span className="text-[10px] text-blue-400 bg-blue-950 px-2 py-0.5 rounded border border-blue-800 font-mono font-bold">
                         LIC-0002
                       </span>
                     </button>
@@ -268,10 +308,10 @@ export function Navbar() {
                 )}
               </div>
 
-              {/* Botão de Login Tradicional */}
+              {/* Botão Entrar Tradicional */}
               <button
                 onClick={() => setShowLoginModal(true)}
-                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-200 bg-slate-900 border border-slate-700 rounded-lg hover:bg-slate-800 transition"
+                className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-slate-200 bg-slate-900 border border-slate-700/80 rounded-xl hover:bg-slate-800 hover:text-white transition cursor-pointer"
               >
                 <LogIn className="h-3.5 w-3.5" />
                 <span>Entrar</span>
@@ -281,50 +321,51 @@ export function Navbar() {
         </div>
       </div>
 
-      {/* Modal de Login */}
+      {/* Modal de Login Elegante */}
       {showLoginModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
-          <div className="w-full max-w-md rounded-2xl bg-slate-900 border border-slate-800 p-6 shadow-2xl relative">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-md p-4">
+          <div className="w-full max-w-md rounded-3xl bg-slate-900 border border-slate-800 p-8 shadow-2xl relative animate-in fade-in zoom-in-95 duration-200">
             <button
               onClick={() => setShowLoginModal(false)}
-              className="absolute top-4 right-4 text-slate-400 hover:text-white"
+              className="absolute top-5 right-5 text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition cursor-pointer"
             >
-              ✕
+              <X className="h-5 w-5" />
             </button>
-            <div className="flex items-center gap-2 mb-4">
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-400">
-                <Gavel className="h-5 w-5" />
+
+            <div className="flex items-center gap-3 mb-6">
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-amber-500/10 border border-amber-500/25 text-amber-400">
+                <Gavel className="h-5 w-5 stroke-[1.75]" />
               </div>
               <div>
-                <h3 className="text-base font-bold text-white">Entrar na Sala de Leilões</h3>
-                <p className="text-xs text-slate-400">Informe suas credenciais para continuar</p>
+                <h3 className="text-lg font-serif font-bold text-white">Acesso à Sala de Pregão</h3>
+                <p className="text-xs text-slate-400">Informe suas credenciais ou use o acesso de teste</p>
               </div>
             </div>
 
             {loginError && (
-              <div className="mb-4 rounded-lg bg-rose-950/50 border border-rose-800 p-2.5 text-xs text-rose-300">
+              <div className="mb-4 rounded-xl bg-rose-950/60 border border-rose-800/80 p-3 text-xs text-rose-300">
                 {loginError}
               </div>
             )}
 
             <form onSubmit={handleManualLogin} className="space-y-4">
               <div>
-                <label className="block text-xs font-medium text-slate-300 mb-1">
-                  E-mail
+                <label className="block text-xs font-medium text-slate-300 mb-1.5">
+                  E-mail institucional ou licitante
                 </label>
                 <input
                   type="email"
                   required
                   value={emailInput}
                   onChange={(e) => setEmailInput(e.target.value)}
-                  placeholder="seu@email.com"
-                  className="w-full rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-500"
+                  placeholder="licitante@belmont.com"
+                  className="w-full rounded-xl bg-slate-950 border border-slate-800 px-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500 transition"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-slate-300 mb-1">
-                  Senha
+                <label className="block text-xs font-medium text-slate-300 mb-1.5">
+                  Senha de acesso
                 </label>
                 <input
                   type="password"
@@ -332,16 +373,16 @@ export function Navbar() {
                   value={passwordInput}
                   onChange={(e) => setPasswordInput(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-500"
+                  className="w-full rounded-xl bg-slate-950 border border-slate-800 px-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500 transition"
                 />
               </div>
 
               <button
                 type="submit"
                 disabled={isLoggingIn}
-                className="w-full rounded-lg bg-amber-500 hover:bg-amber-400 py-2.5 text-sm font-bold text-slate-950 transition disabled:opacity-50"
+                className="w-full rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 py-3 text-xs font-bold text-slate-950 transition shadow-lg shadow-amber-500/20 disabled:opacity-50 cursor-pointer"
               >
-                {isLoggingIn ? 'Conectando...' : 'Acessar Sala'}
+                {isLoggingIn ? 'Autenticando...' : 'Entrar na Sala'}
               </button>
             </form>
           </div>

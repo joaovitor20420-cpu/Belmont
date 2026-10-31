@@ -13,6 +13,10 @@ import {
   Sparkles,
   ArrowRight,
   Search,
+  Radio,
+  Calendar,
+  Award,
+  Layers,
 } from 'lucide-react'
 
 interface LotItem {
@@ -71,121 +75,124 @@ export default function HomePage() {
   )
 
   return (
-    <div className="min-h-screen bg-slate-950 pb-20">
-      {/* Hero Section */}
-      <section className="relative overflow-hidden border-b border-slate-900 bg-gradient-to-b from-slate-900/60 via-slate-950 to-slate-950 py-16 sm:py-24">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(212,175,55,0.12),rgba(255,255,255,0))]"></div>
+    <div className="min-h-screen bg-slate-950 pb-24">
+      {/* Hero Section com iluminação sutil de galeria */}
+      <section className="relative overflow-hidden border-b border-slate-900 bg-gradient-to-b from-slate-900/50 via-slate-950 to-slate-950 py-20 sm:py-28">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_50%_at_50%_0%,rgba(212,175,55,0.09),transparent)] pointer-events-none" />
         <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 text-center">
-          <div className="inline-flex items-center gap-2 rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1 text-xs font-semibold text-amber-400 mb-6 backdrop-blur-sm">
-            <Sparkles className="h-3.5 w-3.5" />
-            <span>Belas Artes & Acervo Histórico do Art Institute of Chicago</span>
+          <div className="inline-flex items-center gap-2 rounded-full border border-amber-500/30 bg-amber-500/10 px-4 py-1.5 text-xs font-semibold text-amber-300 mb-8 backdrop-blur-md shadow-sm">
+            <Sparkles className="h-3.5 w-3.5 text-amber-400" />
+            <span className="tracking-wide">Acervo Internacional • Art Institute of Chicago API</span>
           </div>
 
-          <h1 className="text-4xl sm:text-6xl font-serif font-extrabold tracking-tight text-white max-w-4xl mx-auto leading-tight">
-            Leilões Exclusivos com{' '}
-            <span className="gold-gradient-text">Pregão em Tempo Real</span>
+          <h1 className="text-4xl sm:text-6xl lg:text-7xl font-serif font-black tracking-tight text-white max-w-4xl mx-auto leading-[1.1]">
+            Obras Raras.{' '}
+            <span className="gold-gradient-text">Pregão em Tempo Real.</span>
           </h1>
 
-          <p className="mt-6 text-base sm:text-lg text-slate-400 max-w-2xl mx-auto">
-            Dispute obras-primas com lances instantâneos via Server-Sent Events, proteção inteligente contra snipe e auditoria criptográfica HMAC-SHA256 à prova de manipulação.
+          <p className="mt-6 text-sm sm:text-base text-slate-400 max-w-2xl mx-auto leading-relaxed">
+            Plataforma institucional de alta fidelidade com motor de lances de concorrência estrita, proteção Anti-Sniping e trilha criptográfica HMAC-SHA256 à prova de manipulação no banco.
           </p>
 
-          <div className="mt-8 flex flex-wrap items-center justify-center gap-4 text-xs text-slate-400">
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-900/80 border border-slate-800">
-              <Flame className="h-4 w-4 text-rose-500" />
-              <span>Anti-Sniping (+2 min)</span>
+          {/* Selos de Garantia e Tecnologia */}
+          <div className="mt-10 flex flex-wrap items-center justify-center gap-3 text-xs text-slate-400">
+            <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-900/80 border border-slate-800 shadow-sm">
+              <Flame className="h-4 w-4 text-rose-400" />
+              <span className="font-medium text-slate-300">Anti-Sniping (+120s)</span>
             </div>
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-900/80 border border-slate-800">
+            <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-900/80 border border-slate-800 shadow-sm">
               <ShieldCheck className="h-4 w-4 text-emerald-400" />
-              <span>Cadeia de Hash Criptográfica</span>
+              <span className="font-medium text-slate-300">Hash Chain HMAC-SHA256</span>
             </div>
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-900/80 border border-slate-800">
-              <CheckCircle2 className="h-4 w-4 text-amber-400" />
-              <span>Comprovante com Selo Raiz</span>
+            <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-900/80 border border-slate-800 shadow-sm">
+              <Award className="h-4 w-4 text-amber-400" />
+              <span className="font-medium text-slate-300">Certificado com Selo Raiz</span>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Main Content Area */}
-      <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-10">
-        {/* Filtros e Abas */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-b border-slate-800 pb-5">
-          <div className="flex items-center gap-2 p-1 bg-slate-900/80 border border-slate-800 rounded-xl w-full sm:w-auto">
+      {/* Catálogo de Lotes */}
+      <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-12">
+        {/* Barra de Filtros e Busca */}
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-b border-slate-800/80 pb-6">
+          {/* Abas com indicador de status */}
+          <div className="flex items-center gap-1.5 p-1 bg-slate-900/80 border border-slate-800 rounded-2xl w-full sm:w-auto">
             <button
               onClick={() => setActiveTab('LIVE')}
-              className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition ${
+              className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                 activeTab === 'LIVE'
-                  ? 'bg-amber-500 text-slate-950 shadow-md'
-                  : 'text-slate-400 hover:text-white'
+                  ? 'bg-amber-500 text-slate-950 shadow-md shadow-amber-500/20'
+                  : 'text-slate-400 hover:text-white hover:bg-slate-800/40'
               }`}
             >
               <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
               </span>
-              Ao Vivo
+              <span>Ao Vivo</span>
             </button>
 
             <button
               onClick={() => setActiveTab('SCHEDULED')}
-              className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition ${
+              className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                 activeTab === 'SCHEDULED'
-                  ? 'bg-amber-500 text-slate-950 shadow-md'
-                  : 'text-slate-400 hover:text-white'
+                  ? 'bg-amber-500 text-slate-950 shadow-md shadow-amber-500/20'
+                  : 'text-slate-400 hover:text-white hover:bg-slate-800/40'
               }`}
             >
-              <Clock className="h-3.5 w-3.5" />
-              Agendados
+              <Calendar className="h-3.5 w-3.5" />
+              <span>Agendados</span>
             </button>
 
             <button
               onClick={() => setActiveTab('ENDED')}
-              className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition ${
+              className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                 activeTab === 'ENDED'
-                  ? 'bg-amber-500 text-slate-950 shadow-md'
-                  : 'text-slate-400 hover:text-white'
+                  ? 'bg-amber-500 text-slate-950 shadow-md shadow-amber-500/20'
+                  : 'text-slate-400 hover:text-white hover:bg-slate-800/40'
               }`}
             >
               <CheckCircle2 className="h-3.5 w-3.5" />
-              Encerrados
+              <span>Encerrados</span>
             </button>
           </div>
 
-          {/* Barra de Busca */}
-          <div className="relative w-full sm:w-72">
-            <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-500" />
+          {/* Campo de Busca */}
+          <div className="relative w-full sm:w-80">
+            <Search className="absolute left-3.5 top-3 h-4 w-4 text-slate-500" />
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Buscar por obra ou artista..."
-              className="w-full rounded-xl bg-slate-900 border border-slate-800 pl-9 pr-4 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500"
+              placeholder="Buscar por obra ou mestre..."
+              className="w-full rounded-2xl bg-slate-900/90 border border-slate-800 pl-10 pr-4 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500 transition shadow-inner"
             />
           </div>
         </div>
 
-        {/* Grade de Lotes */}
+        {/* Listagem de Lotes */}
         {isLoading ? (
-          <div className="py-20 text-center text-sm text-slate-500">
-            Carregando catálogo de leilões...
+          <div className="py-24 text-center">
+            <div className="inline-flex h-8 w-8 animate-spin rounded-full border-2 border-amber-500 border-t-transparent mb-3" />
+            <div className="text-xs text-slate-400">Carregando acervo oficial...</div>
           </div>
         ) : filteredLots.length === 0 ? (
-          <div className="py-24 text-center">
+          <div className="py-28 text-center rounded-3xl border border-slate-900 bg-slate-900/20 my-6">
             <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-900 border border-slate-800 text-slate-500 mb-4">
-              <Gavel className="h-7 w-7" />
+              <Gavel className="h-7 w-7 stroke-[1.5]" />
             </div>
-            <h3 className="text-base font-semibold text-white">
-              Nenhum lote encontrado nesta categoria
+            <h3 className="text-base font-serif font-bold text-white">
+              Nenhum lote disponível nesta categoria
             </h3>
             <p className="mt-1 text-xs text-slate-400 max-w-sm mx-auto">
               {activeTab === 'LIVE'
-                ? 'Não há leilões em andamento neste momento. O leiloeiro pode criar um novo lote através do Painel do Leiloeiro.'
-                : 'Nenhum registro corresponde aos filtros selecionados.'}
+                ? 'Não há leilões ao vivo no momento. Novos lotes podem ser publicados pelo Painel do Leiloeiro.'
+                : 'Nenhum resultado corresponde aos filtros aplicados.'}
             </p>
           </div>
         ) : (
-          <div className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="mt-10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {filteredLots.map((lot) => {
               const remainingMs = new Date(lot.endTime).getTime() - now
               const isClosingSoon = remainingMs > 0 && remainingMs <= 120000
@@ -193,85 +200,90 @@ export default function HomePage() {
               return (
                 <div
                   key={lot.id}
-                  className="group relative flex flex-col rounded-2xl bg-slate-900/60 border border-slate-800/80 overflow-hidden hover:border-amber-500/40 transition duration-300 shadow-lg hover:shadow-amber-500/5"
+                  className="group relative flex flex-col rounded-3xl bg-slate-900/50 border border-slate-800/80 overflow-hidden hover:border-amber-500/40 transition-all duration-300 shadow-xl hover:shadow-2xl hover:shadow-amber-500/5"
                 >
-                  {/* Imagem do Lote */}
-                  <div className="relative h-60 w-full overflow-hidden bg-slate-950">
+                  {/* Moldura da Obra */}
+                  <div className="relative h-64 w-full overflow-hidden bg-slate-950">
                     <img
                       src={lot.imageUrl}
                       alt={lot.title}
-                      className="h-full w-full object-cover object-center group-hover:scale-105 transition duration-500"
+                      className="h-full w-full object-cover object-center group-hover:scale-105 transition-transform duration-500 ease-out"
                       onError={(e) => {
                         ;(e.target as HTMLImageElement).src =
                           'https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?w=800&auto=format&fit=crop'
                       }}
                     />
 
-                    {/* Badge de Status */}
-                    <div className="absolute top-3 left-3 flex items-center gap-2">
+                    {/* Gradient Overlay na Imagem */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent opacity-80" />
+
+                    {/* Badge de Status Superior */}
+                    <div className="absolute top-3.5 left-3.5 flex items-center gap-2">
                       {lot.status === 'LIVE' && (
                         <span
-                          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold backdrop-blur-md ${
+                          className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold backdrop-blur-md shadow-md ${
                             isClosingSoon
-                              ? 'bg-rose-500/90 text-white animate-pulse'
-                              : 'bg-emerald-950/80 text-emerald-300 border border-emerald-500/30'
+                              ? 'bg-rose-600/90 text-white animate-pulse'
+                              : 'bg-emerald-950/85 text-emerald-300 border border-emerald-500/40'
                           }`}
                         >
                           <span className="h-1.5 w-1.5 rounded-full bg-emerald-400"></span>
-                          {isClosingSoon ? 'RETA FINAL (+ANTI-SNIPE)' : 'AO VIVO'}
+                          <span>{isClosingSoon ? 'RETA FINAL (+ANTI-SNIPE)' : 'AO VIVO'}</span>
                         </span>
                       )}
 
                       {lot.status === 'SCHEDULED' && (
-                        <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-blue-950/80 text-blue-300 border border-blue-500/30 backdrop-blur-md">
-                          <Clock className="h-3 w-3" />
-                          EM BREVE
+                        <span className="flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-blue-950/85 text-blue-300 border border-blue-500/40 backdrop-blur-md shadow-md">
+                          <Calendar className="h-3 w-3" />
+                          <span>EM BREVE</span>
                         </span>
                       )}
 
                       {lot.status === 'ENDED' && (
-                        <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-slate-950/80 text-slate-300 border border-slate-700 backdrop-blur-md">
-                          ENCERRADO
+                        <span className="flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-slate-950/90 text-slate-300 border border-slate-700 backdrop-blur-md shadow-md">
+                          <CheckCircle2 className="h-3 w-3 text-slate-400" />
+                          <span>ENCERRADO</span>
                         </span>
                       )}
                     </div>
 
-                    {/* Contador Regressivo sobreposto */}
+                    {/* Badge de Contagem Regressiva Inferior */}
                     {lot.status === 'LIVE' && (
-                      <div className="absolute bottom-3 right-3 rounded-lg bg-slate-950/80 backdrop-blur-md px-2.5 py-1 text-xs font-mono font-semibold text-white border border-slate-800">
-                        ⏱️ {formatTimeRemaining(remainingMs)}
+                      <div className="absolute bottom-3 right-3 flex items-center gap-1.5 rounded-xl bg-slate-950/90 backdrop-blur-md px-3 py-1 text-xs font-mono font-bold text-amber-300 border border-slate-800 shadow-md">
+                        <Clock className="h-3 w-3 text-amber-400" />
+                        <span>{formatTimeRemaining(remainingMs)}</span>
                       </div>
                     )}
                   </div>
 
-                  {/* Detalhes do Lote */}
-                  <div className="flex flex-1 flex-col p-5">
-                    <div className="mb-2">
-                      <span className="text-[11px] font-medium uppercase tracking-wider text-amber-400/90">
-                        {lot.artist || 'Artista Renomado'}
+                  {/* Corpo do Card */}
+                  <div className="flex flex-1 flex-col p-6">
+                    <div className="mb-3">
+                      <span className="text-[11px] font-bold uppercase tracking-wider text-amber-400/90 block">
+                        {lot.artist || 'Mestre Renomado'}
                       </span>
-                      <h3 className="font-serif text-lg font-bold text-white line-clamp-1 group-hover:text-amber-300 transition">
+                      <h3 className="font-serif text-xl font-bold text-white line-clamp-1 group-hover:text-amber-300 transition-colors mt-0.5">
                         {lot.title}
                       </h3>
                     </div>
 
-                    <p className="text-xs text-slate-400 line-clamp-2 mb-4">
+                    <p className="text-xs text-slate-400 line-clamp-2 leading-relaxed mb-5">
                       {lot.description}
                     </p>
 
-                    {/* Preços e Lances */}
+                    {/* Valores e Disputa */}
                     <div className="mt-auto pt-4 border-t border-slate-800/80 flex items-center justify-between">
                       <div>
-                        <span className="text-[10px] uppercase font-semibold text-slate-400 block">
+                        <span className="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">
                           {lot.status === 'ENDED' ? 'Arrematado por' : 'Lance Atual'}
                         </span>
-                        <span className="font-mono text-base font-bold text-white">
+                        <span className="font-mono text-lg font-extrabold text-white">
                           {formatCurrency(lot.currentPrice || lot.startPrice)}
                         </span>
                       </div>
 
                       <div className="text-right">
-                        <span className="text-[10px] uppercase font-semibold text-slate-400 block">
+                        <span className="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">
                           Disputa
                         </span>
                         <span className="text-xs font-semibold text-amber-400">
@@ -281,12 +293,12 @@ export default function HomePage() {
                     </div>
 
                     {/* Botão de Ação */}
-                    <div className="mt-4 pt-2">
+                    <div className="mt-5">
                       <Link
                         href={`/lots/${lot.id}`}
-                        className={`w-full flex items-center justify-center gap-2 rounded-xl py-2.5 px-4 text-xs font-bold transition ${
+                        className={`w-full flex items-center justify-center gap-2 rounded-2xl py-3 px-4 text-xs font-bold transition-all cursor-pointer ${
                           lot.status === 'LIVE'
-                            ? 'bg-amber-500 hover:bg-amber-400 text-slate-950 shadow-md shadow-amber-500/10'
+                            ? 'bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 shadow-lg shadow-amber-500/15'
                             : 'bg-slate-800 hover:bg-slate-700 text-white'
                         }`}
                       >
@@ -295,7 +307,7 @@ export default function HomePage() {
                             ? 'Entrar no Pregão Ao Vivo'
                             : 'Ver Detalhes & Auditoria'}
                         </span>
-                        <ArrowRight className="h-3.5 w-3.5" />
+                        <ArrowRight className="h-4 w-4" />
                       </Link>
                     </div>
                   </div>
