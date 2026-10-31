@@ -24,7 +24,7 @@ interface LotItem {
   startPrice: number
   currentPrice: number
   minIncrement: number
-  status: 'OPEN' | 'SCHEDULED' | 'CLOSED'
+  status: 'SCHEDULED' | 'LIVE' | 'ENDED' | 'CANCELLED'
   startTime: string
   endTime: string
   bidsCount: number
@@ -37,7 +37,7 @@ interface LotItem {
 
 export default function HomePage() {
   const [lots, setLots] = useState<LotItem[]>([])
-  const [activeTab, setActiveTab] = useState<'OPEN' | 'SCHEDULED' | 'CLOSED'>('OPEN')
+  const [activeTab, setActiveTab] = useState<'LIVE' | 'SCHEDULED' | 'ENDED'>('LIVE')
   const [isLoading, setIsLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
   const [now, setNow] = useState(Date.now())
@@ -113,9 +113,9 @@ export default function HomePage() {
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-b border-slate-800 pb-5">
           <div className="flex items-center gap-2 p-1 bg-slate-900/80 border border-slate-800 rounded-xl w-full sm:w-auto">
             <button
-              onClick={() => setActiveTab('OPEN')}
+              onClick={() => setActiveTab('LIVE')}
               className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition ${
-                activeTab === 'OPEN'
+                activeTab === 'LIVE'
                   ? 'bg-amber-500 text-slate-950 shadow-md'
                   : 'text-slate-400 hover:text-white'
               }`}
@@ -140,9 +140,9 @@ export default function HomePage() {
             </button>
 
             <button
-              onClick={() => setActiveTab('CLOSED')}
+              onClick={() => setActiveTab('ENDED')}
               className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition ${
-                activeTab === 'CLOSED'
+                activeTab === 'ENDED'
                   ? 'bg-amber-500 text-slate-950 shadow-md'
                   : 'text-slate-400 hover:text-white'
               }`}
@@ -179,7 +179,7 @@ export default function HomePage() {
               Nenhum lote encontrado nesta categoria
             </h3>
             <p className="mt-1 text-xs text-slate-400 max-w-sm mx-auto">
-              {activeTab === 'OPEN'
+              {activeTab === 'LIVE'
                 ? 'Não há leilões em andamento neste momento. O leiloeiro pode criar um novo lote através do Painel do Leiloeiro.'
                 : 'Nenhum registro corresponde aos filtros selecionados.'}
             </p>
@@ -209,7 +209,7 @@ export default function HomePage() {
 
                     {/* Badge de Status */}
                     <div className="absolute top-3 left-3 flex items-center gap-2">
-                      {lot.status === 'OPEN' && (
+                      {lot.status === 'LIVE' && (
                         <span
                           className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold backdrop-blur-md ${
                             isClosingSoon
@@ -229,7 +229,7 @@ export default function HomePage() {
                         </span>
                       )}
 
-                      {lot.status === 'CLOSED' && (
+                      {lot.status === 'ENDED' && (
                         <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-slate-950/80 text-slate-300 border border-slate-700 backdrop-blur-md">
                           ENCERRADO
                         </span>
@@ -237,7 +237,7 @@ export default function HomePage() {
                     </div>
 
                     {/* Contador Regressivo sobreposto */}
-                    {lot.status === 'OPEN' && (
+                    {lot.status === 'LIVE' && (
                       <div className="absolute bottom-3 right-3 rounded-lg bg-slate-950/80 backdrop-blur-md px-2.5 py-1 text-xs font-mono font-semibold text-white border border-slate-800">
                         ⏱️ {formatTimeRemaining(remainingMs)}
                       </div>
@@ -263,7 +263,7 @@ export default function HomePage() {
                     <div className="mt-auto pt-4 border-t border-slate-800/80 flex items-center justify-between">
                       <div>
                         <span className="text-[10px] uppercase font-semibold text-slate-400 block">
-                          {lot.status === 'CLOSED' ? 'Arrematado por' : 'Lance Atual'}
+                          {lot.status === 'ENDED' ? 'Arrematado por' : 'Lance Atual'}
                         </span>
                         <span className="font-mono text-base font-bold text-white">
                           {formatCurrency(lot.currentPrice || lot.startPrice)}
@@ -285,13 +285,13 @@ export default function HomePage() {
                       <Link
                         href={`/lots/${lot.id}`}
                         className={`w-full flex items-center justify-center gap-2 rounded-xl py-2.5 px-4 text-xs font-bold transition ${
-                          lot.status === 'OPEN'
+                          lot.status === 'LIVE'
                             ? 'bg-amber-500 hover:bg-amber-400 text-slate-950 shadow-md shadow-amber-500/10'
                             : 'bg-slate-800 hover:bg-slate-700 text-white'
                         }`}
                       >
                         <span>
-                          {lot.status === 'OPEN'
+                          {lot.status === 'LIVE'
                             ? 'Entrar no Pregão Ao Vivo'
                             : 'Ver Detalhes & Auditoria'}
                         </span>

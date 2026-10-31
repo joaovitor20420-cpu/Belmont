@@ -20,22 +20,20 @@ import {
 interface ReceiptData {
   receipt: {
     code: string
-    amount: number
+    finalAmountInCents: number
+    finalAmountFormatted: string
+    lotSealHash: string
     settledAt: string
-    winner: {
-      publicCode: string
-      maskedName: string
-    }
     lot: {
       id: string
       title: string
-      description: string
-      imageUrl: string
       artist: string | null
-      startPrice: number
-      lotSealHash: string
-      startTime: string
-      endTime: string
+      imageUrl: string
+      totalBids: number
+    }
+    winner: {
+      publicCode: string
+      maskedName: string
     }
   }
 }
@@ -191,12 +189,12 @@ export default function ReceiptShareablePage({
                 </h3>
               </div>
               <p className="text-xs text-slate-400 leading-relaxed">
-                {receipt.lot.description}
+                Obra oficial arrematada e autenticada pela Belmont Auctions com registro criptográfico em cadeia.
               </p>
               <div className="pt-2 flex items-center gap-4 text-xs text-slate-400">
                 <span>Lote ID: <code className="text-slate-300 font-mono">{receipt.lot.id.slice(0, 8)}</code></span>
                 <span>•</span>
-                <span>Início: <span className="text-slate-300 font-mono">{formatCurrency(receipt.lot.startPrice)}</span></span>
+                <span>Disputa: <span className="text-slate-300 font-semibold">{receipt.lot.totalBids} lances</span></span>
               </div>
             </div>
           </div>
@@ -208,7 +206,7 @@ export default function ReceiptShareablePage({
                 Valor Final de Arremate
               </span>
               <span className="font-serif text-2xl sm:text-3xl font-extrabold text-emerald-400 mt-1 block">
-                {formatCurrency(receipt.amount)}
+                {receipt.finalAmountFormatted}
               </span>
               <span className="text-[10px] text-slate-400 block mt-1">Liquidado via Carteira</span>
             </div>
@@ -251,7 +249,7 @@ export default function ReceiptShareablePage({
 
                 <div className="flex items-center gap-2">
                   <button
-                    onClick={() => handleCopyHash(receipt.lot.lotSealHash)}
+                    onClick={() => handleCopyHash(receipt.lotSealHash)}
                     className="flex items-center gap-1 text-[11px] font-semibold text-slate-400 hover:text-white transition"
                   >
                     {copiedHash ? <Check className="h-3 w-3 text-emerald-400" /> : <Copy className="h-3 w-3" />}
@@ -269,7 +267,7 @@ export default function ReceiptShareablePage({
               </div>
 
               <div className="p-2.5 rounded-lg bg-slate-900 border border-slate-800 font-mono text-[10px] text-emerald-300 break-all select-all">
-                {receipt.lot.lotSealHash}
+                {receipt.lotSealHash}
               </div>
               <p className="mt-2 text-[10px] text-slate-400">
                 Este hash é o selo criptográfico HMAC-SHA256 gerado a partir de toda a cadeia de lances. Qualquer adulteração retroativa quebra a prova matemática de integridade.

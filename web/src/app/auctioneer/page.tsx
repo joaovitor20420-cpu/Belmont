@@ -19,12 +19,12 @@ import {
 } from 'lucide-react'
 
 interface ArtworkSearchResult {
-  id: number
+  id: string
   title: string
-  artistDisplay: string | null
+  artistTitle: string | null
   dateDisplay: string | null
   mediumDisplay: string | null
-  imageUrl: string
+  imageUrl: string | null
   isPublicDomain: boolean
 }
 
@@ -42,7 +42,7 @@ export default function AuctioneerPanelPage() {
   const [description, setDescription] = useState('')
   const [artist, setArtist] = useState('')
   const [imageUrl, setImageUrl] = useState('')
-  const [externalApiId, setExternalApiId] = useState<number | null>(null)
+  const [externalApiId, setExternalApiId] = useState<string | null>(null)
   const [startPrice, setStartPrice] = useState('5000') // em reais
   const [minIncrement, setMinIncrement] = useState('200') // em reais
   const [durationMinutes, setDurationMinutes] = useState('60')
@@ -60,10 +60,10 @@ export default function AuctioneerPanelPage() {
     setIsSearchingArt(true)
     setSearchError('')
     try {
-      const data = await apiRequest<{ artworks: ArtworkSearchResult[] }>(
-        `/artworks/search?q=${encodeURIComponent(artQuery.trim())}&limit=6`,
+      const data = await apiRequest<{ items: ArtworkSearchResult[] }>(
+        `/artworks/search?query=${encodeURIComponent(artQuery.trim())}&limit=6`,
       )
-      setArtworks(data.artworks || [])
+      setArtworks(data.items || [])
     } catch (err: any) {
       setSearchError(err.message || 'Erro ao consultar o catálogo do Art Institute.')
     } finally {
@@ -74,9 +74,9 @@ export default function AuctioneerPanelPage() {
   // Preenche formulário com dados da obra selecionada
   const handleSelectArtwork = (art: ArtworkSearchResult) => {
     setTitle(art.title)
-    setArtist(art.artistDisplay || 'Artista Renomado')
-    setImageUrl(art.imageUrl)
-    setExternalApiId(art.id)
+    setArtist(art.artistTitle || 'Artista Renomado')
+    setImageUrl(art.imageUrl || '')
+    setExternalApiId(art.id ? String(art.id) : null)
     setDescription(
       `Obra do acervo do Art Institute of Chicago (#${art.id}).\n${art.mediumDisplay || 'Técnica Mista'} - ${art.dateDisplay || 'Data não informada'}.\nDomínio público verificado internacionalmente.`,
     )
@@ -98,14 +98,14 @@ export default function AuctioneerPanelPage() {
     ).toISOString()
 
     try {
-      const data = await apiRequest<{ lot: { id: string } }>('/lots', {
+      await apiRequest<{ lot: { id: string } }>('/lots', {
         method: 'POST',
         body: JSON.stringify({
           title,
           description,
           imageUrl,
           artist,
-          externalApiId,
+          externalApiId: externalApiId ? String(externalApiId) : null,
           startPriceInCents: Math.round(parseFloat(startPrice) * 100),
           minIncrementInCents: Math.round(parseFloat(minIncrement) * 100),
           startTime,
@@ -233,7 +233,7 @@ export default function AuctioneerPanelPage() {
                   <div>
                     <div className="relative h-44 w-full rounded-lg overflow-hidden bg-slate-900 mb-2">
                       <img
-                        src={art.imageUrl}
+                        src={art.imageUrl || ''}
                         alt={art.title}
                         className="h-full w-full object-cover group-hover:scale-105 transition"
                         onError={(e) => {
@@ -246,7 +246,7 @@ export default function AuctioneerPanelPage() {
                       </span>
                     </div>
                     <div className="text-[10px] uppercase font-bold text-amber-400/90 truncate">
-                      {art.artistDisplay || 'Artista Desconhecido'}
+                      {art.artistTitle || 'Artista Desconhecido'}
                     </div>
                     <h4 className="text-xs font-bold text-white line-clamp-1">{art.title}</h4>
                     <p className="text-[10px] text-slate-400 line-clamp-1 mt-0.5">

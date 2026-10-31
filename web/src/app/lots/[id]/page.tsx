@@ -43,7 +43,7 @@ interface LotDetails {
   startPrice: number
   currentPrice: number
   minIncrement: number
-  status: 'OPEN' | 'SCHEDULED' | 'CLOSED'
+  status: 'SCHEDULED' | 'LIVE' | 'ENDED' | 'CANCELLED'
   startTime: string
   endTime: string
   bidsCount: number
@@ -168,7 +168,7 @@ export default function LotAuctionRoomPage({
               if (!prev) return prev
               return {
                 ...prev,
-                status: 'CLOSED',
+                status: 'ENDED',
                 currentPrice: payload.finalPrice,
                 lotSealHash: payload.rootSealHash || prev.lotSealHash,
                 receipt: { publicCode: payload.receiptCode },
@@ -319,7 +319,7 @@ export default function LotAuctionRoomPage({
               <span>Ver Trilha de Auditoria</span>
             </Link>
 
-            {lot.status === 'CLOSED' && lot.receipt?.publicCode && (
+            {lot.status === 'ENDED' && lot.receipt?.publicCode && (
               <Link
                 href={`/receipts/${lot.receipt.publicCode}`}
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-950/40 border border-amber-800/60 text-xs font-semibold text-amber-300 hover:bg-amber-900/50 transition"
@@ -415,12 +415,12 @@ export default function LotAuctionRoomPage({
               <div className="flex items-center justify-between pb-4 border-b border-slate-800">
                 <div className="flex items-center gap-2">
                   <span className="relative flex h-2.5 w-2.5">
-                    {lot.status === 'OPEN' && (
+                    {lot.status === 'LIVE' && (
                       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                     )}
                     <span
                       className={`relative inline-flex rounded-full h-2.5 w-2.5 ${
-                        lot.status === 'OPEN'
+                        lot.status === 'LIVE'
                           ? 'bg-emerald-500'
                           : lot.status === 'SCHEDULED'
                           ? 'bg-blue-500'
@@ -429,7 +429,7 @@ export default function LotAuctionRoomPage({
                     ></span>
                   </span>
                   <span className="text-xs font-bold uppercase tracking-wider text-slate-300">
-                    {lot.status === 'OPEN'
+                    {lot.status === 'LIVE'
                       ? 'Sala do Pregão Ao Vivo'
                       : lot.status === 'SCHEDULED'
                       ? 'Pregão Agendado'
@@ -438,7 +438,7 @@ export default function LotAuctionRoomPage({
                 </div>
 
                 {/* Tempo Restante */}
-                {lot.status === 'OPEN' && (
+                {lot.status === 'LIVE' && (
                   <div
                     className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-mono font-bold ${
                       isClosingSoon
@@ -455,7 +455,7 @@ export default function LotAuctionRoomPage({
               {/* Preço Atual e Líder */}
               <div className="py-6 text-center">
                 <span className="text-xs uppercase font-semibold text-slate-400 tracking-wider">
-                  {lot.status === 'CLOSED' ? 'Preço Final de Arremate' : 'Lance Atual'}
+                  {lot.status === 'ENDED' ? 'Preço Final de Arremate' : 'Lance Atual'}
                 </span>
                 <div className="font-serif text-4xl sm:text-5xl font-black text-white mt-1">
                   {formatCurrency(lot.currentPrice || lot.startPrice)}
@@ -487,7 +487,7 @@ export default function LotAuctionRoomPage({
               </div>
 
               {/* Seção de Dar Lance (se aberto) */}
-              {lot.status === 'OPEN' && !isExpired && (
+              {lot.status === 'LIVE' && !isExpired && (
                 <div className="mt-2 pt-6 border-t border-slate-800 space-y-4">
                   {bidFeedback && (
                     <div
@@ -574,7 +574,7 @@ export default function LotAuctionRoomPage({
               )}
 
               {/* Botão de Liquidação para Leiloeiro se expirou */}
-              {user?.role === 'AUCTIONEER' && lot.status === 'OPEN' && isExpired && (
+              {user?.role === 'AUCTIONEER' && lot.status === 'LIVE' && isExpired && (
                 <div className="mt-4 pt-4 border-t border-slate-800">
                   <button
                     disabled={isSettling}
@@ -587,7 +587,7 @@ export default function LotAuctionRoomPage({
               )}
 
               {/* Se o lote foi encerrado */}
-              {lot.status === 'CLOSED' && (
+              {lot.status === 'ENDED' && (
                 <div className="mt-4 pt-6 border-t border-slate-800 text-center space-y-3">
                   <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-950 border border-slate-800 text-xs text-amber-400 font-semibold">
                     <Award className="h-4 w-4" />

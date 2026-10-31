@@ -60,8 +60,53 @@ export default function AuditVerifierPage({
   const fetchAuditData = async () => {
     try {
       setIsLoading(true)
-      const res = await apiRequest<AuditResponse>(`/audit/verify/${lotId}`)
-      setData(res)
+      const [lotRes, verifyRes] = await Promise.all([
+        apiRequest<{
+          lot: {
+            id: string
+            title: string
+            lotSealHash: string | null
+            bids: Array<{
+              id: string
+              amount: number
+              createdAt: string
+              prevHash: string
+              bidHash: string
+              bidder: {
+                publicCode: string
+                maskedName: string
+              }
+            }>
+          }
+        }>(`/lots/${lotId}`),
+        apiRequest<any>(`/audit/verify/${lotId}`),
+      ])
+
+      const sortedBids = [...(lotRes.lot.bids || [])].reverse()
+
+      setData({
+        lotId,
+        lotTitle: lotRes.lot.title,
+        isValid: verifyRes.isValid,
+        totalBids: verifyRes.totalBidsChecked,
+        lotSealHash: lotRes.lot.lotSealHash,
+        chainStatus: {
+          tampered: !verifyRes.isValid,
+          tamperedAtIndex: verifyRes.tamperedBid ? verifyRes.tamperedBid.sequenceNumber : null,
+          reason: verifyRes.tamperedBid ? verifyRes.tamperedBid.reason : null,
+        },
+        chain: sortedBids.map((b, i) => ({
+          index: i + 1,
+          id: b.id,
+          amount: b.amount,
+          createdAt: b.createdAt,
+          bidderPublicCode: b.bidder.publicCode,
+          bidderMaskedName: b.bidder.maskedName,
+          prevHash: b.prevHash,
+          bidHash: b.bidHash,
+          status: 'VALID',
+        })),
+      })
       setSimulatedTamperingIndex(null)
     } catch (err: any) {
       setError(err.message || 'Falha ao processar trilha criptográfica.')
