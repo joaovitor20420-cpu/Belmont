@@ -157,7 +157,7 @@ async function main() {
     update: {
       title: 'Water Lilies (Nymphéas)',
       artist: 'Claude Monet',
-      imageUrl: 'https://www.artic.edu/iiif/2/3c27b499-af56-f0d5-93b5-a7f2f1ad5813/full/843,/0/default.jpg',
+      imageUrl: 'https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?w=1200&auto=format&fit=crop',
       status: 'LIVE',
       startTime: now,
       endTime: liveEndTime1,
@@ -168,7 +168,7 @@ async function main() {
       description:
         'Obra-prima impressionista de Claude Monet, pintada em Giverny por volta de 1906. Óleo sobre tela do acervo permanente do Art Institute of Chicago (#16568). Obra em domínio público internacional.',
       artist: 'Claude Monet',
-      imageUrl: 'https://www.artic.edu/iiif/2/3c27b499-af56-f0d5-93b5-a7f2f1ad5813/full/843,/0/default.jpg',
+      imageUrl: 'https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?w=1200&auto=format&fit=crop',
       externalApiId: '16568',
       startPrice: BigInt(1000000), // R$ 10.000,00
       currentPrice: BigInt(1000000),
@@ -191,7 +191,7 @@ async function main() {
     update: {
       title: 'Under the Wave off Kanagawa (The Great Wave)',
       artist: 'Katsushika Hokusai',
-      imageUrl: 'https://www.artic.edu/iiif/2/b3974542-b9b4-7568-fc4b-966738f61d78/full/843,/0/default.jpg',
+      imageUrl: 'https://images.unsplash.com/photo-1578301978693-85fa9c0320b9?w=1200&auto=format&fit=crop',
       status: 'LIVE',
       startTime: now,
       endTime: liveEndTime2,
@@ -202,7 +202,7 @@ async function main() {
       description:
         'A xilogravura em madeira mais célebre da história da arte japonesa, criada por Katsushika Hokusai por volta de 1831 da série 36 Vistas do Monte Fuji (#24645).',
       artist: 'Katsushika Hokusai',
-      imageUrl: 'https://www.artic.edu/iiif/2/b3974542-b9b4-7568-fc4b-966738f61d78/full/843,/0/default.jpg',
+      imageUrl: 'https://images.unsplash.com/photo-1578301978693-85fa9c0320b9?w=1200&auto=format&fit=crop',
       externalApiId: '24645',
       startPrice: BigInt(2000000), // R$ 20.000,00
       currentPrice: BigInt(2000000),
@@ -225,7 +225,7 @@ async function main() {
     update: {
       title: 'Self-Portrait (Autorretrato em Paris)',
       artist: 'Vincent van Gogh',
-      imageUrl: 'https://www.artic.edu/iiif/2/47c5bcb8-62ef-e5d7-55e7-f5121f409a30/full/843,/0/default.jpg',
+      imageUrl: 'https://images.unsplash.com/photo-1577083552431-6e5fd01aa342?w=1200&auto=format&fit=crop',
       status: 'LIVE',
       startTime: now,
       endTime: liveEndTime3,
@@ -236,7 +236,7 @@ async function main() {
       description:
         'Pintura a óleo sobre prancha de artista, pintada por Vincent van Gogh no verão de 1887 em Paris. Expressão vibrante de pinceladas pós-impressionistas (#80607).',
       artist: 'Vincent van Gogh',
-      imageUrl: 'https://www.artic.edu/iiif/2/47c5bcb8-62ef-e5d7-55e7-f5121f409a30/full/843,/0/default.jpg',
+      imageUrl: 'https://images.unsplash.com/photo-1577083552431-6e5fd01aa342?w=1200&auto=format&fit=crop',
       externalApiId: '80607',
       startPrice: BigInt(1800000), // R$ 18.000,00
       currentPrice: BigInt(1800000),
@@ -260,7 +260,7 @@ async function main() {
     update: {
       title: 'The Bedroom (De Slaapkamer)',
       artist: 'Vincent van Gogh',
-      imageUrl: 'https://www.artic.edu/iiif/2/6644829f-f292-c5c4-a73c-0356a6fdbf0d/full/843,/0/default.jpg',
+      imageUrl: 'https://images.unsplash.com/photo-1578925518470-4def7a0f08bb?w=1200&auto=format&fit=crop',
       status: 'SCHEDULED',
       startTime: schedStartTime1,
       endTime: schedEndTime1,
@@ -271,7 +271,7 @@ async function main() {
       description:
         'Famosa pintura pós-impressionista de Vincent van Gogh retratando seu quarto na Casa Amarela em Arles (1889). Acervo permanente do Art Institute of Chicago (#28560).',
       artist: 'Vincent van Gogh',
-      imageUrl: 'https://www.artic.edu/iiif/2/6644829f-f292-c5c4-a73c-0356a6fdbf0d/full/843,/0/default.jpg',
+      imageUrl: 'https://images.unsplash.com/photo-1578925518470-4def7a0f08bb?w=1200&auto=format&fit=crop',
       externalApiId: '28560',
       startPrice: BigInt(2500000), // R$ 25.000,00
       currentPrice: BigInt(2500000),
@@ -295,7 +295,7 @@ async function main() {
     update: {
       title: 'The Basket of Apples (Natureza-morta com Maçãs)',
       artist: 'Paul Cézanne',
-      imageUrl: 'https://www.artic.edu/iiif/2/52ac8996-3460-cf71-cb42-5c4d0aa29b74/full/843,/0/default.jpg',
+      imageUrl: 'https://images.unsplash.com/photo-1561214115-f2f134cc4912?w=1200&auto=format&fit=crop',
       status: 'SCHEDULED',
       startTime: schedStartTime2,
       endTime: schedEndTime2,
@@ -306,7 +306,7 @@ async function main() {
       description:
         'Uma das mais influentes naturezas-mortas da era moderna, pintada por Paul Cézanne por volta de 1893. Precursora revolucionária do cubismo (#111436).',
       artist: 'Paul Cézanne',
-      imageUrl: 'https://www.artic.edu/iiif/2/52ac8996-3460-cf71-cb42-5c4d0aa29b74/full/843,/0/default.jpg',
+      imageUrl: 'https://images.unsplash.com/photo-1561214115-f2f134cc4912?w=1200&auto=format&fit=crop',
       externalApiId: '111436',
       startPrice: BigInt(1500000), // R$ 15.000,00
       currentPrice: BigInt(1500000),
@@ -352,7 +352,7 @@ async function main() {
     update: {
       title: 'A Sunday on La Grande Jatte',
       artist: 'Georges Seurat',
-      imageUrl: 'https://www.artic.edu/iiif/2/1adf2696-848d-499e-a6ea-46b8e504f48e/full/843,/0/default.jpg',
+      imageUrl: 'https://images.unsplash.com/photo-1582561424760-0321d75e81fa?w=1200&auto=format&fit=crop',
       status: 'ENDED',
       startTime: pastStartTime1,
       endTime: pastEndTime1,
@@ -367,7 +367,7 @@ async function main() {
       description:
         'Monumento do pontilhismo pintado por Georges Seurat entre 1884 e 1886. Uma das mais famosas obras de arte do mundo (#27992), arrematada em pregão histórico.',
       artist: 'Georges Seurat',
-      imageUrl: 'https://www.artic.edu/iiif/2/1adf2696-848d-499e-a6ea-46b8e504f48e/full/843,/0/default.jpg',
+      imageUrl: 'https://images.unsplash.com/photo-1582561424760-0321d75e81fa?w=1200&auto=format&fit=crop',
       externalApiId: '27992',
       startPrice: BigInt(3000000), // R$ 30.000,00
       currentPrice: BigInt(bid1Amount),
@@ -452,7 +452,7 @@ async function main() {
     update: {
       title: 'Ballet at the Paris Opéra',
       artist: 'Edgar Degas',
-      imageUrl: 'https://www.artic.edu/iiif/2/cb34b0a8-bc51-d063-aab1-47c7debf3a7b/full/843,/0/default.jpg',
+      imageUrl: 'https://images.unsplash.com/photo-1518998053901-5348d3961a04?w=1200&auto=format&fit=crop',
       status: 'ENDED',
       startTime: pastStartTime2,
       endTime: pastEndTime2,
@@ -467,7 +467,7 @@ async function main() {
       description:
         'Pastel sobre monotipia sobre papel, criado por Edgar Degas por volta de 1877. Captação magistral da luz dos palcos e das bailarinas da Ópera de Paris (#111442).',
       artist: 'Edgar Degas',
-      imageUrl: 'https://www.artic.edu/iiif/2/cb34b0a8-bc51-d063-aab1-47c7debf3a7b/full/843,/0/default.jpg',
+      imageUrl: 'https://images.unsplash.com/photo-1518998053901-5348d3961a04?w=1200&auto=format&fit=crop',
       externalApiId: '111442',
       startPrice: BigInt(2200000), // R$ 22.000,00
       currentPrice: BigInt(bid2Amount),

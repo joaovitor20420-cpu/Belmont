@@ -364,10 +364,6 @@ export default function LotAuctionRoomPage({
                   src={lot.imageUrl}
                   alt={lot.title}
                   className="max-h-[480px] w-auto max-w-full object-contain rounded-lg shadow-2xl"
-                  onError={(e) => {
-                    ;(e.target as HTMLImageElement).src =
-                      'https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?w=800&auto=format&fit=crop'
-                  }}
                 />
               </div>
 

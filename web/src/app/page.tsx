@@ -208,10 +208,6 @@ export default function HomePage() {
                       src={lot.imageUrl}
                       alt={lot.title}
                       className="h-full w-full object-cover object-center group-hover:scale-105 transition-transform duration-500 ease-out"
-                      onError={(e) => {
-                        ;(e.target as HTMLImageElement).src =
-                          'https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?w=800&auto=format&fit=crop'
-                      }}
                     />
 
                     {/* Gradient Overlay na Imagem */}
