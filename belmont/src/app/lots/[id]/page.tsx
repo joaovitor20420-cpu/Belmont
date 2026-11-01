@@ -426,9 +426,9 @@ export default function LiveAuctionRoomPage({
   }
 
   return (
-    <div className="w-full pt-32 md:pt-20 bg-[#07090E] min-h-[calc(100vh-80px)] text-[#e2e2ea]">
+    <div className="w-full pt-28 sm:pt-32 md:pt-20 bg-[#07090E] min-h-[calc(100vh-80px)] text-[#e2e2ea]">
       {/* Sub-Header Precision Diagnostic Ribbon */}
-      <div className="w-full bg-[#0c0e13] px-6 lg:px-12 py-3 border-b border-[#282a30]">
+      <div className="w-full bg-[#0c0e13] px-3.5 sm:px-6 lg:px-12 py-2.5 sm:py-3 border-b border-[#282a30]">
         <div className="w-full max-w-[1600px] mx-auto flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-6 flex-wrap">
             <Link
@@ -479,7 +479,7 @@ export default function LiveAuctionRoomPage({
       </div>
 
       {/* Realtime Trading Stage: Asymmetric 60/40 Split */}
-      <div className="w-full max-w-[1600px] mx-auto px-6 lg:px-12 py-8">
+      <div className="w-full max-w-[1600px] mx-auto px-3.5 sm:px-6 lg:px-12 py-4 sm:py-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           {/* LEFT COLUMN (60% Main Stage: Artwork, Anti-Sniping, Provenance Dossier) */}
           <div className="lg:col-span-7 flex flex-col gap-6">
@@ -556,7 +556,7 @@ export default function LiveAuctionRoomPage({
               </div>
 
               {/* Main High-Res Canvas Presentation with Vignette */}
-              <div className="relative w-full aspect-[4/3] max-h-[460px] bg-[#0c0e13] overflow-hidden flex items-center justify-center">
+              <div className="relative w-full aspect-[4/3] max-h-[280px] sm:max-h-[380px] lg:max-h-[460px] bg-[#0c0e13] overflow-hidden flex items-center justify-center">
                 <img
                   alt={lot.title}
                   className="w-full h-full object-cover transition-transform duration-700 hover:scale-105"
@@ -569,7 +569,7 @@ export default function LiveAuctionRoomPage({
                 <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-[#0c0e13] via-transparent to-[#0c0e13]/40" />
 
                 {/* Floating Stamp on Canvas */}
-                <div className="absolute bottom-4 left-4 bg-[#0c0e13]/85 backdrop-blur-md px-4 py-2 rounded shadow-lg flex items-center gap-3 border border-white/5">
+                <div className="absolute bottom-3 left-3 sm:bottom-4 sm:left-4 max-w-[calc(100%-1.5rem)] bg-[#0c0e13]/85 backdrop-blur-md px-3 sm:px-4 py-1.5 sm:py-2 rounded shadow-lg flex items-center gap-2 sm:gap-3 border border-white/5">
                   <div className="w-2 h-2 rounded-full bg-[#f2ca50] animate-ping" />
                   <div className="flex flex-col">
                     <span className="font-mono text-[10px] text-[#f2ca50] uppercase tracking-widest font-semibold">
@@ -583,13 +583,13 @@ export default function LiveAuctionRoomPage({
               </div>
 
               {/* Lot Title & Technical Identification */}
-              <div className="p-6 bg-[#1d2025] border-t border-[#282a30]">
+              <div className="p-4 sm:p-6 bg-[#1d2025] border-t border-[#282a30]">
                 <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
                   <div className="flex flex-col gap-1">
                     <span className="font-mono text-[11px] tracking-widest uppercase text-[#f2ca50]">
                       BELAS ARTES INTERNACIONAIS
                     </span>
-                    <h1 className="font-serif text-3xl text-[#e2e2ea] tracking-tight leading-none">
+                    <h1 className="font-serif text-2xl sm:text-3xl text-[#e2e2ea] tracking-tight leading-none">
                       {lot.title}
                     </h1>
                     <p className="font-serif text-lg italic text-[#d0c5af]">
@@ -608,7 +608,7 @@ export default function LiveAuctionRoomPage({
             </div>
 
             {/* Massive High-Contrast Monospace Countdown Engine */}
-            <div className="rounded-xl bg-[#14171f] p-6 border border-[#282a30] shadow-xl relative overflow-hidden">
+            <div className="rounded-xl bg-[#14171f] p-4 sm:p-6 border border-[#282a30] shadow-xl relative overflow-hidden">
               <div className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-[#f2ca50]/5 to-transparent pointer-events-none" />
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="flex flex-col gap-1">
@@ -650,23 +650,23 @@ export default function LiveAuctionRoomPage({
                 </div>
 
                 {/* Numerical High-Contrast Clock Display (Real Tabular Monospace) */}
-                <div className="flex items-baseline gap-2 bg-[#0c0e13] px-4 py-2 rounded-lg border border-[#282a30] shadow-inner font-mono tabular-nums">
+                <div className="flex items-baseline gap-1.5 sm:gap-2 bg-[#0c0e13] px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg border border-[#282a30] shadow-inner font-mono tabular-nums">
                   <div className="flex flex-col items-center">
-                    <span className="text-3xl text-[#f2ca50] font-bold tracking-tight">
+                    <span className="text-2xl sm:text-3xl text-[#f2ca50] font-bold tracking-tight">
                       {String(countdownHours).padStart(2, '0')}
                     </span>
                     <span className="text-[10px] text-[#99907c] uppercase">HRS</span>
                   </div>
                   <span className="text-3xl text-[#f2ca50]">:</span>
                   <div className="flex flex-col items-center">
-                    <span className="text-3xl text-[#f2ca50] font-bold tracking-tight">
+                    <span className="text-2xl sm:text-3xl text-[#f2ca50] font-bold tracking-tight">
                       {String(countdownMinutes).padStart(2, '0')}
                     </span>
                     <span className="text-[10px] text-[#99907c] uppercase">MIN</span>
                   </div>
                   <span className="text-3xl text-[#f2ca50]">:</span>
                   <div className="flex flex-col items-center">
-                    <span className="text-3xl text-[#f2ca50] font-bold tracking-tight">
+                    <span className="text-2xl sm:text-3xl text-[#f2ca50] font-bold tracking-tight">
                       {String(countdownSeconds).padStart(2, '0')}
                     </span>
                     <span className="text-[10px] text-[#99907c] uppercase">SEG</span>
@@ -713,7 +713,7 @@ export default function LiveAuctionRoomPage({
               </button>
 
               {isDossierOpen && (
-                <div className="p-6 flex flex-col gap-5">
+                <div className="p-4 sm:p-6 flex flex-col gap-4 sm:gap-5">
                   {/* Archival Custody Trail (Hairline-divided instead of 3 nested boxes) */}
                   <div className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-[#282a30]">
                     <div className="flex flex-col gap-1 pb-4 md:pb-0 md:pr-5">
@@ -770,7 +770,7 @@ export default function LiveAuctionRoomPage({
                         </Link>
                       </div>
                     </div>
-                    <div className="font-mono text-[10px] text-[#99907c] select-all">
+                    <div className="font-mono text-[9px] sm:text-[10px] text-[#99907c] select-all break-all sm:break-normal">
                       UUID: {lot.id}
                     </div>
                   </div>
@@ -782,7 +782,7 @@ export default function LiveAuctionRoomPage({
           {/* RIGHT COLUMN (40% Bidding Console & Realtime SSE Feed) */}
           <div className="lg:col-span-5 flex flex-col gap-6 lg:sticky lg:top-24">
             {/* HERO CARD: LANCE LÍDER ATUAL (The Operational Core) */}
-            <div className="relative rounded-xl bg-[#14171f] p-6 border border-[#d4af37]/40 shadow-2xl overflow-hidden">
+            <div className="relative rounded-xl bg-[#14171f] p-4 sm:p-6 border border-[#d4af37]/40 shadow-2xl overflow-hidden">
               <div className="absolute -right-12 -bottom-12 w-48 h-48 bg-[#d4af37]/10 rounded-full blur-2xl pointer-events-none" />
 
               {/* Header / Status Badge */}
@@ -816,7 +816,7 @@ export default function LiveAuctionRoomPage({
 
               {/* Monumental Price Typography */}
               <div className="my-5">
-                <div className="font-serif text-3xl sm:text-4xl lg:text-5xl text-[#f2ca50] font-bold tracking-tight select-all tabular-nums">
+                <div className="font-serif text-2xl sm:text-4xl lg:text-5xl text-[#f2ca50] font-bold tracking-tight select-all tabular-nums">
                   {formatCurrency(lot.currentPrice || lot.startPrice)}
                 </div>
                 {!isEnded && (
@@ -1025,7 +1025,7 @@ export default function LiveAuctionRoomPage({
                       <span className="font-mono text-[10px] uppercase tracking-widest text-[#99907c] font-semibold block mb-2">
                         Incrementos Rápidos de Pregão
                       </span>
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                      <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
                         {[1, 2, 5].map((multiplier) => {
                           const incAmount = lot.minIncrement * multiplier
                           const totalBid = minAllowedBid + incAmount - lot.minIncrement
@@ -1036,7 +1036,7 @@ export default function LiveAuctionRoomPage({
                               type="button"
                               onClick={() => setPendingBidAmount(totalBid)}
                               disabled={isBidding || isScheduled || !user || !canAfford}
-                              className="py-2.5 px-2 rounded-lg bg-[#1d2025] hover:bg-[#282a30] hover:text-[#f2ca50] text-[#e2e2ea] border border-[#282a30] transition-colors flex flex-col items-center cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                              className="py-2 sm:py-2.5 px-1 sm:px-2 min-h-[44px] rounded-lg bg-[#1d2025] hover:bg-[#282a30] hover:text-[#f2ca50] text-[#e2e2ea] border border-[#282a30] transition-colors flex flex-col items-center cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                             >
                               <span className="text-[#f2ca50] font-mono text-xs font-bold">
                                 + {formatCurrency(incAmount)}
@@ -1058,7 +1058,7 @@ export default function LiveAuctionRoomPage({
                       >
                         Lance Estratégico Customizado (R$)
                       </label>
-                      <div className="flex gap-2">
+                      <div className="flex flex-col sm:flex-row gap-2">
                         <div className="relative flex-1">
                           <span className="absolute inset-y-0 left-0 pl-3 flex items-center font-mono text-xs text-[#99907c]">
                             R$
@@ -1069,7 +1069,7 @@ export default function LiveAuctionRoomPage({
                             value={customBidAmount}
                             onChange={(e) => setCustomBidAmount(e.target.value)}
                             placeholder={(minAllowedBid / 100).toFixed(2)}
-                            className="w-full bg-[#0c0e13] text-[#e2e2ea] font-mono text-xs pl-10 pr-3 py-2.5 rounded-lg border border-[#282a30] focus:outline-none focus:border-[#d4af37]"
+                            className="w-full bg-[#0c0e13] text-[#e2e2ea] font-mono text-xs pl-10 pr-3 py-2.5 min-h-[44px] rounded-lg border border-[#282a30] focus:outline-none focus:border-[#d4af37]"
                           />
                         </div>
                         <button
@@ -1079,7 +1079,7 @@ export default function LiveAuctionRoomPage({
                             if (!isNaN(valInCents)) setPendingBidAmount(valInCents)
                           }}
                           disabled={isBidding || !customBidAmount || !user}
-                          className="px-4 py-2.5 bg-[#282a30] hover:bg-[#d4af37] hover:text-[#1c1400] text-[#f2ca50] font-mono text-xs font-semibold uppercase tracking-wider rounded-lg transition-colors whitespace-nowrap cursor-pointer disabled:opacity-50"
+                          className="px-4 py-2.5 min-h-[44px] flex items-center justify-center bg-[#282a30] hover:bg-[#d4af37] hover:text-[#1c1400] text-[#f2ca50] font-mono text-xs font-semibold uppercase tracking-wider rounded-lg transition-colors whitespace-nowrap cursor-pointer disabled:opacity-50"
                         >
                           Revisar Lance
                         </button>

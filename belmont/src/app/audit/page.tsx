@@ -97,9 +97,9 @@ export default function PublicAuditHubPage() {
   })
 
   return (
-    <div className="w-full pt-32 md:pt-20 bg-[#07090E] min-h-[calc(100vh-80px)] text-[#e2e2ea]">
+    <div className="w-full pt-28 sm:pt-32 md:pt-20 bg-[#07090E] min-h-[calc(100vh-80px)] text-[#e2e2ea]">
       {/* Header Banner */}
-      <section className="w-full px-6 lg:px-12 py-10 bg-[#0c0e13] border-b border-[#282a30]">
+      <section className="w-full px-3.5 sm:px-6 lg:px-12 py-6 sm:py-10 bg-[#0c0e13] border-b border-[#282a30]">
         <div className="w-full max-w-[1600px] mx-auto flex flex-col lg:flex-row lg:items-end justify-between gap-6">
           <div className="space-y-2 max-w-3xl">
             <div className="flex items-center gap-2 flex-wrap">
@@ -141,8 +141,8 @@ export default function PublicAuditHubPage() {
       </section>
 
       {/* Main Content */}
-      <main className="w-full max-w-[1600px] mx-auto px-6 lg:px-12 py-10">
-        <div className="bg-[#14171f] rounded-xl p-6 border border-[#282a30] shadow-xl flex flex-col gap-6">
+      <main className="w-full max-w-[1600px] mx-auto px-3.5 sm:px-6 lg:px-12 py-6 sm:py-10">
+        <div className="bg-[#14171f] rounded-xl p-4 sm:p-6 border border-[#282a30] shadow-xl flex flex-col gap-4 sm:gap-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#282a30]">
             <div>
               <h2 className="font-serif text-xl text-[#e2e2ea]">
@@ -182,6 +182,7 @@ export default function PublicAuditHubPage() {
               </p>
             </div>
           ) : (
+            <div className="overflow-x-auto -mx-4 px-4 sm:-mx-6 sm:px-6">
             <Table>
               <TableHeader className="bg-[#0c0e13]">
                 <TableRow>
@@ -275,6 +276,7 @@ export default function PublicAuditHubPage() {
                 })}
               </TableBody>
             </Table>
+            </div>
           )}
         </div>
       </main>

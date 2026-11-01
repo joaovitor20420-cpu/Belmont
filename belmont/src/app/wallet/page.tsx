@@ -138,7 +138,7 @@ export default function DigitalWalletPage() {
   })
 
   return (
-    <div className="w-full pt-32 md:pt-20 bg-[#07090E] min-h-[calc(100vh-80px)] text-[#e2e2ea]">
+    <div className="w-full pt-28 sm:pt-32 md:pt-20 bg-[#07090E] min-h-[calc(100vh-80px)] text-[#e2e2ea]">
       {/* Dynamic Notification Bar (Toast) */}
       {toastMessage && (
         <div className="fixed bottom-8 right-8 z-50 p-4 rounded-xl bg-[#1d2025] border border-[#d4af37]/40 shadow-2xl transition-all duration-300 max-w-md">
@@ -165,7 +165,7 @@ export default function DigitalWalletPage() {
       )}
 
       {/* Page Header & Credential Strip */}
-      <div className="w-full px-6 lg:px-12 py-10 bg-[#0c0e13] border-b border-[#282a30]">
+      <div className="w-full px-3.5 sm:px-6 lg:px-12 py-6 sm:py-10 bg-[#0c0e13] border-b border-[#282a30]">
         <div className="max-w-[1600px] mx-auto flex flex-col xl:flex-row xl:items-end justify-between gap-6">
           <div className="flex flex-col gap-2 max-w-3xl">
             <div className="flex items-center gap-3 mb-1 flex-wrap">
@@ -235,11 +235,11 @@ export default function DigitalWalletPage() {
         </div>
       </div>
 
-      <div className="w-full px-6 lg:px-12 py-10 max-w-[1600px] mx-auto flex flex-col gap-5">
+      <div className="w-full px-3.5 sm:px-6 lg:px-12 py-6 sm:py-10 max-w-[1600px] mx-auto flex flex-col gap-4 sm:gap-5">
         {/* Tri-Fold Financial Metric Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Card 1: Saldo Total */}
-          <div className="p-6 rounded-xl bg-[#14171f] border border-[#282a30] flex flex-col justify-between shadow-sm relative overflow-hidden group">
+          <div className="p-4 sm:p-6 rounded-xl bg-[#14171f] border border-[#282a30] flex flex-col justify-between shadow-sm relative overflow-hidden group">
             <div className="flex justify-between items-start">
               <div className="flex flex-col">
                 <span className="font-mono text-[10px] uppercase tracking-widest text-[#99907c]">
@@ -254,7 +254,7 @@ export default function DigitalWalletPage() {
               </span>
             </div>
             <div className="my-4">
-              <div className="font-serif text-3xl font-bold text-[#e2e2ea] tracking-tight">
+              <div className="font-serif text-2xl sm:text-3xl font-bold text-[#e2e2ea] tracking-tight">
                 {formatCurrency(balances.total)}
               </div>
               <div className="font-sans text-xs text-[#99907c] mt-2 flex items-center gap-1.5">
@@ -264,14 +264,14 @@ export default function DigitalWalletPage() {
                 Garantia auditada por Banco Central do Brasil & PwC
               </div>
             </div>
-            <div className="pt-2 bg-[#0c0e13]/80 -mx-6 -mb-6 px-6 py-2 flex items-center justify-between border-t border-[#282a30] font-mono text-[10px]">
+            <div className="pt-2 bg-[#0c0e13]/80 -mx-4 -mb-4 px-4 sm:-mx-6 sm:-mb-6 sm:px-6 py-2 flex items-center justify-between border-t border-[#282a30] font-mono text-[10px]">
               <span className="text-[#99907c]">CONTA ESCROW #7792-BC</span>
               <span className="text-[#4edea3] font-medium">100% LASTREADO</span>
             </div>
           </div>
 
           {/* Card 2: Saldo Comprometido */}
-          <div className="p-6 rounded-xl bg-[#14171f] border border-[#282a30] flex flex-col justify-between shadow-sm relative overflow-hidden group">
+          <div className="p-4 sm:p-6 rounded-xl bg-[#14171f] border border-[#282a30] flex flex-col justify-between shadow-sm relative overflow-hidden group">
             <div className="flex justify-between items-start">
               <div className="flex flex-col">
                 <span className="font-mono text-[10px] uppercase tracking-widest text-[#f2ca50]">
@@ -286,7 +286,7 @@ export default function DigitalWalletPage() {
               </span>
             </div>
             <div className="my-4">
-              <div className="font-serif text-3xl font-bold text-[#f2ca50] tracking-tight">
+              <div className="font-serif text-2xl sm:text-3xl font-bold text-[#f2ca50] tracking-tight">
                 {formatCurrency(balances.committed)}
               </div>
               <div className="font-sans text-xs text-[#99907c] mt-2 flex items-center gap-1.5">
@@ -296,7 +296,7 @@ export default function DigitalWalletPage() {
                 Garantia integral de 100% retida em lotes com lance líder ativo
               </div>
             </div>
-            <div className="pt-2 bg-[#0c0e13]/80 -mx-6 -mb-6 px-6 py-2 flex items-center justify-between border-t border-[#282a30] font-mono text-[10px]">
+            <div className="pt-2 bg-[#0c0e13]/80 -mx-4 -mb-4 px-4 sm:-mx-6 sm:-mb-6 sm:px-6 py-2 flex items-center justify-between border-t border-[#282a30] font-mono text-[10px]">
               <span className="text-[#f2ca50] font-medium flex items-center gap-1">
                 <span className="w-1.5 h-1.5 rounded-full bg-[#f2ca50] inline-block" />
                 CAUÇÃO ATIVA
@@ -306,7 +306,7 @@ export default function DigitalWalletPage() {
           </div>
 
           {/* Card 3: Saldo Disponível */}
-          <div className="p-6 rounded-xl bg-[#14171f] border border-[#282a30] flex flex-col justify-between shadow-sm relative overflow-hidden group">
+          <div className="p-4 sm:p-6 rounded-xl bg-[#14171f] border border-[#282a30] flex flex-col justify-between shadow-sm relative overflow-hidden group">
             <div className="flex justify-between items-start">
               <div className="flex flex-col">
                 <span className="font-mono text-[10px] uppercase tracking-widest text-[#4edea3]">
@@ -321,7 +321,7 @@ export default function DigitalWalletPage() {
               </span>
             </div>
             <div className="my-4">
-              <div className="font-serif text-3xl font-bold text-[#4edea3] tracking-tight">
+              <div className="font-serif text-2xl sm:text-3xl font-bold text-[#4edea3] tracking-tight">
                 {formatCurrency(balances.available)}
               </div>
               <div className="font-sans text-xs text-[#99907c] mt-2 flex items-center gap-1.5">
@@ -331,7 +331,7 @@ export default function DigitalWalletPage() {
                 Livre para novas ofertas e contrapropostas em tempo real
               </div>
             </div>
-            <div className="pt-2 bg-[#0c0e13]/80 -mx-6 -mb-6 px-6 py-2 flex items-center justify-between border-t border-[#282a30] font-mono text-[10px]">
+            <div className="pt-2 bg-[#0c0e13]/80 -mx-4 -mb-4 px-4 sm:-mx-6 sm:-mb-6 sm:px-6 py-2 flex items-center justify-between border-t border-[#282a30] font-mono text-[10px]">
               <span className="text-[#4edea3] font-medium">DISPONIBILIDADE ZERO-LATÊNCIA</span>
               <span className="text-[#99907c]">SSE SINCRONIZADO</span>
             </div>
@@ -339,7 +339,7 @@ export default function DigitalWalletPage() {
         </div>
 
         {/* Proportional Capital Allocation Bar & Explanatory Architecture */}
-        <div className="p-6 rounded-xl bg-[#14171f] border border-[#282a30] flex flex-col gap-4 shadow-sm">
+        <div className="p-4 sm:p-6 rounded-xl bg-[#14171f] border border-[#282a30] flex flex-col gap-4 shadow-sm">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
             <div className="flex flex-col">
               <span className="font-mono text-[10px] uppercase tracking-wider text-[#99907c]">
@@ -449,7 +449,7 @@ export default function DigitalWalletPage() {
                 </Link>
               </div>
             ) : (
-            <div className="p-6 rounded-xl bg-[#14171f] border border-[#282a30] shadow-sm flex flex-col gap-4">
+            <div className="p-4 sm:p-6 rounded-xl bg-[#14171f] border border-[#282a30] shadow-sm flex flex-col gap-4">
               <div className="flex items-center justify-between pb-2 border-b border-[#282a30]">
                 <div className="flex flex-col">
                   <span className="font-mono text-[10px] uppercase tracking-wider text-[#99907c]">
@@ -479,7 +479,7 @@ export default function DigitalWalletPage() {
                       key={amount}
                       type="button"
                       onClick={() => setDepositAmountBRL(String(amount))}
-                      className={`px-3 py-2 rounded-lg font-mono text-xs text-center transition-colors cursor-pointer border ${
+                      className={`px-3 py-2 min-h-[44px] flex items-center justify-center rounded-lg font-mono text-xs text-center transition-colors cursor-pointer border ${
                         depositAmountBRL === String(amount)
                           ? 'bg-[#d4af37] text-[#1c1400] font-bold border-[#d4af37]'
                           : 'bg-[#1d2025] hover:bg-[#282a30] text-[#e2e2ea] border-[#282a30]'
@@ -638,7 +638,7 @@ export default function DigitalWalletPage() {
               </div>
 
               {/* Ledger Filter Tabs */}
-              <div className="flex items-center gap-2 overflow-x-auto pb-1 font-mono text-[10px]">
+              <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar pb-1 font-mono text-[10px]">
                 <button
                   type="button"
                   onClick={() => setFilterCategory('all')}
@@ -686,8 +686,8 @@ export default function DigitalWalletPage() {
               </div>
 
               {/* Ledger Table */}
-              <div className="overflow-x-auto -mx-6 px-6">
-                <table className="w-full text-left font-sans text-xs">
+              <div className="overflow-x-auto -mx-4 px-4 sm:-mx-6 sm:px-6">
+                <table className="w-full text-left font-sans text-xs whitespace-nowrap">
                   <thead>
                     <tr className="bg-[#0c0e13] text-[#99907c] font-mono text-[10px] uppercase tracking-wider border-y border-[#282a30]">
                       <th className="py-3 px-4">Data / Hora</th>

@@ -121,9 +121,9 @@ export default function MyBidsPage() {
         : [...data.activeParticipations, ...data.wonLots, ...data.historicalParticipations]
 
   return (
-    <div className="w-full pt-32 md:pt-20 bg-[#07090E] min-h-[calc(100vh-80px)] text-[#e2e2ea]">
+    <div className="w-full pt-28 sm:pt-32 md:pt-20 bg-[#07090E] min-h-[calc(100vh-80px)] text-[#e2e2ea]">
       {/* Header Banner */}
-      <section className="w-full px-6 lg:px-12 py-8 bg-[#0c0e13] border-b border-[#282a30]">
+      <section className="w-full px-3.5 sm:px-6 lg:px-12 py-6 sm:py-8 bg-[#0c0e13] border-b border-[#282a30]">
         <div className="w-full max-w-[1600px] mx-auto flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
           <div>
             <div className="flex items-center gap-2 mb-2">
@@ -162,12 +162,12 @@ export default function MyBidsPage() {
       </section>
 
       {/* Main Content Area */}
-      <main className="w-full max-w-[1600px] mx-auto px-6 lg:px-12 py-8">
+      <main className="w-full max-w-[1600px] mx-auto px-3.5 sm:px-6 lg:px-12 py-6 sm:py-8">
         {/* Navigation Tabs */}
-        <div className="flex items-center gap-3 border-b border-[#282a30] pb-4 mb-8 overflow-x-auto">
+        <div className="flex items-center gap-2 sm:gap-3 border-b border-[#282a30] pb-3 sm:pb-4 mb-6 sm:mb-8 overflow-x-auto no-scrollbar">
           <button
             onClick={() => setActiveTab('ACTIVE')}
-            className={`px-4 py-2 rounded-lg text-xs font-mono tracking-wider uppercase transition flex items-center gap-2 shrink-0 ${
+            className={`px-3.5 sm:px-4 py-2.5 min-h-[44px] rounded-lg text-xs font-mono tracking-wider uppercase transition flex items-center gap-2 shrink-0 ${
               activeTab === 'ACTIVE'
                 ? 'bg-[#f2ca50] text-[#07090E] font-bold shadow-lg shadow-[#f2ca50]/10'
                 : 'bg-[#14161b] text-[#99907c] hover:text-[#e2e2ea] border border-[#282a30]'
@@ -179,7 +179,7 @@ export default function MyBidsPage() {
 
           <button
             onClick={() => setActiveTab('WON')}
-            className={`px-4 py-2 rounded-lg text-xs font-mono tracking-wider uppercase transition flex items-center gap-2 shrink-0 ${
+            className={`px-3.5 sm:px-4 py-2.5 min-h-[44px] rounded-lg text-xs font-mono tracking-wider uppercase transition flex items-center gap-2 shrink-0 ${
               activeTab === 'WON'
                 ? 'bg-[#4edea3] text-[#07090E] font-bold shadow-lg shadow-[#4edea3]/10'
                 : 'bg-[#14161b] text-[#99907c] hover:text-[#e2e2ea] border border-[#282a30]'
@@ -191,7 +191,7 @@ export default function MyBidsPage() {
 
           <button
             onClick={() => setActiveTab('ALL')}
-            className={`px-4 py-2 rounded-lg text-xs font-mono tracking-wider uppercase transition flex items-center gap-2 shrink-0 ${
+            className={`px-3.5 sm:px-4 py-2.5 min-h-[44px] rounded-lg text-xs font-mono tracking-wider uppercase transition flex items-center gap-2 shrink-0 ${
               activeTab === 'ALL'
                 ? 'bg-[#d4af37] text-[#1c1400] font-bold shadow-lg shadow-[#d4af37]/10'
                 : 'bg-[#14161b] text-[#99907c] hover:text-[#e2e2ea] border border-[#282a30]'
@@ -225,7 +225,7 @@ export default function MyBidsPage() {
             </Link>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {displayedList.map((item) => (
               <div
                 key={item.lotId}
@@ -283,7 +283,7 @@ export default function MyBidsPage() {
                   </div>
 
                   {/* Artwork Details */}
-                  <div className="p-5">
+                  <div className="p-4 sm:p-5">
                     <p className="font-mono text-[11px] text-[#99907c] uppercase tracking-wider truncate">
                       {item.artist || 'Mestre da Pintura'}
                     </p>

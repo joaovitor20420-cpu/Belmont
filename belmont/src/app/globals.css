@@ -398,3 +398,13 @@ html.light .glass-panel {
   border: 2px double rgba(212, 175, 55, 0.4);
   box-shadow: inset 0 0 20px rgba(212, 175, 55, 0.05);
 }
+
+
+/* Mobile Smooth Scrolling without Scrollbar */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

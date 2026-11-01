@@ -209,21 +209,19 @@ export function Navbar() {
   return (
     <>
       <header className="fixed top-0 left-0 right-0 z-50 bg-[#07090E]/90 backdrop-blur-xl border-b border-[#d4af37]/20">
-        <div className="h-20 w-full max-w-[1600px] mx-auto px-6 lg:px-12 flex items-center justify-between gap-4">
+        <div className="h-20 w-full max-w-[1600px] mx-auto px-3 sm:px-6 lg:px-12 flex items-center justify-between gap-2 sm:gap-4">
           {/* Logo & Marca Belmont */}
-          <Link href="/" className="flex items-center gap-3.5 shrink-0 group">
+          <Link href="/" className="flex items-center gap-2.5 sm:gap-2.5 sm:gap-2.5 sm:gap-3.5 shrink-0 group">
             <img
               alt="Belmont Auctions Crest"
               className="h-9 w-9 object-contain transition-transform group-hover:scale-105"
               src="/belmont-crest.svg"
             />
             <div className="flex flex-col">
-              <span className="font-serif text-lg tracking-wider text-[#e2e2ea] font-medium leading-tight">
+              <span className="font-serif text-base sm:text-lg tracking-wider text-[#e2e2ea] font-medium leading-tight">
                 BELMONT AUCTIONS
               </span>
-              <span className="font-mono text-[10px] tracking-widest uppercase text-[#99907c]">
-                EST. 1894 • CHICAGO & GENEVA
-              </span>
+              <span className="hidden sm:inline font-mono text-[9px] sm:text-[10px] tracking-widest uppercase text-[#99907c]">EST. 1894 • CHICAGO & GENEVA</span>
             </div>
           </Link>
 
@@ -264,7 +262,7 @@ export function Navbar() {
               aria-label={
                 theme === 'dark' ? 'Ativar Modo Claro' : 'Ativar Modo Escuro'
               }
-              className="flex items-center gap-1.5 px-3 py-2 min-h-[40px] rounded border border-[#282a30] bg-[#14171f] hover:border-[#d4af37]/60 text-[#d0c5af] hover:text-[#e2e2ea] transition-colors cursor-pointer active:scale-95"
+              className="flex items-center gap-1.5 px-3 py-2 min-h-[44px] min-w-[44px] justify-center rounded border border-[#282a30] bg-[#14171f] hover:border-[#d4af37]/60 text-[#d0c5af] hover:text-[#e2e2ea] transition-colors cursor-pointer active:scale-95"
             >
               <span className="material-symbols-outlined text-base text-[#f2ca50]">
                 {theme === 'dark' ? 'light_mode' : 'dark_mode'}
@@ -328,7 +326,7 @@ export function Navbar() {
                   aria-expanded={showUserDropdown}
                   aria-haspopup="menu"
                   onClick={() => setShowUserDropdown(!showUserDropdown)}
-                  className="flex items-center gap-2.5 p-1 pr-3 rounded border border-[#4d4635]/60 bg-[#14171f]/80 hover:border-[#d4af37]/50 transition-colors cursor-pointer"
+                  className="flex items-center gap-2.5 p-1 pr-2 sm:pr-3 min-h-[44px] rounded border border-[#4d4635]/60 bg-[#14171f]/80 hover:border-[#d4af37]/50 transition-colors cursor-pointer"
                 >
                   <div className="w-8 h-8 rounded-full bg-[#282a30] border border-[#d4af37]/40 flex items-center justify-center font-mono text-xs font-bold text-[#f2ca50]">
                     {user.role === 'AUCTIONEER' ? 'LEI' : 'LIC'}
@@ -356,7 +354,7 @@ export function Navbar() {
                     />
                     <div
                       role="menu"
-                      className="absolute right-0 mt-2 w-72 rounded-xl bg-[#14171f] border border-[#d4af37]/30 shadow-2xl p-2 z-50"
+                      className="absolute right-0 mt-2 w-[calc(100vw-1.75rem)] max-w-xs sm:w-72 rounded-xl bg-[#14171f] border border-[#d4af37]/30 shadow-2xl p-2 z-50"
                     >
                     <div className="p-3 border-b border-[#282a30]">
                       <div className="font-mono text-xs text-[#f2ca50] font-bold">
@@ -450,12 +448,14 @@ export function Navbar() {
               <div className="flex items-center gap-2">
                 <Button
                   type="button"
+                  className="min-h-[44px] px-3 sm:px-4 text-xs font-semibold"
                   onClick={() => {
                     setAuthTab('LOGIN')
                     setShowLoginModal(true)
                   }}
                 >
-                  Entrar / Cadastrar
+                  <span>Entrar</span>
+                  <span className="hidden sm:inline"> / Cadastrar</span>
                 </Button>
               </div>
             )}
@@ -463,7 +463,7 @@ export function Navbar() {
         </div>
 
         {/* Barra de Navegação Mobile (< 768px) */}
-        <nav className="flex md:hidden items-center gap-1.5 px-4 py-2 bg-[#0c0e13] border-t border-[#282a30] overflow-x-auto">
+        <nav className="flex md:hidden items-center gap-1.5 px-3 py-2 bg-[#0c0e13] border-t border-[#282a30] overflow-x-auto no-scrollbar scroll-smooth">
           {navLinks.map((item) => {
             const isActive =
               item.path === '/'
@@ -473,7 +473,7 @@ export function Navbar() {
               <Link
                 key={item.label}
                 href={item.path}
-                className={`px-4 py-2.5 min-h-[44px] flex items-center font-mono text-xs uppercase tracking-wider transition-colors rounded shrink-0 active:scale-95 ${
+                className={`px-3 py-2 min-h-[44px] flex items-center font-mono text-[11px] sm:text-xs uppercase tracking-wider transition-colors rounded shrink-0 active:scale-95 ${
                   isActive
                     ? 'bg-[#d4af37] text-[#1c1400] font-bold'
                     : 'text-[#d0c5af] hover:text-[#e2e2ea]'

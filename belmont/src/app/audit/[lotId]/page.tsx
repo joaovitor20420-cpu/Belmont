@@ -164,7 +164,7 @@ export default function CertificadosAuditoriaPage({
   const isAuctioneer = user?.role === 'AUCTIONEER'
 
   return (
-    <div className="w-full pt-32 md:pt-20 bg-[#07090E] min-h-[calc(100vh-80px)] text-[#e2e2ea]">
+    <div className="w-full pt-28 sm:pt-32 md:pt-20 bg-[#07090E] min-h-[calc(100vh-80px)] text-[#e2e2ea]">
       {/* Toast Notification */}
       {toastText && (
         <div className="fixed bottom-8 right-8 z-50 p-4 rounded-xl bg-[#1d2025] border border-[#d4af37]/40 text-xs font-mono text-[#f2ca50] shadow-2xl">
@@ -299,7 +299,7 @@ export default function CertificadosAuditoriaPage({
 
           {currentView === 'cert' && (isWinner || isAuctioneer) && (
             <div className="flex flex-col gap-6">
-              <div className="relative bg-[#0c0e13] p-4 sm:p-8 md:p-12 rounded-2xl shadow-2xl overflow-hidden border border-[#d4af37]/40">
+              <div className="relative bg-[#0c0e13] p-3 sm:p-8 md:p-12 rounded-2xl shadow-2xl overflow-hidden border border-[#d4af37]/40">
                 {/* Guilloché Geometric SVG Overlay */}
                 <svg
                   className="absolute inset-0 w-full h-full opacity-10 pointer-events-none text-[#d4af37]"
@@ -324,7 +324,7 @@ export default function CertificadosAuditoriaPage({
                   </span>
                 </div>
 
-                <div className="relative bg-[#14171f]/90 backdrop-blur-md p-6 sm:p-10 rounded-xl flex flex-col gap-8 shadow-xl border border-[#4d4635]/40">
+                <div className="relative bg-[#14171f]/90 backdrop-blur-md p-3.5 sm:p-8 md:p-10 rounded-xl flex flex-col gap-6 sm:gap-8 shadow-xl border border-[#4d4635]/40">
                   {/* Top Certificate Header */}
                   <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pb-6 border-b border-[#282a30]">
                     <div className="flex items-center gap-4">
@@ -365,7 +365,7 @@ export default function CertificadosAuditoriaPage({
                     <span className="font-mono text-xs uppercase tracking-widest text-[#f2ca50] font-semibold">
                       Instrumento Notarial de Homologação
                     </span>
-                    <h1 className="font-serif text-3xl lg:text-4xl text-[#e2e2ea] leading-tight">
+                    <h1 className="font-serif text-xl sm:text-3xl lg:text-4xl text-[#e2e2ea] leading-tight">
                       Certificado Oficial de Arrematação & Custódia Patrimonial
                     </h1>
                     <p className="font-sans text-xs text-[#99907c] max-w-2xl leading-relaxed">

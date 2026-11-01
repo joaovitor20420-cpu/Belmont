@@ -436,9 +436,9 @@ export default function AuctioneerMasterCockpitPage() {
   }
 
   return (
-    <div className="w-full pt-32 md:pt-20 bg-[#07090E] min-h-[calc(100vh-80px)] text-[#e2e2ea]">
+    <div className="w-full pt-28 sm:pt-32 md:pt-20 bg-[#07090E] min-h-[calc(100vh-80px)] text-[#e2e2ea]">
       {/* Operational Sub-Header Bar (Master Cockpit Status) */}
-      <section className="w-full px-6 lg:px-12 py-3 bg-[#0c0e13] border-b border-[#282a30]">
+      <section className="w-full px-3.5 sm:px-6 lg:px-12 py-2.5 sm:py-3 bg-[#0c0e13] border-b border-[#282a30]">
         <div className="w-full max-w-[1600px] mx-auto flex flex-wrap items-center justify-between gap-4">
           {/* Official License Identity */}
           <div className="flex items-center gap-4 flex-wrap">
@@ -501,8 +501,8 @@ export default function AuctioneerMasterCockpitPage() {
 
       {/* TOP LIVE LOT & SCHEDULED QUEUE CONTROL COCKPIT (Visível no topo para acesso imediato do Leiloeiro) */}
       {(activeLiveLot || scheduledLots.length > 0 || actionFeedback) && (
-        <section className="w-full max-w-[1600px] mx-auto px-6 lg:px-12 pt-6">
-          <div className="bg-[#0c0e13] rounded-xl p-6 border border-[#d4af37]/40 shadow-2xl flex flex-col gap-5">
+        <section className="w-full max-w-[1600px] mx-auto px-3.5 sm:px-6 lg:px-12 pt-4 sm:pt-6">
+          <div className="bg-[#0c0e13] rounded-xl p-4 sm:p-6 border border-[#d4af37]/40 shadow-2xl flex flex-col gap-4 sm:gap-5">
             {actionFeedback && (
               <div className="p-3 bg-[#1d2025] rounded-lg border border-[#d4af37]/40 flex items-center justify-between font-mono text-xs">
                 <span className={actionFeedback.color}>{actionFeedback.text}</span>
@@ -740,11 +740,11 @@ export default function AuctioneerMasterCockpitPage() {
       )}
 
       {/* Main Institutional Workspace: 2-Column High-Density Grid */}
-      <section className="w-full max-w-[1600px] mx-auto px-6 lg:px-12 py-8">
+      <section className="w-full max-w-[1600px] mx-auto px-3.5 sm:px-6 lg:px-12 py-4 sm:py-8">
         <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 items-start">
           {/* LEFT COLUMN: Museum Catalog Ingestion & Manifest Terminal (Cols 1-6) */}
           <div className="xl:col-span-6 flex flex-col gap-6">
-            <div className="bg-[#14171f] rounded-xl p-6 border border-[#282a30] shadow-xl flex flex-col gap-4">
+            <div className="bg-[#14171f] rounded-xl p-4 sm:p-6 border border-[#282a30] shadow-xl flex flex-col gap-4">
               {/* Terminal Header */}
               <div className="flex items-center justify-between pb-3 border-b border-[#282a30]">
                 <div className="flex items-center gap-3">
@@ -923,7 +923,7 @@ export default function AuctioneerMasterCockpitPage() {
 
           {/* RIGHT COLUMN: Lot Configuration & Live Publishing Console (Cols 7-12) */}
           <div className="xl:col-span-6 flex flex-col gap-6">
-            <div className="bg-[#14171f] rounded-xl p-6 border border-[#282a30] shadow-xl flex flex-col gap-4">
+            <div className="bg-[#14171f] rounded-xl p-4 sm:p-6 border border-[#282a30] shadow-xl flex flex-col gap-4">
               {/* Console Head */}
               <div className="flex items-center justify-between pb-3 border-b border-[#282a30]">
                 <div className="flex items-center gap-3">
@@ -1272,7 +1272,7 @@ export default function AuctioneerMasterCockpitPage() {
       </section>
 
       {/* SEÇÃO OFICIAL: RESULTADOS DOS LOTES ENCERRADOS & TOTAL RECEBIDO (REQUISITO VERZEL) */}
-      <section className="w-full max-w-[1600px] mx-auto px-6 lg:px-12 pb-8">
+      <section className="w-full max-w-[1600px] mx-auto px-3.5 sm:px-6 lg:px-12 pb-8">
         <div className="bg-[#0c0e13] rounded-xl p-6 border border-[#282a30] shadow-xl flex flex-col gap-6">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-[#282a30]">
             <div className="flex items-center gap-3">
@@ -1304,6 +1304,7 @@ export default function AuctioneerMasterCockpitPage() {
               Nenhum lote foi encerrado até o momento. Lotes liquidados aparecerão aqui com os dados do arrematante e certificado.
             </div>
           ) : (
+            <div className="overflow-x-auto -mx-4 px-4 sm:-mx-6 sm:px-6">
             <Table>
               <TableHeader className="bg-[#14171f]">
                 <TableRow>
@@ -1358,6 +1359,7 @@ export default function AuctioneerMasterCockpitPage() {
                 })}
               </TableBody>
             </Table>
+            </div>
           )}
         </div>
       </section>

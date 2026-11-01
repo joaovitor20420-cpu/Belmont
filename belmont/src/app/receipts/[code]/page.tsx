@@ -92,14 +92,14 @@ export default function ShareableReceiptPage({
   const { receipt } = data
 
   return (
-    <div className="w-full pt-32 md:pt-20 bg-[#07090E] min-h-[calc(100vh-80px)] text-[#e2e2ea]">
+    <div className="w-full pt-28 sm:pt-32 md:pt-20 bg-[#07090E] min-h-[calc(100vh-80px)] text-[#e2e2ea]">
       {toastText && (
         <div className="fixed bottom-8 right-8 z-50 p-4 rounded-xl bg-[#1d2025] border border-[#d4af37]/40 text-xs font-mono text-[#f2ca50] shadow-2xl">
           {toastText}
         </div>
       )}
 
-      <div className="w-full px-6 md:px-12 max-w-5xl mx-auto py-10 flex flex-col gap-6">
+      <div className="w-full px-3.5 sm:px-6 md:px-12 max-w-5xl mx-auto py-6 sm:py-10 flex flex-col gap-4 sm:gap-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <Link
             href="/"
@@ -131,7 +131,7 @@ export default function ShareableReceiptPage({
         </div>
 
         {/* Guilloché Luxury Certificate Frame */}
-        <div className="relative bg-[#0c0e13] p-4 sm:p-10 rounded-2xl shadow-2xl overflow-hidden border border-[#d4af37]/40">
+        <div className="relative bg-[#0c0e13] p-3 sm:p-8 md:p-10 rounded-2xl shadow-2xl overflow-hidden border border-[#d4af37]/40">
           {/* Guilloché Pattern */}
           <svg
             className="absolute inset-0 w-full h-full opacity-10 pointer-events-none text-[#d4af37]"

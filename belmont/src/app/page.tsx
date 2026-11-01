@@ -107,9 +107,9 @@ export default function CatalogVitrinePage() {
     })
 
   return (
-    <div className="w-full pt-32 md:pt-20 bg-[#07090E] min-h-[calc(100vh-80px)] text-[#e2e2ea]">
+    <div className="w-full pt-28 sm:pt-32 md:pt-20 bg-[#07090E] min-h-[calc(100vh-80px)] text-[#e2e2ea]">
       {/* ATMOSPHERIC BACKGROUND RADIALS */}
-      <div className="relative w-full overflow-hidden px-6 lg:px-12 py-10">
+      <div className="relative w-full overflow-hidden px-3.5 sm:px-6 lg:px-12 py-6 sm:py-10">
         <div className="absolute -top-40 left-1/4 w-[320px] sm:w-[600px] h-[320px] sm:h-[600px] max-w-full bg-[#d4af37]/5 rounded-full blur-[140px] pointer-events-none" />
         <div className="absolute top-1/3 -right-40 w-[300px] sm:w-[500px] h-[300px] sm:h-[500px] max-w-full bg-[#4edea3]/5 rounded-full blur-[160px] pointer-events-none" />
 
@@ -131,14 +131,14 @@ export default function CatalogVitrinePage() {
 
             {/* HERO HEADLINE */}
             <div className="space-y-2">
-              <h1 className="font-serif text-3xl sm:text-4xl md:text-5xl lg:text-6xl text-[#e2e2ea] font-light tracking-tight leading-[1.12]">
+              <h1 className="font-serif text-2xl sm:text-4xl md:text-5xl lg:text-6xl text-[#e2e2ea] font-light tracking-tight leading-[1.15]">
                 Obras Raras.
                 <br />
                 <span className="italic font-normal text-[#f2ca50]">
                   Pregão em Tempo Real.
                 </span>
               </h1>
-              <p className="font-sans text-lg text-[#d0c5af] max-w-xl font-light leading-relaxed pt-2">
+              <p className="font-sans text-sm sm:text-lg text-[#d0c5af] max-w-xl font-light leading-relaxed pt-2">
                 Custódia fiduciária auditada e licitações concorrentes em microssegundos. Obras primas de museus internacionais sob liquidação fiduciária e chancela institucional irrevogável.
               </p>
             </div>
@@ -242,7 +242,7 @@ export default function CatalogVitrinePage() {
             {spotlightLot ? (
               <div className="relative bg-[#14171f] rounded-xl overflow-hidden border border-[#d4af37]/30 shadow-2xl transition-all duration-300">
                 {/* IMAGE VIEWPORT WITH AMBIENT VIGNETTE */}
-                <div className="relative h-[440px] w-full overflow-hidden bg-[#0c0e13]">
+                <div className="relative h-[260px] sm:h-[360px] lg:h-[440px] w-full overflow-hidden bg-[#0c0e13]">
                   <img
                     alt={spotlightLot.title}
                     className="w-full h-full object-cover transition-transform duration-700 hover:scale-105"
@@ -299,7 +299,7 @@ export default function CatalogVitrinePage() {
                 </div>
 
                 {/* BIDDING METRICS STRIP */}
-                <div className="p-4 bg-[#14171f] flex flex-col md:flex-row md:items-center justify-between gap-4 border-t border-[#282a30]">
+                <div className="p-3.5 sm:p-4 bg-[#14171f] flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-4 border-t border-[#282a30]">
                   <div>
                     <div className="font-mono text-[10px] uppercase tracking-widest text-[#99907c]">
                       Lance Atual Liderante
@@ -322,7 +322,7 @@ export default function CatalogVitrinePage() {
                   {/* CTA */}
                   <Link
                     href={`/lots/${spotlightLot.id}`}
-                    className="px-5 py-3 bg-[#d4af37] text-[#1c1400] font-mono text-xs uppercase tracking-widest font-bold rounded shadow-lg hover:bg-[#f2ca50] transition-all flex items-center justify-center gap-2 group cursor-pointer"
+                    className="px-5 py-3 bg-[#d4af37] text-[#1c1400] font-mono text-xs uppercase tracking-widest font-bold rounded shadow-lg hover:bg-[#f2ca50] transition-all flex items-center justify-center gap-2 group cursor-pointer w-full md:w-auto min-h-[48px] w-full md:w-auto min-h-[48px]"
                   >
                     <span>Entrar no Pregão Ao Vivo</span>
                     <span className="material-symbols-outlined text-base transition-transform group-hover:translate-x-1">
@@ -407,7 +407,7 @@ export default function CatalogVitrinePage() {
         <section id="catalogo" className="relative w-full max-w-[1600px] mx-auto mb-6">
           <div className="bg-[#14171f] p-3 rounded-xl border border-[#282a30] shadow-lg flex flex-col xl:flex-row items-stretch xl:items-center justify-between gap-4">
             {/* SEGMENTED PILLS */}
-            <div className="flex items-center gap-1 p-1 bg-[#0c0e13] rounded-lg overflow-x-auto">
+            <div className="flex items-center gap-1 p-1 bg-[#0c0e13] rounded-lg overflow-x-auto no-scrollbar no-scrollbar">
               <button
                 onClick={() => setActiveTab('LIVE')}
                 className={`px-4 py-2 rounded font-mono text-xs uppercase tracking-wider flex items-center gap-2 transition-all shrink-0 cursor-pointer ${
@@ -486,7 +486,7 @@ export default function CatalogVitrinePage() {
         </section>
 
         {/* ASYMMETRIC VITRINE LOT CARDS GRID */}
-        <section className="relative w-full max-w-[1600px] mx-auto grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-16 lg:mb-20">
+        <section className="relative w-full max-w-[1600px] mx-auto grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-6 mb-12 sm:mb-16 lg:mb-20">
           {isLoading ? (
             <div className="col-span-full py-16 text-center text-[#99907c] font-mono text-sm">
               Sincronizando pregão com a rede fiduciária...
@@ -509,7 +509,7 @@ export default function CatalogVitrinePage() {
                   className="group relative flex flex-col bg-[#14171f] rounded-xl overflow-hidden border border-[#282a30] hover:border-[#d4af37]/40 shadow-xl transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl"
                 >
                   {/* IMAGE CONTAINER */}
-                  <div className="relative h-64 w-full bg-[#0c0e13] overflow-hidden">
+                  <div className="relative h-52 sm:h-64 w-full bg-[#0c0e13] overflow-hidden">
                     <img
                       alt={lot.title}
                       className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
@@ -558,7 +558,7 @@ export default function CatalogVitrinePage() {
                   </div>
 
                   {/* CONTENT BODY */}
-                  <div className="p-4 flex flex-col flex-1 justify-between space-y-4">
+                  <div className="p-3.5 sm:p-4 flex flex-col flex-1 justify-between space-y-3">
                     <div>
                       <div className="font-mono text-[11px] tracking-wider uppercase text-[#f2ca50]">
                         Lote #{String(idx + 1).padStart(2, '0')} • {lot.artist || 'Mestre da Arte'}
