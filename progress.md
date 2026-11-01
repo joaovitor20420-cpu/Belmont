@@ -59,7 +59,7 @@
   - [x] 9.4 Carteira do Licitante e tela pública do Comprovante de Arremate.
   - [x] 9.5 Verificador visual de auditoria criptográfica com simulador de adulteração.
 
-- [ ] **Módulo 10: Testes Automatizados, Seeds Obrigatórias & Deploy**
+- [x] **Módulo 10: Testes Automatizados, Seeds Obrigatórias & Deploy**
   - [x] 10.1 Suíte de testes unitários e de integração (concorrência, saldo e integridade).
   - [x] 10.2 Seeds obrigatórias (1 leiloeiro, 2 licitantes e lote aberto para avaliação imediata).
-  - [ ] 10.3 Deploy em produção (Vercel + Neon DB) e documentação final do README.
+  - [x] 10.3 Deploy em produção (Vercel + Neon DB) e documentação final do README.
