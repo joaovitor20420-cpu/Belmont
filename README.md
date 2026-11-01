@@ -6,6 +6,64 @@
 
 ---
 
+## 🤖 Como Utilizei Inteligência Artificial no Projeto (Liderança Técnica, Arquitetura e Execução por Tasks)
+
+No desenvolvimento deste desafio técnico, atuei como arquiteto de software e líder técnico em um modelo de **Pair Programming**, onde fui o responsável direto pela concepção da arquitetura, fundação do projeto e definição de todas as regras de negócio, utilizando a Inteligência Artificial como uma ferramenta aceleradora de implementação técnica, componentização e escrita de testes sob minha constante supervisão.
+
+### 1. Fundação, Setup Inicial e Arquitetura (Desenvolvido por Mim)
+Iniciei o projeto do zero configurando a infraestrutura base:
+- **Ambiente & Tipagem:** Configuração do ecossistema Node.js com TypeScript estrito (`strict: true`), Docker Compose para orquestração do PostgreSQL isolado e validação *fail-fast* de variáveis de ambiente com schemas Zod (`src/env.ts`).
+- **Padrão Arquitetural:** Desenhei a estrutura do sistema em camadas limpas e desacopladas (*Clean / Layered Architecture*), separando estritamente Controllers HTTP, Casos de Uso (*UseCases*), Repositórios e Entidades de Domínio.
+- **Segurança, Autenticação & LGPD:** Concebi e implementei a camada de autenticação baseada em JWT com cookies seguros (`HttpOnly`, `SameSite`), controle de acesso por papéis (RBAC separando estritamente Leiloeiro Oficial e Clientes Licitantes) e a regra de pseudonimização de dados pessoais para conformidade com a LGPD (geração de códigos públicos anônimos `LIC-XXXX` e máscaras como `J*** V***` nos endpoints públicos).
+
+### 2. Homologação Ativa e Revisão de Código via Swagger / OpenAPI
+Como método de garantia de qualidade, utilizei ativamente a **documentação interativa gerada no Swagger (`/docs`)** como ferramenta central de revisão e validação contínua:
+- Antes de integrar qualquer funcionalidade ao front-end, validei e homologuei individualmente cada endpoint na interface do Swagger, inspecionando esquemas de entrada/saída, validações de payload e códigos de status HTTP (200, 201, 400, 403, 404).
+- Através dessa inspeção manual via Swagger, identifiquei e comandei correções de bugs em tempo de execução, como o tratamento de valores monetários em centavos via `BigInt` (para eliminar falhas de ponto flutuante), ajustes em tipos contábeis de transações e idempotência de rotas.
+
+### 3. As Tasks Técnicas e Regras de Negócio que Comandei para a IA Executar
+A partir da arquitetura e dos contratos que estabeleci, quebrei as exigências do edital em Tasks bem delimitadas e direcionei a IA para implementar a lógica e os testes:
+
+1. **Task: Motor de Lances Concorrente com Lock Pessimista (ACID)**
+   - *Regras de Negócio exigidas:* Todo lance deve executar em transação interativa com bloqueio exclusivo (`SELECT ... FOR UPDATE`) na linha do lote e nas carteiras dos usuários para impedir *race conditions*.
+   - *Validações obrigatórias:* Bloqueio de lances por Leiloeiro; proibição de auto-cobertura (o líder atual não pode cobrir o próprio lance); exigência de piso no 1º lance e incremento mínimo nos seguintes (`currentPrice + minIncrement`).
+
+2. **Task: Custódia Financeira Dinâmica (*Escrow* na Carteira)**
+   - *Regras de Negócio exigidas:* Gestão contábil com três grandezas em centavos: Saldo Total, Saldo Comprometido e Saldo Disponível (`Total - Comprometido`).
+   - *Troca atômica de garantia:* Ao assumir a liderança, o valor do lance é retido em `balanceCommitted` (`BID_LOCK`). No microssegundo exato em que outro licitante supera a oferta, o valor do líder anterior é automaticamente liberado (`BID_RELEASE`) na mesma transação atômica.
+
+3. **Task: Prorrogação Automática *Anti-Sniping***
+   - *Regras de Negócio exigidas:* Se um lance for registrado nos últimos 2 minutos de pregão (`remainingMs <= 120.000`), o encerramento do lote é estendido automaticamente em **+2 minutos** (`+120 segundos`), com telemetria em tempo real transmitida para todos os clientes conectados via Server-Sent Events (SSE).
+
+4. **Task: Trilha Criptográfica de Auditoria à Prova de Adulteração**
+   - *Regras de Negócio exigidas:* Estruturação de uma *Hash Chain* contínua com HMAC-SHA256 (`prevHash -> bidHash`) assinando sequencialmente os lances, associada a um Selo Raiz de fechamento do leilão (`lotSealHash`).
+   - *Página Pública de Auditoria (`/audit`):* Acesso público sem login capaz de recalcular os elos matemáticos e detectar instantaneamente qualquer alteração clandestina no banco (ex: `+1 centavo` via `UPDATE` manual no SQL), deleção ou quebra de sequência.
+
+5. **Task: Liquidação Idempotente e Cancelamento com Estorno**
+   - *Regras de Negócio exigidas:* Na batida do martelo, o valor final é debitado em definitivo do vencedor (`SETTLEMENT_DEBIT`), creditado no caixa do leiloeiro (`SETTLEMENT_CREDIT`) e um comprovante oficial compartilhável é gerado (`REC-YYYY-XXXXXX`). Garanti que chamadas repetidas não duplicassem débitos (idempotência).
+   - *Cancelamento seguro:* Lotes com lances em andamento só podem ser cancelados mediante estorno automático (`autoRefund=true`) do saldo retido do líder.
+
+6. **Task: Regra de Unicidade de Obra (Anti-Republicação de Item Já Leiloado)**
+   - *Regras de Negócio exigidas:* Nenhuma obra de arte que já foi arrematada (`status: 'ENDED'`) ou que já esteja em disputa ativa/agendada (`'LIVE'` ou `'SCHEDULED'`) pode ser cadastrada em um novo lote. A regra foi blindada tanto no caso de uso do back-end (`createLot`) quanto na interface do leiloeiro, desabilitando a importação e exibindo status visual explicativo.
+
+7. **Task: Agendamento de Lotes e UI com Dark/Light Mode**
+   - *Regras de Negócio exigidas:* O leiloeiro pode abrir pregões ao vivo ou agendar lotes para datas futuras. Desenvolvemos a interface completa em Next.js (App Router) e componentes shadcn/ui com suporte a Dark Mode e Light Mode persistente na barra de navegação, além de identidade visual sob medida com brasão vetorial/favicon institucional.
+
+8. **Task: Resiliência de API Externa e Bateria com 17 Testes de Integração**
+   - *Regras de Negócio exigidas:* Integração com API de acervo museológico com timeout curto (3.5s via `AbortController`), cache persistente no banco (`ExternalItemCache`) e catálogo curado de contingência offline.
+   - *Testes Automatizados (`npm test`):* Criação de uma suíte abrangente com **17 testes de integração**, simulando concorrência no mesmo microssegundo com `Promise.allSettled`, recusas de lance, estorno de garantia, tamper detection de fraude SQL e o bloqueio de republicação de itens já leiloados.
+
+### 4. DevOps e Deploy em Produção
+Conduzi a publicação integral da arquitetura na nuvem:
+- **Banco de Dados:** PostgreSQL Serverless configurado no **Neon DB**, com migrations executadas e sementes de teste obrigatórias do edital semeadas (1 leiloeiro, 2 licitantes e lote ao vivo com lances).
+- **Back-End:** API Fastify publicada no **Render**, com monitoramento de logs e Swagger ativo.
+- **Front-End:** Aplicação Next.js hospedada na **Vercel**, conectada via variáveis de ambiente com a API em produção.
+
+> **Conclusão:**  
+> A Inteligência Artificial operou como um braço de engenharia altamente produtivo sob meu comando, executando com agilidade o código boilerplate, as fórmulas criptográficas, componentes e testes. No entanto, a **visão arquitetural, a segurança, o setup estrutural, a formulação das regras de negócio e a validação minuciosa via Swagger e testes automatizados foram inteiramente concebidos e liderados por mim**.
+
+---
+
 ## 📌 Visão Geral do Projeto
 
 O **Belmont Fine Art Auctions** é uma plataforma completa de leilões online em tempo real para obras de arte homologadas de museus internacionais, projetada com foco em **consistência transacional (ACID)**, **concorrência pessimista (`SELECT ... FOR UPDATE`)**, **custódia fiduciária dinâmica (*Escrow*)**, **prorrogação automática *Anti-Sniping*** e **trilha pública de auditoria criptográfica à prova de adulteração (`HMAC-SHA256`)**.
@@ -23,8 +81,8 @@ O **Belmont Fine Art Auctions** é uma plataforma completa de leilões online em
 # Instalar dependências do Back-End (raiz)
 npm install
 
-# Instalar dependências do Front-End (pasta web/)
-npm --prefix web install
+# Instalar dependências do Front-End (pasta belmont/)
+npm --prefix belmont install
 ```
 
 ### 2. Configurar variáveis de ambiente
@@ -136,9 +194,11 @@ Implementada em [`src/utils/cryptoAudit.ts`](./src/utils/cryptoAudit.ts) e verif
    - Valor abaixo do mínimo: *"Lance abaixo do mínimo permitido (R$ X)."* (`400`)
    - Saldo disponível insuficiente: *"Saldo disponível insuficiente para cobrir este lance."* (`400`)
    - Lote agendado ou já encerrado: *"Este lote ainda não iniciou / já foi encerrado."* (`400`)
-5. **Privacidade e LGPD:**
+5. **Regra de Unicidade de Obra (Anti-Republicação):**
+   - Nenhuma obra já arrematada (`ENDED`) ou com lote em disputa ativa/agendada (`LIVE`/`SCHEDULED`) pode ter um novo lote cadastrado.
+6. **Privacidade e LGPD:**
    - Endpoints públicos jamais expõem e-mail, documento, senha ou nome completo dos licitantes. Todos os participantes são exibidos por seu código pseudonimizado (`LIC-0001`) e máscara LGPD (`H*** V***`).
-6. **Certificado de Propriedade Exclusivo do Vencedor vs. Auditoria Pública:**
+7. **Certificado de Propriedade Exclusivo do Vencedor vs. Auditoria Pública:**
    - A **Auditoria Criptográfica (`/audit` e `/audit/[lotId]`)** é 100% pública e acessível sem login.
    - O **Certificado Oficial de Arrematação** é restrito exclusivamente ao licitante vencedor (`winnerId`) do lote encerrado, além do link público de verificação por código (`REC-YYYY-XXXXXX` em `/receipts/[code]`).
 
@@ -146,7 +206,7 @@ Implementada em [`src/utils/cryptoAudit.ts`](./src/utils/cryptoAudit.ts) e verif
 
 ## 🧪 Executando a Suíte de Testes Automatizados
 
-O projeto conta com uma bateria de **16 testes automatizados de integração e regras de negócio** em [`scripts/test-business-rules.ts`](./scripts/test-business-rules.ts), cobrindo todas as recusas de lance, troca atômica de saldo comprometido, *anti-sniping*, concorrência simultânea (`Promise.allSettled` com lock `FOR UPDATE`), auditoria criptográfica, detecção de adulteração de 1 centavo no SQL e idempotência da liquidação:
+O projeto conta com uma bateria de **17 testes automatizados de integração e regras de negócio** em [`scripts/test-business-rules.ts`](./scripts/test-business-rules.ts), cobrindo todas as recusas de lance, troca atômica de saldo comprometido, *anti-sniping*, concorrência simultânea (`Promise.allSettled` com lock `FOR UPDATE`), auditoria criptográfica, detecção de adulteração de 1 centavo no SQL, idempotência da liquidação e bloqueio de republicação de item já leiloado:
 
 ```bash
 npm test
@@ -163,6 +223,6 @@ npm test
    - Configure as variáveis `DATABASE_URL`, `JWT_SECRET`, `PORT=3333` e `NODE_ENV=production`.
    - Comando de inicialização: `npm start`.
 3. **Front-End Next.js (Vercel):**
-   - Defina o Root Directory como `web`.
-   - Configure a variável de ambiente `NEXT_PUBLIC_API_URL` apontando para a URL pública do Back-End Fastify.
+   - Defina o Root Directory como `belmont`.
+   - Configure a variável de ambiente `NEXT_PUBLIC_API_URL` apontando para a URL pública do Back-End Fastify (`https://belmont-api-a5n6.onrender.com`).
    - Comando de build: `npm run build`.
