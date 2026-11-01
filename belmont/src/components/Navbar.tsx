@@ -169,30 +169,41 @@ export function Navbar() {
   }
 
   // Construção estrita dos links de navegação baseada no papel (RBAC)
-  const navLinks: Array<{ label: string; path: string }> = [
-    { label: 'Catálogo', path: '/' },
+  interface NavLinkItem {
+    label: string
+    mobileLabel?: string
+    icon: string
+    path: string
+  }
+
+  const navLinks: NavLinkItem[] = [
+    { label: 'Catálogo', mobileLabel: 'Catálogo', icon: 'storefront', path: '/' },
   ]
 
   if (firstLotId) {
     navLinks.push({
       label: 'Sala de Pregão',
+      mobileLabel: 'Ao Vivo',
+      icon: 'sensors',
       path: `/lots/${firstLotId}`,
     })
   }
 
   navLinks.push({
     label: 'Auditoria Pública',
+    mobileLabel: 'Auditoria',
+    icon: 'verified_user',
     path: '/audit',
   })
 
   if (user?.role === 'BIDDER') {
     // Usuário licitante vê Meus Arremates e Carteira Digital (NUNCA vê Painel do Leiloeiro)
-    navLinks.push({ label: 'Meus Arremates', path: '/my-bids' })
-    navLinks.push({ label: 'Carteira Digital', path: '/wallet' })
+    navLinks.push({ label: 'Meus Arremates', mobileLabel: 'Arremates', icon: 'trophy', path: '/my-bids' })
+    navLinks.push({ label: 'Carteira Digital', mobileLabel: 'Carteira', icon: 'account_balance_wallet', path: '/wallet' })
   } else if (user?.role === 'AUCTIONEER') {
     // Leiloeiro Oficial vê Painel do Leiloeiro e Recebimentos (NUNCA vê Meus Arremates)
-    navLinks.push({ label: 'Painel do Leiloeiro', path: '/auctioneer' })
-    navLinks.push({ label: 'Recebimentos & Caixa', path: '/wallet' })
+    navLinks.push({ label: 'Painel do Leiloeiro', mobileLabel: 'Painel', icon: 'gavel', path: '/auctioneer' })
+    navLinks.push({ label: 'Recebimentos & Caixa', mobileLabel: 'Caixa', icon: 'payments', path: '/wallet' })
   }
 
   useEffect(() => {
@@ -208,17 +219,17 @@ export function Navbar() {
 
   return (
     <>
-      <header className="fixed top-0 left-0 right-0 z-50 bg-[#07090E]/90 backdrop-blur-xl border-b border-[#d4af37]/20">
-        <div className="h-20 w-full max-w-[1600px] mx-auto px-3 sm:px-6 lg:px-12 flex items-center justify-between gap-2 sm:gap-4">
+      <header className="fixed top-0 left-0 right-0 z-40 bg-[#07090E]/95 backdrop-blur-xl border-b border-[#d4af37]/20 h-14 sm:h-16 md:h-20 transition-all">
+        <div className="h-14 sm:h-16 md:h-20 w-full max-w-[1600px] mx-auto px-3 sm:px-6 lg:px-12 flex items-center justify-between gap-2 sm:gap-4">
           {/* Logo & Marca Belmont */}
           <Link href="/" className="flex items-center gap-2.5 sm:gap-2.5 sm:gap-2.5 sm:gap-3.5 shrink-0 group">
             <img
               alt="Belmont Auctions Crest"
-              className="h-9 w-9 object-contain transition-transform group-hover:scale-105"
+              className="h-7 w-7 sm:h-8 sm:w-8 md:h-9 md:w-9 object-contain transition-transform group-hover:scale-105"
               src="/belmont-crest.svg"
             />
             <div className="flex flex-col">
-              <span className="font-serif text-base sm:text-lg tracking-wider text-[#e2e2ea] font-medium leading-tight">
+              <span className="font-serif text-sm sm:text-base md:text-lg tracking-wider text-[#e2e2ea] font-medium leading-none sm:leading-tight">
                 BELMONT AUCTIONS
               </span>
               <span className="hidden sm:inline font-mono text-[9px] sm:text-[10px] tracking-widest uppercase text-[#99907c]">EST. 1894 • CHICAGO & GENEVA</span>
@@ -262,7 +273,7 @@ export function Navbar() {
               aria-label={
                 theme === 'dark' ? 'Ativar Modo Claro' : 'Ativar Modo Escuro'
               }
-              className="flex items-center gap-1.5 px-3 py-2 min-h-[44px] min-w-[44px] justify-center rounded border border-[#282a30] bg-[#14171f] hover:border-[#d4af37]/60 text-[#d0c5af] hover:text-[#e2e2ea] transition-colors cursor-pointer active:scale-95"
+              className="flex items-center gap-1.5 px-2.5 py-1.5 sm:px-3 sm:py-2 min-h-[36px] sm:min-h-[44px] justify-center rounded border border-[#282a30] bg-[#14171f] hover:border-[#d4af37]/60 text-[#d0c5af] hover:text-[#e2e2ea] transition-colors cursor-pointer active:scale-95"
             >
               <span className="material-symbols-outlined text-base text-[#f2ca50]">
                 {theme === 'dark' ? 'light_mode' : 'dark_mode'}
@@ -326,9 +337,9 @@ export function Navbar() {
                   aria-expanded={showUserDropdown}
                   aria-haspopup="menu"
                   onClick={() => setShowUserDropdown(!showUserDropdown)}
-                  className="flex items-center gap-2.5 p-1 pr-2 sm:pr-3 min-h-[44px] rounded border border-[#4d4635]/60 bg-[#14171f]/80 hover:border-[#d4af37]/50 transition-colors cursor-pointer"
+                  className="flex items-center gap-1.5 sm:gap-2.5 p-1 pr-2 sm:pr-3 min-h-[36px] sm:min-h-[44px] rounded border border-[#4d4635]/60 bg-[#14171f]/80 hover:border-[#d4af37]/50 transition-colors cursor-pointer"
                 >
-                  <div className="w-8 h-8 rounded-full bg-[#282a30] border border-[#d4af37]/40 flex items-center justify-center font-mono text-xs font-bold text-[#f2ca50]">
+                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-[#282a30] border border-[#d4af37]/40 flex items-center justify-center font-mono text-[10px] sm:text-xs font-bold text-[#f2ca50]">
                     {user.role === 'AUCTIONEER' ? 'LEI' : 'LIC'}
                   </div>
                   <div className="hidden sm:flex flex-col text-left">
@@ -448,7 +459,7 @@ export function Navbar() {
               <div className="flex items-center gap-2">
                 <Button
                   type="button"
-                  className="min-h-[44px] px-3 sm:px-4 text-xs font-semibold"
+                  className="min-h-[36px] sm:min-h-[44px] px-2.5 sm:px-4 text-[11px] sm:text-xs font-semibold"
                   onClick={() => {
                     setAuthTab('LOGIN')
                     setShowLoginModal(true)
@@ -462,29 +473,7 @@ export function Navbar() {
           </div>
         </div>
 
-        {/* Barra de Navegação Mobile (< 768px) */}
-        <nav className="flex md:hidden items-center gap-1.5 px-3 py-2 bg-[#0c0e13] border-t border-[#282a30] overflow-x-auto no-scrollbar scroll-smooth">
-          {navLinks.map((item) => {
-            const isActive =
-              item.path === '/'
-                ? pathname === '/'
-                : pathname.startsWith(item.path.split('?')[0])
-            return (
-              <Link
-                key={item.label}
-                href={item.path}
-                className={`px-3 py-2 min-h-[44px] flex items-center font-mono text-[11px] sm:text-xs uppercase tracking-wider transition-colors rounded shrink-0 active:scale-95 ${
-                  isActive
-                    ? 'bg-[#d4af37] text-[#1c1400] font-bold'
-                    : 'text-[#d0c5af] hover:text-[#e2e2ea]'
-                }`}
-              >
-                {item.label}
-              </Link>
-            )
-          })}
-        </nav>
-      </header>
+        </header>
 
       {/* Modal de Login & Cadastro de Conta com shadcn/ui Dialog + Tabs */}
       <Dialog open={showLoginModal} onOpenChange={setShowLoginModal}>
@@ -699,6 +688,48 @@ export function Navbar() {
           </Tabs>
         </DialogContent>
       </Dialog>
+
+      {/* Barra de Navegação Mobile Nativa Fixa no Rodapé (< 768px) */}
+      <nav
+        aria-label="Navegação Principal Mobile"
+        className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-[#0c0e13]/98 backdrop-blur-2xl border-t border-[#282a30] px-1 py-1 flex items-center justify-around shadow-[0_-8px_25px_rgba(0,0,0,0.6)]"
+      >
+        {navLinks.map((item) => {
+          const isActive =
+            item.path === '/'
+              ? pathname === '/'
+              : pathname.startsWith(item.path.split('?')[0])
+          return (
+            <Link
+              key={item.label}
+              href={item.path}
+              className={`flex flex-col items-center justify-center py-1 px-1.5 flex-1 min-h-[46px] rounded-lg transition-all active:scale-95 ${
+                isActive
+                  ? 'text-[#f2ca50] font-bold'
+                  : 'text-[#99907c] hover:text-[#e2e2ea]'
+              }`}
+            >
+              <span
+                className={`material-symbols-outlined text-lg sm:text-xl transition-transform ${
+                  isActive ? 'scale-110 text-[#f2ca50]' : ''
+                }`}
+              >
+                {item.icon}
+              </span>
+              <span
+                className={`text-[9px] sm:text-[10px] tracking-tight font-sans mt-0.5 leading-none ${
+                  isActive ? 'font-semibold text-[#f2ca50]' : ''
+                }`}
+              >
+                {item.mobileLabel || item.label}
+              </span>
+              {isActive && (
+                <span className="w-1 h-1 rounded-full bg-[#f2ca50] mt-0.5 shadow-sm" />
+              )}
+            </Link>
+          )
+        })}
+      </nav>
     </>
   )
 }

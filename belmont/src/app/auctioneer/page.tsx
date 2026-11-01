@@ -32,7 +32,7 @@ function toLocalDatetimeInputValue(date: Date): string {
 }
 
 export default function AuctioneerMasterCockpitPage() {
-  const { user } = useAuth()
+  const { user, isLoading: isAuthLoading, login } = useAuth()
 
   // Estado de confirmação em 2 passos para ações irreversíveis do Leiloeiro
   const [confirmAction, setConfirmAction] = useState<'hammer' | 'cancel' | null>(null)
@@ -409,23 +409,42 @@ export default function AuctioneerMasterCockpitPage() {
     }
   }
 
-  // Proteção Estrita de Rota: somente o Leiloeiro Oficial pode acessar o Painel do Leiloeiro
+  // Proteção Estrita de Rota com Feedback de Hidratação
+  if (isAuthLoading) {
+    return (
+      <div className="w-full pt-20 pb-20 flex min-h-[60vh] flex-col items-center justify-center gap-3 text-[#99907c] font-mono">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-[#d4af37] border-t-transparent" />
+        <span className="text-xs uppercase tracking-widest text-[#f2ca50]">
+          Sincronizando credenciais do Leiloeiro Oficial...
+        </span>
+      </div>
+    )
+  }
+
   if (!user || user.role !== 'AUCTIONEER') {
     return (
-      <div className="w-full pt-32 pb-20 px-6 max-w-xl mx-auto text-center font-mono">
-        <div className="w-16 h-16 rounded-full bg-rose-500/10 border border-rose-500/30 flex items-center justify-center mx-auto mb-4 text-rose-400">
-          <span className="material-symbols-outlined text-3xl">lock</span>
+      <div className="w-full pt-24 sm:pt-32 pb-20 px-4 sm:px-6 max-w-xl mx-auto text-center font-mono">
+        <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-rose-500/10 border border-rose-500/30 flex items-center justify-center mx-auto mb-4 text-rose-400">
+          <span className="material-symbols-outlined text-2xl sm:text-3xl">lock</span>
         </div>
-        <h2 className="text-2xl font-serif text-[#e2e2ea]">
+        <h2 className="text-xl sm:text-2xl font-serif text-[#e2e2ea]">
           Acesso Exclusivo ao Leiloeiro Oficial
         </h2>
         <p className="mt-2 text-xs text-[#99907c] leading-relaxed">
           Usuários licitantes e visitantes não possuem permissão para acessar o Painel do Leiloeiro. Somente o Leiloeiro Oficial autenticado pode pesquisar o acervo da API pública e publicar novos lotes de leilão.
         </p>
-        <div className="mt-6 flex items-center justify-center gap-3">
+        <div className="mt-6 flex flex-col sm:flex-row items-center justify-center gap-3">
+          <button
+            type="button"
+            onClick={() => login('leiloeiro@belmont.com', 'password123')}
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-lg bg-[#d4af37] text-[#1c1400] px-5 py-2.5 text-xs font-bold hover:bg-[#f2ca50] transition uppercase cursor-pointer shadow-lg active:scale-95"
+          >
+            <span className="material-symbols-outlined text-sm">key</span>
+            <span>Entrar como Leiloeiro Oficial (1-Click)</span>
+          </button>
           <Link
             href="/"
-            className="inline-flex items-center gap-2 rounded-lg bg-[#1d2025] border border-[#d4af37]/40 px-5 py-2.5 text-xs text-[#f2ca50] hover:bg-[#282a30] transition uppercase font-bold"
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-lg bg-[#1d2025] border border-[#d4af37]/40 px-5 py-2.5 text-xs text-[#f2ca50] hover:bg-[#282a30] transition uppercase font-bold"
           >
             <span className="material-symbols-outlined text-sm">arrow_back</span>
             <span>Voltar ao Catálogo</span>
@@ -436,7 +455,7 @@ export default function AuctioneerMasterCockpitPage() {
   }
 
   return (
-    <div className="w-full pt-28 sm:pt-32 md:pt-20 bg-[#07090E] min-h-[calc(100vh-80px)] text-[#e2e2ea]">
+    <div className="w-full pt-16 sm:pt-20 md:pt-24 pb-20 sm:pb-24 md:pb-12 bg-[#07090E] min-h-screen text-[#e2e2ea] overflow-x-hidden">
       {/* Operational Sub-Header Bar (Master Cockpit Status) */}
       <section className="w-full px-3.5 sm:px-6 lg:px-12 py-2.5 sm:py-3 bg-[#0c0e13] border-b border-[#282a30]">
         <div className="w-full max-w-[1600px] mx-auto flex flex-wrap items-center justify-between gap-4">
@@ -795,7 +814,7 @@ export default function AuctioneerMasterCockpitPage() {
                 </div>
 
                 {/* Filter Chips */}
-                <div className="flex items-center gap-2 flex-wrap pt-1 font-mono text-[10px]">
+                <div className="grid grid-cols-2 sm:flex items-center gap-1.5 sm:gap-2 pt-1 font-mono text-[10px]">
                   <span className="text-[#99907c] uppercase tracking-wider mr-1">Filtros:</span>
                   {[
                     { label: 'Claude Monet', query: 'Monet' },

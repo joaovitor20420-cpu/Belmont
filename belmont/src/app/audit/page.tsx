@@ -97,7 +97,7 @@ export default function PublicAuditHubPage() {
   })
 
   return (
-    <div className="w-full pt-28 sm:pt-32 md:pt-20 bg-[#07090E] min-h-[calc(100vh-80px)] text-[#e2e2ea]">
+    <div className="w-full pt-16 sm:pt-20 md:pt-24 pb-20 sm:pb-24 md:pb-12 bg-[#07090E] min-h-screen text-[#e2e2ea] overflow-x-hidden">
       {/* Header Banner */}
       <section className="w-full px-3.5 sm:px-6 lg:px-12 py-6 sm:py-10 bg-[#0c0e13] border-b border-[#282a30]">
         <div className="w-full max-w-[1600px] mx-auto flex flex-col lg:flex-row lg:items-end justify-between gap-6">

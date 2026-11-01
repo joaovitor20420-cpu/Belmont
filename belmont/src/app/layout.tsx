@@ -72,7 +72,7 @@ export default function RootLayout({
             <AuthProvider>
               <Navbar />
               <main className="flex-1 w-full">{children}</main>
-              <footer className="w-full bg-[#0c0e13] border-t border-[#d4af37]/20 mt-12 py-8">
+              <footer className="w-full bg-[#0c0e13] border-t border-[#d4af37]/20 mt-8 sm:mt-12 py-6 sm:py-8 mb-16 md:mb-0">
                 <div className="max-w-[1600px] mx-auto px-6 lg:px-12 flex flex-col md:flex-row items-center justify-between gap-6">
                   <div className="flex items-center gap-3.5 text-left">
                     <img

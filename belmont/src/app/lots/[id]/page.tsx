@@ -426,9 +426,9 @@ export default function LiveAuctionRoomPage({
   }
 
   return (
-    <div className="w-full pt-28 sm:pt-32 md:pt-20 bg-[#07090E] min-h-[calc(100vh-80px)] text-[#e2e2ea]">
+    <div className="w-full pt-16 sm:pt-20 md:pt-24 pb-20 sm:pb-24 md:pb-12 bg-[#07090E] min-h-screen text-[#e2e2ea] overflow-x-hidden">
       {/* Sub-Header Precision Diagnostic Ribbon */}
-      <div className="w-full bg-[#0c0e13] px-3.5 sm:px-6 lg:px-12 py-2.5 sm:py-3 border-b border-[#282a30]">
+      <div className="w-full bg-[#0c0e13] px-3 sm:px-6 lg:px-12 py-2 sm:py-3 border-b border-[#282a30]">
         <div className="w-full max-w-[1600px] mx-auto flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-6 flex-wrap">
             <Link
@@ -556,7 +556,7 @@ export default function LiveAuctionRoomPage({
               </div>
 
               {/* Main High-Res Canvas Presentation with Vignette */}
-              <div className="relative w-full aspect-[4/3] max-h-[280px] sm:max-h-[380px] lg:max-h-[460px] bg-[#0c0e13] overflow-hidden flex items-center justify-center">
+              <div className="relative w-full aspect-[4/3] max-h-[220px] sm:max-h-[340px] lg:max-h-[460px] bg-[#0c0e13] overflow-hidden flex items-center justify-center">
                 <img
                   alt={lot.title}
                   className="w-full h-full object-cover transition-transform duration-700 hover:scale-105"
@@ -589,7 +589,7 @@ export default function LiveAuctionRoomPage({
                     <span className="font-mono text-[11px] tracking-widest uppercase text-[#f2ca50]">
                       BELAS ARTES INTERNACIONAIS
                     </span>
-                    <h1 className="font-serif text-2xl sm:text-3xl text-[#e2e2ea] tracking-tight leading-none">
+                    <h1 className="font-serif text-xl sm:text-2xl md:text-3xl text-[#e2e2ea] tracking-tight leading-snug">
                       {lot.title}
                     </h1>
                     <p className="font-serif text-lg italic text-[#d0c5af]">
@@ -816,7 +816,7 @@ export default function LiveAuctionRoomPage({
 
               {/* Monumental Price Typography */}
               <div className="my-5">
-                <div className="font-serif text-2xl sm:text-4xl lg:text-5xl text-[#f2ca50] font-bold tracking-tight select-all tabular-nums">
+                <div className="font-serif text-2xl sm:text-3xl md:text-4xl lg:text-5xl text-[#f2ca50] font-bold tracking-tight select-all tabular-nums">
                   {formatCurrency(lot.currentPrice || lot.startPrice)}
                 </div>
                 {!isEnded && (
@@ -993,7 +993,7 @@ export default function LiveAuctionRoomPage({
                         type="button"
                         onClick={() => setPendingBidAmount(minAllowedBid)}
                         disabled={isBidding || isScheduled || !user || !hasEnoughBalance}
-                        className="w-full py-4 px-6 bg-[#d4af37] hover:bg-[#f2ca50] text-[#1c1400] font-mono text-xs font-bold uppercase tracking-wider rounded-lg transition-all shadow-lg hover:shadow-[#d4af37]/20 active:scale-[0.99] flex items-center justify-between cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="w-full py-3.5 sm:py-4 px-3 sm:px-6 bg-[#d4af37] hover:bg-[#f2ca50] text-[#1c1400] font-mono text-xs font-bold uppercase tracking-wider rounded-lg transition-all shadow-lg hover:shadow-[#d4af37]/20 active:scale-[0.99] flex items-center justify-between cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         <span className="flex items-center gap-2">
                           <span className="material-symbols-outlined text-lg">
@@ -1036,7 +1036,7 @@ export default function LiveAuctionRoomPage({
                               type="button"
                               onClick={() => setPendingBidAmount(totalBid)}
                               disabled={isBidding || isScheduled || !user || !canAfford}
-                              className="py-2 sm:py-2.5 px-1 sm:px-2 min-h-[44px] rounded-lg bg-[#1d2025] hover:bg-[#282a30] hover:text-[#f2ca50] text-[#e2e2ea] border border-[#282a30] transition-colors flex flex-col items-center cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                              className="py-1.5 sm:py-2 px-1 sm:px-2 min-h-[38px] sm:min-h-[44px] rounded-lg bg-[#1d2025] hover:bg-[#282a30] hover:text-[#f2ca50] text-[#e2e2ea] border border-[#282a30] transition-colors flex flex-col items-center justify-center cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                             >
                               <span className="text-[#f2ca50] font-mono text-xs font-bold">
                                 + {formatCurrency(incAmount)}

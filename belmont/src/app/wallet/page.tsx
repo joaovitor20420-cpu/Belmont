@@ -138,7 +138,7 @@ export default function DigitalWalletPage() {
   })
 
   return (
-    <div className="w-full pt-28 sm:pt-32 md:pt-20 bg-[#07090E] min-h-[calc(100vh-80px)] text-[#e2e2ea]">
+    <div className="w-full pt-16 sm:pt-20 md:pt-24 pb-20 sm:pb-24 md:pb-12 bg-[#07090E] min-h-screen text-[#e2e2ea] overflow-x-hidden">
       {/* Dynamic Notification Bar (Toast) */}
       {toastMessage && (
         <div className="fixed bottom-8 right-8 z-50 p-4 rounded-xl bg-[#1d2025] border border-[#d4af37]/40 shadow-2xl transition-all duration-300 max-w-md">
@@ -239,7 +239,7 @@ export default function DigitalWalletPage() {
         {/* Tri-Fold Financial Metric Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Card 1: Saldo Total */}
-          <div className="p-4 sm:p-6 rounded-xl bg-[#14171f] border border-[#282a30] flex flex-col justify-between shadow-sm relative overflow-hidden group">
+          <div className="p-3.5 sm:p-6 rounded-xl bg-[#14171f] border border-[#282a30] flex flex-col justify-between shadow-sm relative overflow-hidden group">
             <div className="flex justify-between items-start">
               <div className="flex flex-col">
                 <span className="font-mono text-[10px] uppercase tracking-widest text-[#99907c]">
@@ -286,7 +286,7 @@ export default function DigitalWalletPage() {
               </span>
             </div>
             <div className="my-4">
-              <div className="font-serif text-2xl sm:text-3xl font-bold text-[#f2ca50] tracking-tight">
+              <div className="font-serif text-xl sm:text-2xl md:text-3xl font-bold text-[#f2ca50] tracking-tight">
                 {formatCurrency(balances.committed)}
               </div>
               <div className="font-sans text-xs text-[#99907c] mt-2 flex items-center gap-1.5">
@@ -321,7 +321,7 @@ export default function DigitalWalletPage() {
               </span>
             </div>
             <div className="my-4">
-              <div className="font-serif text-2xl sm:text-3xl font-bold text-[#4edea3] tracking-tight">
+              <div className="font-serif text-xl sm:text-2xl md:text-3xl font-bold text-[#4edea3] tracking-tight">
                 {formatCurrency(balances.available)}
               </div>
               <div className="font-sans text-xs text-[#99907c] mt-2 flex items-center gap-1.5">
@@ -339,7 +339,7 @@ export default function DigitalWalletPage() {
         </div>
 
         {/* Proportional Capital Allocation Bar & Explanatory Architecture */}
-        <div className="p-4 sm:p-6 rounded-xl bg-[#14171f] border border-[#282a30] flex flex-col gap-4 shadow-sm">
+        <div className="p-3.5 sm:p-6 rounded-xl bg-[#14171f] border border-[#282a30] flex flex-col gap-3 sm:gap-4 shadow-sm">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
             <div className="flex flex-col">
               <span className="font-mono text-[10px] uppercase tracking-wider text-[#99907c]">

@@ -164,7 +164,7 @@ export default function CertificadosAuditoriaPage({
   const isAuctioneer = user?.role === 'AUCTIONEER'
 
   return (
-    <div className="w-full pt-28 sm:pt-32 md:pt-20 bg-[#07090E] min-h-[calc(100vh-80px)] text-[#e2e2ea]">
+    <div className="w-full pt-16 sm:pt-20 md:pt-24 pb-20 sm:pb-24 md:pb-12 bg-[#07090E] min-h-screen text-[#e2e2ea] overflow-x-hidden">
       {/* Toast Notification */}
       {toastText && (
         <div className="fixed bottom-8 right-8 z-50 p-4 rounded-xl bg-[#1d2025] border border-[#d4af37]/40 text-xs font-mono text-[#f2ca50] shadow-2xl">
