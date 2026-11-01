@@ -408,3 +408,48 @@ html.light .glass-panel {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+
+/* Header & Mobile Bottom Nav & Shortcuts in Light Mode */
+html.light header {
+  background-color: rgba(250, 247, 242, 0.96) !important;
+  border-bottom-color: rgba(184, 134, 11, 0.25) !important;
+}
+
+html.light nav[aria-label="Navegação Principal Mobile"] {
+  background-color: rgba(255, 255, 255, 0.98) !important;
+  border-top-color: #dcd3c2 !important;
+  box-shadow: 0 -8px 25px rgba(0, 0, 0, 0.08) !important;
+}
+
+html.light nav[aria-label="Navegação Principal Mobile"] a {
+  color: #685e4e !important;
+}
+
+html.light nav[aria-label="Navegação Principal Mobile"] a:hover {
+  color: #181510 !important;
+}
+
+html.light nav[aria-label="Navegação Principal Mobile"] a.font-bold,
+html.light nav[aria-label="Navegação Principal Mobile"] a.text-\[\#8a6206\],
+html.light nav[aria-label="Navegação Principal Mobile"] a:has(.bg-\[\#8a6206\]),
+html.light nav[aria-label="Navegação Principal Mobile"] a:has(.bg-\[\#f2ca50\]) {
+  color: #8a6206 !important;
+}
+
+html.light nav[aria-label="Navegação Principal Mobile"] .bg-\[\#8a6206\],
+html.light nav[aria-label="Navegação Principal Mobile"] .bg-\[\#f2ca50\] {
+  background-color: #8a6206 !important;
+}
+
+html.light .bg-\[\#07090E\]\/95,
+html.light .bg-\[\#07090e\]\/95,
+html.light .bg-\[\#07090E\]\/90,
+html.light .bg-\[\#07090e\]\/90 {
+  background-color: rgba(250, 247, 242, 0.96) !important;
+}
+
+html.light .bg-\[\#0c0e13\]\/98,
+html.light .bg-\[\#0c0e13\]\/95 {
+  background-color: rgba(255, 255, 255, 0.98) !important;
+}

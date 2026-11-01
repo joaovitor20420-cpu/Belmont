@@ -219,7 +219,7 @@ export function Navbar() {
 
   return (
     <>
-      <header className="fixed top-0 left-0 right-0 z-40 bg-[#07090E]/95 backdrop-blur-xl border-b border-[#d4af37]/20 h-14 sm:h-16 md:h-20 transition-all">
+      <header className={`fixed top-0 left-0 right-0 z-40 backdrop-blur-xl border-b h-14 sm:h-16 md:h-20 transition-all ${theme === 'light' ? 'bg-[#faf7f2]/95 border-[#d4af37]/30 text-[#181510] shadow-[0_1px_8px_rgba(0,0,0,0.05)]' : 'bg-[#07090E]/95 border-[#d4af37]/20 text-[#e2e2ea]'}`}>
         <div className="h-14 sm:h-16 md:h-20 w-full max-w-[1600px] mx-auto px-3 sm:px-6 lg:px-12 flex items-center justify-between gap-2 sm:gap-4">
           {/* Logo & Marca Belmont */}
           <Link href="/" className="flex items-center gap-2.5 sm:gap-2.5 sm:gap-2.5 sm:gap-3.5 shrink-0 group">
@@ -229,10 +229,10 @@ export function Navbar() {
               src="/belmont-crest.svg"
             />
             <div className="flex flex-col">
-              <span className="font-serif text-sm sm:text-base md:text-lg tracking-wider text-[#e2e2ea] font-medium leading-none sm:leading-tight">
+              <span className={`font-serif text-sm sm:text-base md:text-lg tracking-wider font-medium leading-none sm:leading-tight ${theme === 'light' ? 'text-[#181510]' : 'text-[#e2e2ea]'}`}>
                 BELMONT AUCTIONS
               </span>
-              <span className="hidden sm:inline font-mono text-[9px] sm:text-[10px] tracking-widest uppercase text-[#99907c]">EST. 1894 • CHICAGO & GENEVA</span>
+              <span className={`hidden sm:inline font-mono text-[9px] sm:text-[10px] tracking-widest uppercase ${theme === 'light' ? 'text-[#685e4e]' : 'text-[#99907c]'}`}>EST. 1894 • CHICAGO & GENEVA</span>
             </div>
           </Link>
 
@@ -273,7 +273,7 @@ export function Navbar() {
               aria-label={
                 theme === 'dark' ? 'Ativar Modo Claro' : 'Ativar Modo Escuro'
               }
-              className="flex items-center gap-1.5 px-2.5 py-1.5 sm:px-3 sm:py-2 min-h-[36px] sm:min-h-[44px] justify-center rounded border border-[#282a30] bg-[#14171f] hover:border-[#d4af37]/60 text-[#d0c5af] hover:text-[#e2e2ea] transition-colors cursor-pointer active:scale-95"
+              className={`flex items-center gap-1.5 px-2.5 py-1.5 sm:px-3 sm:py-2 min-h-[36px] sm:min-h-[44px] justify-center rounded border transition-colors cursor-pointer active:scale-95 ${theme === 'light' ? 'border-[#dcd3c2] bg-[#f4efe6] text-[#3d362b] hover:border-[#b8860b] hover:text-[#181510]' : 'border-[#282a30] bg-[#14171f] text-[#d0c5af] hover:border-[#d4af37]/60 hover:text-[#e2e2ea]'}`}
             >
               <span className="material-symbols-outlined text-base text-[#f2ca50]">
                 {theme === 'dark' ? 'light_mode' : 'dark_mode'}
@@ -314,12 +314,12 @@ export function Navbar() {
             {user && (
               <Link
                 href="/wallet"
-                className="hidden lg:flex items-center px-3 py-1.5 rounded border border-[#d4af37]/20 bg-[#0c0e13]/60 hover:border-[#d4af37]/50 transition-colors"
+                className={`hidden lg:flex items-center px-3 py-1.5 rounded border transition-colors ${theme === 'light' ? 'border-[#d4af37]/30 bg-[#ffffff] hover:border-[#d4af37]' : 'border-[#d4af37]/20 bg-[#0c0e13]/60 hover:border-[#d4af37]/50'}`}
               >
-                <span className="font-sans text-xs text-[#99907c] mr-2">
+                <span className={`font-sans text-xs mr-2 ${theme === 'light' ? 'text-[#685e4e]' : 'text-[#99907c]'}`}>
                   {user.role === 'AUCTIONEER' ? 'Caixa Recebido:' : 'Disponível:'}
                 </span>
-                <span className="font-mono text-xs font-bold text-[#f2ca50]">
+                <span className={`font-mono text-xs font-bold ${theme === 'light' ? 'text-[#8a6206]' : 'text-[#f2ca50]'}`}>
                   {formatCurrency(
                     user.role === 'AUCTIONEER'
                       ? balance?.total ?? 0
@@ -337,16 +337,16 @@ export function Navbar() {
                   aria-expanded={showUserDropdown}
                   aria-haspopup="menu"
                   onClick={() => setShowUserDropdown(!showUserDropdown)}
-                  className="flex items-center gap-1.5 sm:gap-2.5 p-1 pr-2 sm:pr-3 min-h-[36px] sm:min-h-[44px] rounded border border-[#4d4635]/60 bg-[#14171f]/80 hover:border-[#d4af37]/50 transition-colors cursor-pointer"
+                  className={`flex items-center gap-1.5 sm:gap-2.5 p-1 pr-2 sm:pr-3 min-h-[36px] sm:min-h-[44px] rounded border transition-colors cursor-pointer ${theme === 'light' ? 'border-[#dcd3c2] bg-[#f4efe6] hover:border-[#d4af37]' : 'border-[#4d4635]/60 bg-[#14171f]/80 hover:border-[#d4af37]/50'}`}
                 >
-                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-[#282a30] border border-[#d4af37]/40 flex items-center justify-center font-mono text-[10px] sm:text-xs font-bold text-[#f2ca50]">
+                  <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full border flex items-center justify-center font-mono text-[10px] sm:text-xs font-bold ${theme === 'light' ? 'bg-[#e2dacb] border-[#d4af37]/40 text-[#8a6206]' : 'bg-[#282a30] border-[#d4af37]/40 text-[#f2ca50]'}`}>
                     {user.role === 'AUCTIONEER' ? 'LEI' : 'LIC'}
                   </div>
                   <div className="hidden sm:flex flex-col text-left">
-                    <span className="font-mono text-[10px] font-bold tracking-wide text-[#f2ca50]">
+                    <span className={`font-mono text-[10px] font-bold tracking-wide ${theme === 'light' ? 'text-[#8a6206]' : 'text-[#f2ca50]'}`}>
                       {user.publicCode} • {user.role === 'AUCTIONEER' ? 'LEILOEIRO' : 'LICITANTE'}
                     </span>
-                    <span className="font-sans text-xs text-[#e2e2ea] truncate max-w-[130px]">
+                    <span className={`font-sans text-xs truncate max-w-[130px] ${theme === 'light' ? 'text-[#181510]' : 'text-[#e2e2ea]'}`}>
                       {user.name}
                     </span>
                   </div>
@@ -365,9 +365,9 @@ export function Navbar() {
                     />
                     <div
                       role="menu"
-                      className="absolute right-0 mt-2 w-[calc(100vw-1.75rem)] max-w-xs sm:w-72 rounded-xl bg-[#14171f] border border-[#d4af37]/30 shadow-2xl p-2 z-50"
+                      className={`absolute right-0 mt-2 w-[calc(100vw-1.75rem)] max-w-xs sm:w-72 rounded-xl border shadow-2xl p-2 z-50 ${theme === 'light' ? 'bg-[#ffffff] border-[#d4af37]/40 text-[#181510]' : 'bg-[#14171f] border-[#d4af37]/30 text-[#e2e2ea]'}`}
                     >
-                    <div className="p-3 border-b border-[#282a30]">
+                    <div className={`p-3 border-b ${theme === 'light' ? 'border-[#dcd3c2]' : 'border-[#282a30]'}`}>
                       <div className="font-mono text-xs text-[#f2ca50] font-bold">
                         {user.publicCode} • {user.role === 'AUCTIONEER' ? 'LEILOEIRO OFICIAL' : 'LICITANTE'}
                       </div>
@@ -692,7 +692,7 @@ export function Navbar() {
       {/* Barra de Navegação Mobile Nativa Fixa no Rodapé (< 768px) */}
       <nav
         aria-label="Navegação Principal Mobile"
-        className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-[#0c0e13]/98 backdrop-blur-2xl border-t border-[#282a30] px-1 py-1 flex items-center justify-around shadow-[0_-8px_25px_rgba(0,0,0,0.6)]"
+        className={`fixed bottom-0 left-0 right-0 z-50 md:hidden backdrop-blur-2xl border-t px-1 py-1 flex items-center justify-around transition-colors ${theme === 'light' ? 'bg-[#ffffff]/98 border-[#dcd3c2] shadow-[0_-8px_25px_rgba(0,0,0,0.08)]' : 'bg-[#0c0e13]/98 border-[#282a30] shadow-[0_-8px_25px_rgba(0,0,0,0.6)]'}`}
       >
         {navLinks.map((item) => {
           const isActive =
@@ -705,26 +705,42 @@ export function Navbar() {
               href={item.path}
               className={`flex flex-col items-center justify-center py-1 px-1.5 flex-1 min-h-[46px] rounded-lg transition-all active:scale-95 ${
                 isActive
-                  ? 'text-[#f2ca50] font-bold'
-                  : 'text-[#99907c] hover:text-[#e2e2ea]'
+                  ? theme === 'light'
+                    ? 'text-[#8a6206] font-bold'
+                    : 'text-[#f2ca50] font-bold'
+                  : theme === 'light'
+                    ? 'text-[#685e4e] hover:text-[#181510]'
+                    : 'text-[#99907c] hover:text-[#e2e2ea]'
               }`}
             >
               <span
                 className={`material-symbols-outlined text-lg sm:text-xl transition-transform ${
-                  isActive ? 'scale-110 text-[#f2ca50]' : ''
+                  isActive
+                    ? theme === 'light'
+                      ? 'scale-110 text-[#8a6206]'
+                      : 'scale-110 text-[#f2ca50]'
+                    : ''
                 }`}
               >
                 {item.icon}
               </span>
               <span
                 className={`text-[9px] sm:text-[10px] tracking-tight font-sans mt-0.5 leading-none ${
-                  isActive ? 'font-semibold text-[#f2ca50]' : ''
+                  isActive
+                    ? theme === 'light'
+                      ? 'font-semibold text-[#8a6206]'
+                      : 'font-semibold text-[#f2ca50]'
+                    : ''
                 }`}
               >
                 {item.mobileLabel || item.label}
               </span>
               {isActive && (
-                <span className="w-1 h-1 rounded-full bg-[#f2ca50] mt-0.5 shadow-sm" />
+                <span
+                  className={`w-1.5 h-1.5 rounded-full mt-0.5 shadow-sm ${
+                    theme === 'light' ? 'bg-[#8a6206]' : 'bg-[#f2ca50]'
+                  }`}
+                />
               )}
             </Link>
           )
