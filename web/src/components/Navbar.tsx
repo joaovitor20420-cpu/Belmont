@@ -547,14 +547,14 @@ export function Navbar() {
 
               <Separator className="my-5 bg-[#282a30]" />
 
-              <div>
+              <div className="space-y-2">
                 <div className="font-mono text-[10px] uppercase text-[#99907c] mb-2">
-                  Acesso Oficial do Leiloeiro (Para Publicar Lotes)
+                  Contas Semeadas Obrigatórias (1 Leiloeiro + 2 Clientes)
                 </div>
                 <button
                   type="button"
                   onClick={() => handleTestLogin('auctioneer@belmont.com')}
-                  className="w-full p-3 rounded-lg bg-[#1d2025] hover:bg-[#282a30] text-left border border-[#d4af37]/40 flex items-center justify-between transition cursor-pointer"
+                  className="w-full p-2.5 rounded-lg bg-[#1d2025] hover:bg-[#282a30] text-left border border-[#d4af37]/40 flex items-center justify-between transition cursor-pointer"
                 >
                   <div>
                     <div className="font-mono text-xs font-bold text-[#f2ca50]">
@@ -565,7 +565,43 @@ export function Navbar() {
                     </div>
                   </div>
                   <Badge variant="outline" className="border-[#d4af37]/40 text-[#f2ca50]">
-                    Entrar como Leiloeiro →
+                    Leiloeiro →
+                  </Badge>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => handleTestLogin('bidder1@belmont.com')}
+                  className="w-full p-2.5 rounded-lg bg-[#1d2025] hover:bg-[#282a30] text-left border border-[#282a30] flex items-center justify-between transition cursor-pointer"
+                >
+                  <div>
+                    <div className="font-mono text-xs font-bold text-[#e2e2ea]">
+                      LIC-0001 • Helena Vasconcelos
+                    </div>
+                    <div className="text-[11px] text-[#99907c] font-mono">
+                      bidder1@belmont.com
+                    </div>
+                  </div>
+                  <Badge variant="outline" className="border-[#3c3f47] text-[#e2e2ea]">
+                    Cliente 1 →
+                  </Badge>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => handleTestLogin('bidder2@belmont.com')}
+                  className="w-full p-2.5 rounded-lg bg-[#1d2025] hover:bg-[#282a30] text-left border border-[#282a30] flex items-center justify-between transition cursor-pointer"
+                >
+                  <div>
+                    <div className="font-mono text-xs font-bold text-[#e2e2ea]">
+                      LIC-0002 • Eduardo Albuquerque (Líder no Lote Seed)
+                    </div>
+                    <div className="text-[11px] text-[#99907c] font-mono">
+                      bidder2@belmont.com
+                    </div>
+                  </div>
+                  <Badge variant="outline" className="border-[#3c3f47] text-[#e2e2ea]">
+                    Cliente 2 →
                   </Badge>
                 </button>
               </div>
