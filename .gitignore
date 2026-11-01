@@ -24,3 +24,5 @@ Thumbs.db
 coverage/
 
 /src/generated/prisma
+
+.mcp.json
