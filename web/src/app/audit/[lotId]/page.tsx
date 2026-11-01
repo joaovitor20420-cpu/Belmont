@@ -124,7 +124,7 @@ export default function CertificadosAuditoriaPage({
 
   if (isLoading) {
     return (
-      <div className="w-full pt-28 pb-20 flex min-h-[70vh] flex-col items-center justify-center gap-4 text-[#99907c] font-mono">
+      <div className="w-full pt-32 pb-20 flex min-h-[70vh] flex-col items-center justify-center gap-4 text-[#99907c] font-mono">
         <div className="h-10 w-10 animate-spin rounded-full border-2 border-[#d4af37] border-t-transparent" />
         <span className="text-xs uppercase tracking-widest text-[#f2ca50]">
           Auditando cadeia criptográfica SHA-256...
@@ -135,7 +135,7 @@ export default function CertificadosAuditoriaPage({
 
   if (error || !data) {
     return (
-      <div className="w-full pt-28 pb-20 px-6 max-w-xl mx-auto text-center font-mono">
+      <div className="w-full pt-32 pb-20 px-6 max-w-xl mx-auto text-center font-mono">
         <span className="material-symbols-outlined text-4xl text-rose-500 mb-3">
           error_outline
         </span>
@@ -198,7 +198,7 @@ export default function CertificadosAuditoriaPage({
   }
 
   return (
-    <div className="w-full pt-20 bg-[#07090E] min-h-[calc(100vh-80px)] text-[#e2e2ea]">
+    <div className="w-full pt-32 md:pt-20 bg-[#07090E] min-h-[calc(100vh-80px)] text-[#e2e2ea]">
       {/* Toast Notification */}
       {toastText && (
         <div className="fixed bottom-8 right-8 z-50 p-4 rounded-xl bg-[#1d2025] border border-[#d4af37]/40 text-xs font-mono text-[#f2ca50] shadow-2xl">
@@ -401,7 +401,7 @@ export default function CertificadosAuditoriaPage({
                           {data.lot.artist || 'Mestre da Arte'}
                         </div>
                       </div>
-                      <div className="bg-[#14171f] p-3 rounded-lg flex flex-col gap-1 text-xs font-mono text-[#99907c]">
+                      <div className="pt-3 border-t border-[#282a30] flex flex-col gap-1 text-xs font-mono text-[#99907c]">
                         <span className="text-[#e2e2ea]">Óleo sobre tela • Catalogação Oficial</span>
                         <span>Coleção de Origem: Museu Internacional & Belas Artes</span>
                       </div>
@@ -409,8 +409,9 @@ export default function CertificadosAuditoriaPage({
 
                     {/* Settlement Ledger Fields (Cols 6-12) */}
                     <div className="lg:col-span-7 flex flex-col justify-between gap-4">
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <div className="bg-[#0c0e13] p-4 rounded-xl border border-[#282a30] flex flex-col gap-1 font-mono">
+                      {/* Unified 2x2 Architectural Hairline Grid */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-px bg-[#282a30] rounded-xl overflow-hidden border border-[#282a30] font-mono">
+                        <div className="bg-[#0c0e13] p-4 flex flex-col gap-1">
                           <span className="text-[10px] text-[#99907c] uppercase">Arrematante Homologado</span>
                           <span className="text-sm font-bold text-[#f2ca50]">
                             {data.lot.winner?.publicCode || 'Sem Arrematante'}
@@ -421,9 +422,9 @@ export default function CertificadosAuditoriaPage({
                           <span className="text-[9px] text-[#99907c]">Mascarado sob LGPD Art. 7º</span>
                         </div>
 
-                        <div className="bg-[#0c0e13] p-4 rounded-xl border border-[#282a30] flex flex-col gap-1 font-mono">
+                        <div className="bg-[#0c0e13] p-4 flex flex-col gap-1">
                           <span className="text-[10px] text-[#99907c] uppercase">Valor de Liquidação</span>
-                          <span className="text-sm font-bold text-[#4edea3]">
+                          <span className="text-sm font-bold text-[#4edea3] tabular-nums">
                             {formatCurrency(data.lot.currentPrice)}
                           </span>
                           <span className="text-xs text-[#4edea3] flex items-center gap-1">
@@ -432,17 +433,17 @@ export default function CertificadosAuditoriaPage({
                           </span>
                         </div>
 
-                        <div className="bg-[#0c0e13] p-4 rounded-xl border border-[#282a30] flex flex-col gap-1 font-mono">
+                        <div className="bg-[#0c0e13] p-4 flex flex-col gap-1">
                           <span className="text-[10px] text-[#99907c] uppercase">Data do Pregão</span>
-                          <span className="text-xs text-[#e2e2ea] font-semibold">
+                          <span className="text-xs text-[#e2e2ea] font-semibold tabular-nums">
                             {new Date(data.lot.endTime).toLocaleDateString('pt-BR')}
                           </span>
-                          <span className="text-[10px] text-[#99907c]">
+                          <span className="text-[10px] text-[#99907c] tabular-nums">
                             Sessão #894 • {new Date(data.lot.endTime).toLocaleTimeString('pt-BR')} BRT
                           </span>
                         </div>
 
-                        <div className="bg-[#0c0e13] p-4 rounded-xl border border-[#282a30] flex flex-col gap-1 font-mono">
+                        <div className="bg-[#0c0e13] p-4 flex flex-col gap-1">
                           <span className="text-[10px] text-[#99907c] uppercase">Laudo Museológico</span>
                           <span className="text-xs text-[#e2e2ea] font-semibold">Condição Íntegra (Grau A+)</span>
                           <span className="text-[10px] text-[#f2ca50] flex items-center gap-1">
@@ -452,17 +453,17 @@ export default function CertificadosAuditoriaPage({
                         </div>
                       </div>
 
-                      {/* Merkle Root Hash Strip */}
-                      <div className="bg-[#0c0e13] p-4 rounded-xl border border-[#282a30] flex flex-col gap-2 font-mono">
-                        <div className="flex items-center justify-between">
+                      {/* Merkle Root Hash Strip (Hairline-divided instead of nested box) */}
+                      <div className="bg-[#0c0e13] p-4 rounded-xl border border-[#282a30] flex flex-col gap-2.5 font-mono">
+                        <div className="flex items-center justify-between gap-2">
                           <span className="text-[10px] uppercase text-[#99907c] font-semibold">
                             Carimbo Criptográfico Raiz (Merkle Root Hash)
                           </span>
-                          <span className="text-[10px] text-[#4edea3] bg-[#4edea3]/10 px-2 py-0.5 rounded">
+                          <span className="text-[10px] text-[#4edea3] bg-[#4edea3]/10 px-2 py-0.5 rounded shrink-0">
                             HMAC-SHA256 VÁLIDO
                           </span>
                         </div>
-                        <div className="flex items-center justify-between gap-3 bg-[#14171f] p-2.5 rounded-lg border border-[#282a30]">
+                        <div className="flex items-center justify-between gap-3 pt-2.5 border-t border-[#282a30]">
                           <code className="text-xs text-[#f2ca50] truncate select-all">
                             {data.lotSealHash}
                           </code>
@@ -472,7 +473,7 @@ export default function CertificadosAuditoriaPage({
                               navigator.clipboard?.writeText(data.lotSealHash || '')
                               showToast('Hash Raiz copiado com sucesso!')
                             }}
-                            className="px-3 py-1 bg-[#282a30] hover:bg-[#d4af37] hover:text-[#1c1400] text-[#e2e2ea] text-xs rounded transition-colors cursor-pointer"
+                            className="px-3 py-1.5 bg-[#282a30] hover:bg-[#d4af37] hover:text-[#1c1400] text-[#e2e2ea] text-xs rounded transition-colors cursor-pointer shrink-0"
                           >
                             Copiar
                           </button>
@@ -655,12 +656,12 @@ export default function CertificadosAuditoriaPage({
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-[10px]">
-                  <div className="bg-[#0c0e13] p-2.5 rounded-lg border border-[#282a30]">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-3 border-t border-[#282a30] text-[10px]">
+                  <div className="min-w-0">
                     <span className="text-[#99907c] uppercase block">Previous Hash (Gen)</span>
                     <span className="text-[#4d4635] truncate block">0000000000000000000000000000000000000000000000000000000000000000</span>
                   </div>
-                  <div className="bg-[#0c0e13] p-2.5 rounded-lg border border-[#282a30]">
+                  <div className="min-w-0">
                     <span className="text-[#99907c] uppercase block">Current Block Hash</span>
                     <span className="text-[#f2ca50] truncate block">1c828d1544a0349f48208728d1fa183c21aa5c9115f5c1d68a2bf6249ec3081e</span>
                   </div>
@@ -680,7 +681,7 @@ export default function CertificadosAuditoriaPage({
                         : 'bg-[#14171f] border-[#282a30]'
                     }`}
                   >
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
                       <div className="flex items-center gap-2">
                         <span
                           className={`px-3 py-1 rounded text-xs font-bold ${
@@ -712,7 +713,7 @@ export default function CertificadosAuditoriaPage({
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-3 bg-[#0c0e13] p-3 rounded-lg text-xs">
                       <div>
                         <span className="text-[#99907c] text-[10px] uppercase block">Timestamp</span>
-                        <span className="text-[#e2e2ea] font-semibold">
+                        <span className="text-[#e2e2ea] font-semibold tabular-nums">
                           {new Date(node.createdAt).toLocaleTimeString('pt-BR')}
                         </span>
                       </div>
@@ -722,22 +723,22 @@ export default function CertificadosAuditoriaPage({
                       </div>
                       <div>
                         <span className="text-[#99907c] text-[10px] uppercase block">Valor da Oferta</span>
-                        <span className="text-[#f2ca50] font-semibold">
+                        <span className="text-[#f2ca50] font-semibold tabular-nums">
                           {formatCurrency(node.amount)}
                         </span>
                       </div>
                       <div>
                         <span className="text-[#99907c] text-[10px] uppercase block">Caução</span>
-                        <span className="text-[#4edea3] font-semibold">10% Retido em Escrow</span>
+                        <span className="text-[#4edea3] font-semibold">100% Retido em Escrow</span>
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-[10px]">
-                      <div className="bg-[#0c0e13] p-2.5 rounded-lg border border-[#282a30]">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-3 border-t border-[#282a30] text-[10px]">
+                      <div className="min-w-0">
                         <span className="text-[#99907c] uppercase block">Previous Hash</span>
                         <span className="text-[#99907c] truncate block">{node.prevHash}</span>
                       </div>
-                      <div className="bg-[#0c0e13] p-2.5 rounded-lg border border-[#282a30]">
+                      <div className="min-w-0">
                         <span className="text-[#99907c] uppercase block">
                           {nodeIsTampered ? 'Manipulated Hash' : 'Block Hash HMAC-SHA256'}
                         </span>

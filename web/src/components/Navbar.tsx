@@ -221,7 +221,7 @@ export function Navbar() {
                 <Link
                   key={item.label}
                   href={item.path}
-                  className={`px-3 py-1.5 font-mono text-xs uppercase tracking-wider transition-colors rounded ${
+                  className={`px-3.5 py-2 font-mono text-xs uppercase tracking-wider transition-colors rounded ${
                     isActive
                       ? 'bg-[#d4af37] text-[#1c1400] font-bold shadow-sm'
                       : 'text-[#d0c5af] hover:text-[#e2e2ea] hover:bg-[#282a30]/60'
@@ -285,6 +285,9 @@ export function Navbar() {
             {user ? (
               <div className="relative">
                 <button
+                  type="button"
+                  aria-expanded={showUserDropdown}
+                  aria-haspopup="menu"
                   onClick={() => setShowUserDropdown(!showUserDropdown)}
                   className="flex items-center gap-2.5 p-1 pr-3 rounded border border-[#4d4635]/60 bg-[#14171f]/80 hover:border-[#d4af37]/50 transition-colors cursor-pointer"
                 >
@@ -300,13 +303,22 @@ export function Navbar() {
                     </span>
                   </div>
                   <span className="material-symbols-outlined text-[#99907c] text-sm">
-                    expand_more
+                    {showUserDropdown ? 'expand_less' : 'expand_more'}
                   </span>
                 </button>
 
                 {/* Dropdown Menu */}
                 {showUserDropdown && (
-                  <div className="absolute right-0 mt-2 w-72 rounded-xl bg-[#14171f] border border-[#d4af37]/30 shadow-2xl p-2 z-50">
+                  <>
+                    <div
+                      aria-hidden="true"
+                      onClick={() => setShowUserDropdown(false)}
+                      className="fixed inset-0 z-40"
+                    />
+                    <div
+                      role="menu"
+                      className="absolute right-0 mt-2 w-72 rounded-xl bg-[#14171f] border border-[#d4af37]/30 shadow-2xl p-2 z-50"
+                    >
                     <div className="p-3 border-b border-[#282a30]">
                       <div className="font-mono text-xs text-[#f2ca50] font-bold">
                         {user.publicCode} • {user.role === 'AUCTIONEER' ? 'LEILOEIRO OFICIAL' : 'LICITANTE'}
@@ -367,34 +379,38 @@ export function Navbar() {
 
                     <div className="border-t border-[#282a30] pt-2">
                       <button
+                        type="button"
                         onClick={() => {
                           setShowUserDropdown(false)
                           setAuthTab('REGISTER')
                           setShowLoginModal(true)
                         }}
-                        className="w-full text-left px-3 py-2 rounded text-xs text-[#d0c5af] hover:bg-[#282a30] hover:text-[#e2e2ea] flex items-center gap-2"
+                        className="w-full text-left px-3 py-2 rounded text-xs text-[#d0c5af] hover:bg-[#282a30] hover:text-[#e2e2ea] flex items-center gap-2 cursor-pointer"
                       >
                         <span className="material-symbols-outlined text-sm text-[#f2ca50]">person_add</span>
                         <span>Criar / Trocar Conta de Usuário</span>
                       </button>
                       <button
+                        type="button"
                         onClick={() => {
                           logout()
                           setShowUserDropdown(false)
                           router.push('/')
                         }}
-                        className="w-full text-left px-3 py-2 rounded text-xs text-rose-400 hover:bg-rose-500/10 font-semibold flex items-center gap-2"
+                        className="w-full text-left px-3 py-2 rounded text-xs text-rose-400 hover:bg-rose-500/10 font-semibold flex items-center gap-2 cursor-pointer"
                       >
                         <span className="material-symbols-outlined text-sm">logout</span>
                         <span>Desconectar da Conta</span>
                       </button>
                     </div>
                   </div>
+                  </>
                 )}
               </div>
             ) : (
               <div className="flex items-center gap-2">
                 <button
+                  type="button"
                   onClick={() => {
                     setAuthTab('LOGIN')
                     setShowLoginModal(true)
@@ -419,7 +435,7 @@ export function Navbar() {
               <Link
                 key={item.label}
                 href={item.path}
-                className={`px-3 py-1 font-mono text-[11px] uppercase tracking-wider transition-colors rounded shrink-0 ${
+                className={`px-3.5 py-2 font-mono text-[11px] uppercase tracking-wider transition-colors rounded shrink-0 ${
                   isActive
                     ? 'bg-[#d4af37] text-[#1c1400] font-bold'
                     : 'text-[#d0c5af] hover:text-[#e2e2ea]'
@@ -443,7 +459,7 @@ export function Navbar() {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="relative w-full max-w-md rounded-2xl bg-[#14171f] border border-[#d4af37]/30 p-6 shadow-2xl"
+            className="relative w-full max-w-md max-h-[90vh] overflow-y-auto rounded-2xl bg-[#14171f] border border-[#d4af37]/30 p-6 shadow-2xl"
           >
             <div className="flex items-center justify-between pb-4 border-b border-[#282a30]">
               <div>
@@ -458,7 +474,7 @@ export function Navbar() {
                 type="button"
                 aria-label="Fechar modal"
                 onClick={() => setShowLoginModal(false)}
-                className="text-[#99907c] hover:text-[#e2e2ea] p-1"
+                className="w-9 h-9 rounded-lg flex items-center justify-center text-[#99907c] hover:text-[#e2e2ea] hover:bg-[#282a30]/60 transition-colors cursor-pointer"
               >
                 ✕
               </button>
@@ -506,11 +522,16 @@ export function Navbar() {
               <>
                 <form onSubmit={handleManualLogin} className="mt-4 space-y-4">
                   <div>
-                    <label className="block font-mono text-xs text-[#99907c] uppercase mb-1">
+                    <label
+                      htmlFor="login-email"
+                      className="block font-mono text-xs text-[#99907c] uppercase mb-1"
+                    >
                       E-mail
                     </label>
                     <input
+                      id="login-email"
                       type="email"
+                      autoComplete="email"
                       value={emailInput}
                       onChange={(e) => setEmailInput(e.target.value)}
                       placeholder="seu.email@exemplo.com"
@@ -519,11 +540,16 @@ export function Navbar() {
                   </div>
 
                   <div>
-                    <label className="block font-mono text-xs text-[#99907c] uppercase mb-1">
+                    <label
+                      htmlFor="login-password"
+                      className="block font-mono text-xs text-[#99907c] uppercase mb-1"
+                    >
                       Senha
                     </label>
                     <input
+                      id="login-password"
                       type="password"
+                      autoComplete="current-password"
                       value={passwordInput}
                       onChange={(e) => setPasswordInput(e.target.value)}
                       placeholder="••••••••"
@@ -534,7 +560,7 @@ export function Navbar() {
                   <button
                     type="submit"
                     disabled={isLoggingIn}
-                    className="w-full py-2.5 bg-[#d4af37] text-[#1c1400] font-mono text-xs font-bold uppercase tracking-wider rounded hover:bg-[#f2ca50] transition-colors cursor-pointer"
+                    className="w-full py-2.5 bg-[#d4af37] text-[#1c1400] font-mono text-xs font-bold uppercase tracking-wider rounded hover:bg-[#f2ca50] transition-colors cursor-pointer disabled:opacity-50"
                   >
                     {isLoggingIn ? 'Autenticando...' : 'Entrar no Sistema'}
                   </button>
@@ -566,11 +592,16 @@ export function Navbar() {
             ) : (
               <form onSubmit={handleRegisterSubmit} className="mt-4 space-y-3.5">
                 <div>
-                  <label className="block font-mono text-xs text-[#99907c] uppercase mb-1">
+                  <label
+                    htmlFor="reg-name"
+                    className="block font-mono text-xs text-[#99907c] uppercase mb-1"
+                  >
                     Nome Completo
                   </label>
                   <input
+                    id="reg-name"
                     type="text"
+                    autoComplete="name"
                     value={regName}
                     onChange={(e) => setRegName(e.target.value)}
                     placeholder="Ex: João Victor Silva"
@@ -579,11 +610,16 @@ export function Navbar() {
                 </div>
 
                 <div>
-                  <label className="block font-mono text-xs text-[#99907c] uppercase mb-1">
+                  <label
+                    htmlFor="reg-email"
+                    className="block font-mono text-xs text-[#99907c] uppercase mb-1"
+                  >
                     E-mail
                   </label>
                   <input
+                    id="reg-email"
                     type="email"
+                    autoComplete="email"
                     value={regEmail}
                     onChange={(e) => setRegEmail(e.target.value)}
                     placeholder="joao@exemplo.com"
@@ -592,11 +628,16 @@ export function Navbar() {
                 </div>
 
                 <div>
-                  <label className="block font-mono text-xs text-[#99907c] uppercase mb-1">
+                  <label
+                    htmlFor="reg-document"
+                    className="block font-mono text-xs text-[#99907c] uppercase mb-1"
+                  >
                     CPF (11 dígitos)
                   </label>
                   <input
+                    id="reg-document"
                     type="text"
+                    inputMode="numeric"
                     value={regDocument}
                     onChange={(e) => setRegDocument(e.target.value)}
                     placeholder="12345678901"
@@ -605,11 +646,16 @@ export function Navbar() {
                 </div>
 
                 <div>
-                  <label className="block font-mono text-xs text-[#99907c] uppercase mb-1">
+                  <label
+                    htmlFor="reg-password"
+                    className="block font-mono text-xs text-[#99907c] uppercase mb-1"
+                  >
                     Senha (mín. 6 caracteres)
                   </label>
                   <input
+                    id="reg-password"
                     type="password"
+                    autoComplete="new-password"
                     value={regPassword}
                     onChange={(e) => setRegPassword(e.target.value)}
                     placeholder="••••••••"
@@ -620,7 +666,7 @@ export function Navbar() {
                 <button
                   type="submit"
                   disabled={isLoggingIn}
-                  className="w-full py-2.5 bg-[#4edea3] text-[#07090e] font-mono text-xs font-bold uppercase tracking-wider rounded hover:bg-emerald-400 transition-colors cursor-pointer"
+                  className="w-full py-2.5 bg-[#4edea3] text-[#07090e] font-mono text-xs font-bold uppercase tracking-wider rounded hover:bg-emerald-400 transition-colors cursor-pointer disabled:opacity-50"
                 >
                   {isLoggingIn ? 'Criando Conta...' : 'Criar Conta de Licitante & Entrar'}
                 </button>

@@ -29,6 +29,7 @@ interface LotItem {
 export default function CatalogVitrinePage() {
   const { user } = useAuth()
   const [lots, setLots] = useState<LotItem[]>([])
+  const [spotlightLot, setSpotlightLot] = useState<LotItem | null>(null)
   const [activeTab, setActiveTab] = useState<'LIVE' | 'SCHEDULED' | 'ENDED'>('LIVE')
   const [counts, setCounts] = useState({ live: 0, scheduled: 0, ended: 0, total: 0 })
   const [metrics, setMetrics] = useState({ totalVolumeInCents: 0, totalBids: 0 })
@@ -36,13 +37,11 @@ export default function CatalogVitrinePage() {
   const [isLoading, setIsLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
   const [now, setNow] = useState(Date.now())
-  const [timeRemainingSeconds, setTimeRemainingSeconds] = useState(258) // 04:18
 
   // Atualiza relógio
   useEffect(() => {
     const timer = setInterval(() => {
       setNow(Date.now())
-      setTimeRemainingSeconds((prev) => (prev > 0 ? prev - 1 : 0))
     }, 1000)
     return () => clearInterval(timer)
   }, [])
@@ -72,6 +71,8 @@ export default function CatalogVitrinePage() {
           totalBids: all.reduce((acc, l) => acc + Number(l.bidsCount || 0), 0),
         })
 
+        setSpotlightLot(liveLots[0] || scheduledLots[0] || endedLots[0] || null)
+
         // Seleciona de acordo com o activeTab (sem misturar estados)
         if (activeTab === 'LIVE') {
           setLots(liveLots)
@@ -90,10 +91,6 @@ export default function CatalogVitrinePage() {
     fetchCatalog()
   }, [activeTab])
 
-  // Lote em destaque (Hero Spotlight)
-  const spotlightLot =
-    lots.find((l) => l.status === 'LIVE') || lots[0] || null
-
   const filteredLots = lots
     .filter(
       (lot) =>
@@ -107,19 +104,15 @@ export default function CatalogVitrinePage() {
       return 0
     })
 
-  const heroMins = Math.floor(timeRemainingSeconds / 60)
-  const heroSecs = timeRemainingSeconds % 60
-  const heroCountdownStr = `00:${heroMins.toString().padStart(2, '0')}:${heroSecs.toString().padStart(2, '0')}`
-
   return (
-    <div className="w-full pt-20 bg-[#07090E] min-h-[calc(100vh-80px)] text-[#e2e2ea]">
+    <div className="w-full pt-32 md:pt-20 bg-[#07090E] min-h-[calc(100vh-80px)] text-[#e2e2ea]">
       {/* ATMOSPHERIC BACKGROUND RADIALS */}
       <div className="relative w-full overflow-hidden px-6 lg:px-12 py-10">
         <div className="absolute -top-40 left-1/4 w-[600px] h-[600px] bg-[#d4af37]/5 rounded-full blur-[140px] pointer-events-none" />
         <div className="absolute top-1/3 -right-40 w-[500px] h-[500px] bg-[#4edea3]/5 rounded-full blur-[160px] pointer-events-none" />
 
         {/* HERO SECTION: ASYMMETRIC INSTITUTIONAL VITRINE */}
-        <section className="relative w-full max-w-[1600px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-10 items-center mb-12">
+        <section className="relative w-full max-w-[1600px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-10 items-center mb-16 lg:mb-20">
           {/* HERO LEFT: EDITORIAL RESTRAINT & PROTOCOL ASSURANCES */}
           <div className="lg:col-span-6 flex flex-col items-start space-y-6">
             {/* MICRO-PILL ACCREDITATION */}
@@ -212,7 +205,7 @@ export default function CatalogVitrinePage() {
             </div>
 
             {/* REAL CATALOG METRICS FROM DATABASE */}
-            <div className="flex items-center gap-8 pt-3 text-[#d0c5af] font-mono tabular-nums">
+            <div className="flex flex-wrap items-center gap-6 sm:gap-8 pt-3 text-[#d0c5af] font-mono tabular-nums">
               <div>
                 <div className="text-[10px] uppercase tracking-wider text-[#99907c]">
                   Volume no Catálogo
@@ -221,7 +214,7 @@ export default function CatalogVitrinePage() {
                   {formatCurrency(metrics.totalVolumeInCents)}
                 </div>
               </div>
-              <div className="w-px h-8 bg-[#282a30]" />
+              <div className="hidden sm:block w-px h-8 bg-[#282a30]" />
               <div>
                 <div className="text-[10px] uppercase tracking-wider text-[#99907c]">
                   Pregões Ativos
@@ -230,7 +223,7 @@ export default function CatalogVitrinePage() {
                   {counts.live} {counts.live === 1 ? 'Lote Ao Vivo' : 'Lotes Ao Vivo'}
                 </div>
               </div>
-              <div className="w-px h-8 bg-[#282a30]" />
+              <div className="hidden sm:block w-px h-8 bg-[#282a30]" />
               <div>
                 <div className="text-[10px] uppercase tracking-wider text-[#99907c]">
                   Lances Registrados
@@ -280,10 +273,12 @@ export default function CatalogVitrinePage() {
                       <circle cx="12" cy="12" r="10" />
                       <polyline points="12 6 12 12 16 14" />
                     </svg>
-                    <span className="font-mono text-xs font-bold text-[#f2ca50]">
+                    <span className="font-mono text-xs font-bold text-[#f2ca50] tabular-nums">
                       {spotlightLot.status === 'LIVE'
                         ? formatTimeRemaining(spotlightLot.endTime)
-                        : heroCountdownStr}
+                        : spotlightLot.status === 'SCHEDULED'
+                        ? 'Agendado'
+                        : 'Liquidado'}
                     </span>
                   </div>
 
@@ -390,8 +385,8 @@ export default function CatalogVitrinePage() {
         </section>
 
         {/* SECTION DIVIDER WITH ORNAMENTAL SERIF METADATA */}
-        <div className="relative w-full max-w-[1600px] mx-auto my-8 flex items-center justify-between">
-          <div className="flex items-center gap-3">
+        <div className="relative w-full max-w-[1600px] mx-auto mt-0 mb-5 flex flex-wrap items-center justify-between gap-2">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
             <span className="font-mono text-xs text-[#f2ca50] uppercase tracking-widest font-semibold">
               Sessão Vespertina
             </span>
@@ -400,14 +395,14 @@ export default function CatalogVitrinePage() {
               Coleção de Belas Artes & Museus Públicos
             </span>
           </div>
-          <div className="h-px bg-[#282a30] flex-1 mx-4" />
+          <div className="hidden lg:block h-px bg-[#282a30] flex-1 mx-4" />
           <div className="font-mono text-xs text-[#99907c] uppercase tracking-widest">
             Total do Catálogo: {counts.total} Lotes Certificados
           </div>
         </div>
 
         {/* FILTER BAR & ACTIVE CONTROLS */}
-        <section id="catalogo" className="relative w-full max-w-[1600px] mx-auto mb-8">
+        <section id="catalogo" className="relative w-full max-w-[1600px] mx-auto mb-6">
           <div className="bg-[#14171f] p-3 rounded-xl border border-[#282a30] shadow-lg flex flex-col xl:flex-row items-stretch xl:items-center justify-between gap-4">
             {/* SEGMENTED PILLS */}
             <div className="flex items-center gap-1 p-1 bg-[#0c0e13] rounded-lg overflow-x-auto">
@@ -452,12 +447,14 @@ export default function CatalogVitrinePage() {
             </div>
 
             {/* SEARCH AND SECONDARY FILTERS */}
-            <div className="flex items-center gap-3 flex-1 xl:max-w-xl">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 flex-1 xl:max-w-xl">
               <div className="relative flex-1">
                 <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#99907c] text-lg">
                   search
                 </span>
                 <input
+                  id="catalog-search"
+                  aria-label="Buscar por título, artista, código IIIF ou período"
                   type="text"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
@@ -474,7 +471,7 @@ export default function CatalogVitrinePage() {
                   aria-label="Ordenar lotes do catálogo"
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value as any)}
-                  className="bg-transparent text-[#e2e2ea] font-mono text-xs uppercase tracking-wider focus:outline-none cursor-pointer"
+                  className="bg-transparent text-[#e2e2ea] font-mono text-xs uppercase tracking-wider focus:outline-none cursor-pointer w-full sm:w-auto"
                 >
                   <option value="DEFAULT" className="bg-[#14171f]">Ordenação Padrão</option>
                   <option value="PRICE_DESC" className="bg-[#14171f]">Maior Valor</option>
@@ -487,7 +484,7 @@ export default function CatalogVitrinePage() {
         </section>
 
         {/* ASYMMETRIC VITRINE LOT CARDS GRID */}
-        <section className="relative w-full max-w-[1600px] mx-auto grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-12">
+        <section className="relative w-full max-w-[1600px] mx-auto grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-16 lg:mb-20">
           {isLoading ? (
             <div className="col-span-full py-16 text-center text-[#99907c] font-mono text-sm">
               Sincronizando pregão com a rede fiduciária...
@@ -572,8 +569,8 @@ export default function CatalogVitrinePage() {
                       </p>
                     </div>
 
-                    {/* DATA MATRIX */}
-                    <div className="bg-[#1d2025] p-3 rounded space-y-2 border border-[#282a30]">
+                    {/* DATA MATRIX (Hairline-divided instead of nested card) */}
+                    <div className="pt-3 border-t border-[#282a30] space-y-2">
                       <div className="flex items-center justify-between">
                         <span className="font-mono text-[10px] uppercase tracking-wider text-[#99907c]">
                           {isEnded ? 'Arrematado por' : isScheduled ? 'Lance Inicial' : 'Lance Atual'}
@@ -656,7 +653,7 @@ export default function CatalogVitrinePage() {
         </section>
 
         {/* LIVE TELEMETRY / BID LADDER HIGHLIGHT MODULE */}
-        <section className="relative w-full max-w-[1600px] mx-auto mb-12">
+        <section className="relative w-full max-w-[1600px] mx-auto mb-16 lg:mb-20">
           <div className="bg-[#14171f] p-6 lg:p-8 rounded-xl border border-[#282a30] shadow-xl grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
             <div className="lg:col-span-4 space-y-2">
               <div className="font-mono text-xs uppercase tracking-widest text-[#f2ca50] font-semibold">
@@ -668,7 +665,7 @@ export default function CatalogVitrinePage() {
               <p className="font-sans text-xs text-[#d0c5af] font-light leading-relaxed">
                 Consulte craqueluras, pigmentação sob luz rasante e relatórios de conservação institucional emitidos pelas curadorias com autenticação digital instantânea.
               </p>
-              <div className="pt-2 flex items-center gap-6 text-[#e2e2ea]">
+              <div className="pt-2 flex flex-wrap items-center gap-6 text-[#e2e2ea]">
                 <div className="flex items-center gap-2">
                   <span className="material-symbols-outlined text-[#f2ca50] text-base">
                     zoom_in
@@ -684,10 +681,10 @@ export default function CatalogVitrinePage() {
               </div>
             </div>
 
-            {/* REAL CATALOG STATUS SUMMARY */}
-            <div className="lg:col-span-8 bg-[#0c0e13] p-4 lg:p-6 rounded-lg border border-[#282a30] flex flex-col md:flex-row items-center justify-between gap-6 shadow-inner">
+            {/* REAL CATALOG STATUS SUMMARY (Hairline-separated instead of nested card) */}
+            <div className="lg:col-span-8 lg:pl-8 lg:border-l border-t lg:border-t-0 pt-6 lg:pt-0 border-[#282a30] flex flex-col md:flex-row items-center justify-between gap-6">
               <div className="flex-1 w-full space-y-2">
-                <div className="flex items-center justify-between font-mono text-xs text-[#d0c5af]">
+                <div className="flex flex-wrap items-center justify-between gap-2 font-mono text-xs text-[#d0c5af]">
                   <span>Distribuição Real do Catálogo</span>
                   <span className="text-[#f2ca50] font-bold">
                     {counts.live} Ao Vivo • {counts.scheduled} Agendados • {counts.ended} Encerrados
@@ -702,7 +699,7 @@ export default function CatalogVitrinePage() {
                     }}
                   />
                 </div>
-                <div className="flex items-center justify-between font-mono text-[10px] text-[#99907c]">
+                <div className="flex flex-wrap items-center justify-between gap-2 font-mono text-[10px] text-[#99907c]">
                   <span>Concorrência Pessimista Ativa (FOR UPDATE)</span>
                   <span>Volume em Catálogo: {formatCurrency(metrics.totalVolumeInCents)}</span>
                 </div>
@@ -741,10 +738,10 @@ export default function CatalogVitrinePage() {
             </p>
           </div>
 
-          {/* 3 COLUMN TRUST LAYOUT */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-2">
+          {/* 3 COLUMN TRUST LAYOUT (Hairline-divided architectural columns instead of 3 nested cards) */}
+          <div className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-[#282a30] border-t border-[#282a30] pt-8">
             {/* COLUMN 1: ESCROW SEGREGATION */}
-            <div className="p-6 bg-[#1d2025] rounded-lg border border-[#282a30] space-y-3 shadow-sm">
+            <div className="pb-6 md:pb-0 md:pr-8 space-y-3">
               <div className="w-10 h-10 rounded bg-[#d4af37]/10 flex items-center justify-center text-[#f2ca50] mb-2">
                 <svg
                   className="w-5 h-5"
@@ -773,7 +770,7 @@ export default function CatalogVitrinePage() {
             </div>
 
             {/* COLUMN 2: IMMUTABLE AUDIT TRAIL */}
-            <div className="p-6 bg-[#1d2025] rounded-lg border border-[#282a30] space-y-3 shadow-sm">
+            <div className="py-6 md:py-0 md:px-8 space-y-3">
               <div className="w-10 h-10 rounded bg-[#4edea3]/10 flex items-center justify-center text-[#4edea3] mb-2">
                 <svg
                   className="w-5 h-5"
@@ -804,7 +801,7 @@ export default function CatalogVitrinePage() {
             </div>
 
             {/* COLUMN 3: IIIF MANIFEST VALIDATION */}
-            <div className="p-6 bg-[#1d2025] rounded-lg border border-[#282a30] space-y-3 shadow-sm">
+            <div className="pt-6 md:pt-0 md:pl-8 space-y-3">
               <div className="w-10 h-10 rounded bg-[#282a30] flex items-center justify-center text-[#e2e2ea] mb-2">
                 <svg
                   className="w-5 h-5"

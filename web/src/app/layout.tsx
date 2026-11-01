@@ -66,7 +66,9 @@ export default function RootLayout({
                 </div>
                 <div className="flex items-center gap-2 text-xs text-[#99907c]">
                   <span className="material-symbols-outlined text-sm text-[#4edea3]">lock</span>
-                  <span className="text-[#d0c5af] font-mono">HMAC-SHA256: 7f83b165...9d2e4a8c</span>
+                  <span className="text-[#d0c5af] font-mono">
+                    Protocolo HMAC-SHA256 • Decreto Federal nº 21.981/32
+                  </span>
                 </div>
               </div>
             </footer>

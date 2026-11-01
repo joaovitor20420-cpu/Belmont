@@ -177,17 +177,29 @@ export async function appRoutes(app: FastifyInstance) {
           description: z
             .string()
             .min(5, 'A descrição deve ter no mínimo 5 caracteres'),
-          imageUrl: z.string().url('URL da imagem inválida'),
+          imageUrl: z.string().min(1, 'URL da imagem inválida'),
           artist: z.string().nullable().optional(),
           externalApiId: z.string().nullable().optional(),
           startPriceInCents: z
             .number()
             .int()
-            .positive('O preço inicial deve ser positivo e em centavos'),
+            .positive('O preço inicial deve ser positivo e em centavos')
+            .optional(),
+          startPrice: z
+            .number()
+            .int()
+            .positive('O preço inicial deve ser positivo e em centavos')
+            .optional(),
           minIncrementInCents: z
             .number()
             .int()
-            .positive('O incremento mínimo deve ser positivo e em centavos'),
+            .positive('O incremento mínimo deve ser positivo e em centavos')
+            .optional(),
+          minIncrement: z
+            .number()
+            .int()
+            .positive('O incremento mínimo deve ser positivo e em centavos')
+            .optional(),
           startTime: z
             .string()
             .datetime({ message: 'Data de início em formato ISO 8601 inválida' }),

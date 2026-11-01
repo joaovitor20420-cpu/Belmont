@@ -59,7 +59,7 @@ export default function ShareableReceiptPage({
 
   if (isLoading) {
     return (
-      <div className="w-full pt-28 pb-20 flex min-h-[70vh] flex-col items-center justify-center gap-4 text-[#99907c] font-mono">
+      <div className="w-full pt-32 pb-20 flex min-h-[70vh] flex-col items-center justify-center gap-4 text-[#99907c] font-mono">
         <div className="h-10 w-10 animate-spin rounded-full border-2 border-[#d4af37] border-t-transparent" />
         <span className="text-xs uppercase tracking-widest text-[#f2ca50]">
           Verificando autenticidade do certificado...
@@ -70,7 +70,7 @@ export default function ShareableReceiptPage({
 
   if (error || !data) {
     return (
-      <div className="w-full pt-28 pb-20 px-6 max-w-xl mx-auto text-center font-mono">
+      <div className="w-full pt-32 pb-20 px-6 max-w-xl mx-auto text-center font-mono">
         <span className="material-symbols-outlined text-4xl text-rose-500 mb-3">
           workspace_premium
         </span>
@@ -90,7 +90,7 @@ export default function ShareableReceiptPage({
   const { receipt } = data
 
   return (
-    <div className="w-full pt-20 bg-[#07090E] min-h-[calc(100vh-80px)] text-[#e2e2ea]">
+    <div className="w-full pt-32 md:pt-20 bg-[#07090E] min-h-[calc(100vh-80px)] text-[#e2e2ea]">
       {toastText && (
         <div className="fixed bottom-8 right-8 z-50 p-4 rounded-xl bg-[#1d2025] border border-[#d4af37]/40 text-xs font-mono text-[#f2ca50] shadow-2xl">
           {toastText}
@@ -98,7 +98,7 @@ export default function ShareableReceiptPage({
       )}
 
       <div className="w-full px-6 md:px-12 max-w-5xl mx-auto py-10 flex flex-col gap-6">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <Link
             href="/"
             className="flex items-center gap-2 text-xs font-mono text-[#99907c] hover:text-[#f2ca50] uppercase transition-colors"
@@ -109,7 +109,7 @@ export default function ShareableReceiptPage({
           <div className="flex items-center gap-3">
             <button
               onClick={() => window.print()}
-              className="px-3.5 py-1.5 rounded-lg bg-[#14171f] text-xs font-mono text-[#e2e2ea] border border-[#282a30] hover:bg-[#1d2025] flex items-center gap-1.5 transition-colors"
+              className="px-4 py-2 rounded-lg bg-[#14171f] text-xs font-mono text-[#e2e2ea] border border-[#282a30] hover:bg-[#1d2025] flex items-center gap-1.5 transition-colors cursor-pointer"
             >
               <span className="material-symbols-outlined text-sm">print</span>
               <span>Imprimir</span>
@@ -119,7 +119,7 @@ export default function ShareableReceiptPage({
                 navigator.clipboard?.writeText(window.location.href)
                 showToast('Link do certificado copiado!')
               }}
-              className="px-3.5 py-1.5 rounded-lg bg-[#d4af37] text-xs font-mono text-[#1c1400] font-bold hover:bg-[#f2ca50] flex items-center gap-1.5 transition-colors"
+              className="px-4 py-2 rounded-lg bg-[#d4af37] text-xs font-mono text-[#1c1400] font-bold hover:bg-[#f2ca50] flex items-center gap-1.5 transition-colors cursor-pointer"
             >
               <span className="material-symbols-outlined text-sm">share</span>
               <span>Compartilhar</span>
@@ -215,17 +215,18 @@ export default function ShareableReceiptPage({
               </div>
 
               <div className="md:col-span-7 flex flex-col justify-between gap-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 font-mono">
-                  <div className="bg-[#0c0e13] p-3.5 rounded-xl border border-[#282a30] flex flex-col gap-1">
+                {/* Unified 2x2 Architectural Hairline Grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-px bg-[#282a30] rounded-xl overflow-hidden border border-[#282a30] font-mono">
+                  <div className="bg-[#0c0e13] p-4 flex flex-col gap-1">
                     <span className="text-[10px] text-[#99907c] uppercase">Arrematante Homologado</span>
                     <span className="text-sm font-bold text-[#f2ca50]">{receipt.winner.publicCode}</span>
                     <span className="text-xs text-[#e2e2ea]">{receipt.winner.maskedName}</span>
                     <span className="text-[9px] text-[#99907c]">Conformidade LGPD Art. 7º</span>
                   </div>
 
-                  <div className="bg-[#0c0e13] p-3.5 rounded-xl border border-[#282a30] flex flex-col gap-1">
+                  <div className="bg-[#0c0e13] p-4 flex flex-col gap-1">
                     <span className="text-[10px] text-[#99907c] uppercase">Valor de Arrematação</span>
-                    <span className="text-sm font-bold text-[#4edea3]">
+                    <span className="text-sm font-bold text-[#4edea3] tabular-nums">
                       {receipt.finalAmountFormatted || formatCurrency(receipt.finalAmountInCents)}
                     </span>
                     <span className="text-xs text-[#4edea3] flex items-center gap-1">
@@ -234,36 +235,36 @@ export default function ShareableReceiptPage({
                     </span>
                   </div>
 
-                  <div className="bg-[#0c0e13] p-3.5 rounded-xl border border-[#282a30] flex flex-col gap-1">
+                  <div className="bg-[#0c0e13] p-4 flex flex-col gap-1">
                     <span className="text-[10px] text-[#99907c] uppercase">Data de Liquidação</span>
-                    <span className="text-xs text-[#e2e2ea] font-semibold">
+                    <span className="text-xs text-[#e2e2ea] font-semibold tabular-nums">
                       {new Date(receipt.settledAt).toLocaleDateString('pt-BR')}
                     </span>
-                    <span className="text-[10px] text-[#99907c]">
+                    <span className="text-[10px] text-[#99907c] tabular-nums">
                       {new Date(receipt.settledAt).toLocaleTimeString('pt-BR')} BRT
                     </span>
                   </div>
 
-                  <div className="bg-[#0c0e13] p-3.5 rounded-xl border border-[#282a30] flex flex-col gap-1">
+                  <div className="bg-[#0c0e13] p-4 flex flex-col gap-1">
                     <span className="text-[10px] text-[#99907c] uppercase">Total de Lances</span>
-                    <span className="text-xs text-[#e2e2ea] font-semibold">
+                    <span className="text-xs text-[#e2e2ea] font-semibold tabular-nums">
                       {receipt.lot.totalBids || 1} Lances Concorrentes
                     </span>
                     <span className="text-[10px] text-[#f2ca50]">Concorrência Estrita</span>
                   </div>
                 </div>
 
-                {/* Root Seal Hash */}
-                <div className="bg-[#0c0e13] p-3.5 rounded-xl border border-[#282a30] flex flex-col gap-1.5 font-mono">
-                  <div className="flex items-center justify-between text-[10px]">
+                {/* Root Seal Hash (Hairline-divided instead of nested box) */}
+                <div className="bg-[#0c0e13] p-4 rounded-xl border border-[#282a30] flex flex-col gap-2 font-mono">
+                  <div className="flex items-center justify-between text-[10px] gap-2">
                     <span className="uppercase text-[#99907c] font-semibold">
                       Assinatura Raiz Merkle (Root Seal Hash)
                     </span>
-                    <span className="text-[#4edea3] bg-[#4edea3]/10 px-2 py-0.5 rounded">
+                    <span className="text-[#4edea3] bg-[#4edea3]/10 px-2 py-0.5 rounded shrink-0">
                       HMAC-SHA256
                     </span>
                   </div>
-                  <div className="bg-[#14171f] p-2 rounded border border-[#282a30] flex items-center justify-between gap-2">
+                  <div className="pt-2 border-t border-[#282a30] flex items-center justify-between gap-2">
                     <code className="text-xs text-[#f2ca50] truncate select-all">
                       {receipt.lotSealHash || '0x09281bf78a4c8996fb92427ae41e428f5c907b22d140e53a2ef491907aa4c291'}
                     </code>
@@ -273,7 +274,7 @@ export default function ShareableReceiptPage({
                         navigator.clipboard?.writeText(receipt.lotSealHash || '')
                         showToast('Hash copiado!')
                       }}
-                      className="text-xs text-[#e2e2ea] hover:text-[#f2ca50]"
+                      className="px-3 py-1.5 rounded bg-[#282a30] hover:bg-[#d4af37] hover:text-[#1c1400] text-xs text-[#e2e2ea] transition-colors cursor-pointer shrink-0"
                     >
                       Copiar
                     </button>
@@ -297,7 +298,7 @@ export default function ShareableReceiptPage({
               </div>
             </div>
 
-            <div className="pt-4 border-t border-[#282a30] flex items-center justify-between font-mono text-[10px] text-[#99907c]">
+            <div className="pt-4 border-t border-[#282a30] flex flex-wrap items-center justify-between gap-2 font-mono text-[10px] text-[#99907c]">
               <span>Em conformidade com o Decreto Federal nº 21.981/32</span>
               <span className="text-[#4edea3] font-semibold">
                 Registro Público Verificado • {receipt.code}

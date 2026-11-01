@@ -2,10 +2,9 @@
 
 import React, { useState, useEffect, use } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 import { apiRequest, API_BASE_URL } from '@/lib/api'
 import { useAuth } from '@/contexts/AuthContext'
-import { formatCurrency, formatTimeRemaining } from '@/lib/utils'
+import { formatCurrency } from '@/lib/utils'
 
 interface BidRecord {
   id: string
@@ -50,7 +49,6 @@ export default function LiveAuctionRoomPage({
   params: Promise<{ id: string }>
 }) {
   const { id } = use(params)
-  const router = useRouter()
   const { user, refreshUser } = useAuth()
 
   const [lot, setLot] = useState<LotDetails | null>(null)
@@ -221,7 +219,7 @@ export default function LiveAuctionRoomPage({
 
   if (isLoading) {
     return (
-      <div className="w-full pt-28 pb-20 flex min-h-[70vh] flex-col items-center justify-center gap-4 text-[#99907c] font-mono">
+      <div className="w-full pt-32 pb-20 flex min-h-[70vh] flex-col items-center justify-center gap-4 text-[#99907c] font-mono">
         <div className="h-10 w-10 animate-spin rounded-full border-2 border-[#d4af37] border-t-transparent" />
         <span className="text-xs uppercase tracking-widest text-[#f2ca50]">
           Sincronizando pregão em tempo real...
@@ -232,7 +230,7 @@ export default function LiveAuctionRoomPage({
 
   if (error || !lot) {
     return (
-      <div className="w-full pt-28 pb-20 px-6 max-w-xl mx-auto text-center font-mono">
+      <div className="w-full pt-32 pb-20 px-6 max-w-xl mx-auto text-center font-mono">
         <span className="material-symbols-outlined text-4xl text-rose-500 mb-3">
           error_outline
         </span>
@@ -374,52 +372,54 @@ export default function LiveAuctionRoomPage({
   }
 
   return (
-    <div className="w-full pt-20 bg-[#07090E] min-h-[calc(100vh-80px)] text-[#e2e2ea]">
+    <div className="w-full pt-32 md:pt-20 bg-[#07090E] min-h-[calc(100vh-80px)] text-[#e2e2ea]">
       {/* Sub-Header Precision Diagnostic Ribbon */}
-      <div className="w-full bg-[#0c0e13] px-6 lg:px-12 py-3 flex flex-wrap items-center justify-between gap-4 border-b border-[#282a30]">
-        <div className="flex items-center gap-6 flex-wrap">
-          <Link
-            href="/"
-            className="group flex items-center gap-2 font-mono text-xs uppercase text-[#99907c] hover:text-[#f2ca50] transition-colors"
-          >
-            <span className="material-symbols-outlined text-sm transition-transform group-hover:-translate-x-1">
-              arrow_back
-            </span>
-            <span>Voltar ao Catálogo</span>
-          </Link>
-          <span className="w-1.5 h-1.5 rounded-full bg-[#4d4635]" />
-          <div className="flex items-center gap-2 px-3 py-1 rounded bg-[#282a30] text-[#e2e2ea]">
-            <span className="material-symbols-outlined text-xs text-[#f2ca50]">token</span>
-            <span className="font-mono text-xs tracking-wider font-semibold text-[#f2ca50]">
-              LOTE #{lot.id.slice(0, 4).toUpperCase()}
-            </span>
-            <span className="text-[#4d4635] font-mono text-xs">/</span>
-            <span className="font-mono text-xs text-[#99907c]">
-              {lot.externalApiId ? `CMA #${lot.externalApiId}` : 'IIIF #16568'}
-            </span>
-            <span className="text-[#4d4635] font-mono text-xs">/</span>
-            <span className="font-mono text-xs uppercase text-[#e2e2ea]">
-              {lot.artist || 'MESTRE INTERNACIONAL'}
-            </span>
+      <div className="w-full bg-[#0c0e13] px-6 lg:px-12 py-3 border-b border-[#282a30]">
+        <div className="w-full max-w-[1600px] mx-auto flex flex-wrap items-center justify-between gap-4">
+          <div className="flex items-center gap-6 flex-wrap">
+            <Link
+              href="/"
+              className="group flex items-center gap-2 font-mono text-xs uppercase text-[#99907c] hover:text-[#f2ca50] transition-colors"
+            >
+              <span className="material-symbols-outlined text-sm transition-transform group-hover:-translate-x-1">
+                arrow_back
+              </span>
+              <span>Voltar ao Catálogo</span>
+            </Link>
+            <span className="w-1.5 h-1.5 rounded-full bg-[#4d4635]" />
+            <div className="flex items-center gap-2 px-3 py-1 rounded bg-[#282a30] text-[#e2e2ea]">
+              <span className="material-symbols-outlined text-xs text-[#f2ca50]">token</span>
+              <span className="font-mono text-xs tracking-wider font-semibold text-[#f2ca50]">
+                LOTE #{lot.id.slice(0, 4).toUpperCase()}
+              </span>
+              <span className="text-[#4d4635] font-mono text-xs">/</span>
+              <span className="font-mono text-xs text-[#99907c]">
+                {lot.externalApiId ? `CMA #${lot.externalApiId}` : 'IIIF #16568'}
+              </span>
+              <span className="text-[#4d4635] font-mono text-xs">/</span>
+              <span className="font-mono text-xs uppercase text-[#e2e2ea]">
+                {lot.artist || 'MESTRE INTERNACIONAL'}
+              </span>
+            </div>
           </div>
-        </div>
 
-        {/* SSE Protocol & Latency Status */}
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2 px-3 py-1 rounded bg-[#4edea3]/10 border border-[#4edea3]/30">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#4edea3] opacity-75" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-[#4edea3]" />
-            </span>
-            <span className="font-mono text-[10px] text-[#4edea3] tracking-widest font-semibold uppercase">
-              {sseConnected
-                ? 'SSE CONECTADO • LATÊNCIA 11ms • CONCORRÊNCIA PESSIMISTA'
-                : 'RECONECTANDO STREAM SSE...'}
-            </span>
-          </div>
-          <div className="hidden xl:flex items-center gap-1.5 text-[#99907c] font-mono text-[10px]">
-            <span className="material-symbols-outlined text-xs text-[#f2ca50]">encrypted</span>
-            <span>ESCROW LOCK #SEC-{lot.id.slice(0, 4).toUpperCase()}</span>
+          {/* SSE Protocol & Latency Status */}
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 px-3 py-1 rounded bg-[#4edea3]/10 border border-[#4edea3]/30">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#4edea3] opacity-75" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-[#4edea3]" />
+              </span>
+              <span className="font-mono text-[10px] text-[#4edea3] tracking-widest font-semibold uppercase">
+                {sseConnected
+                  ? 'SSE CONECTADO • LATÊNCIA 11ms • CONCORRÊNCIA PESSIMISTA'
+                  : 'RECONECTANDO STREAM SSE...'}
+              </span>
+            </div>
+            <div className="hidden xl:flex items-center gap-1.5 text-[#99907c] font-mono text-[10px]">
+              <span className="material-symbols-outlined text-xs text-[#f2ca50]">encrypted</span>
+              <span>ESCROW LOCK #SEC-{lot.id.slice(0, 4).toUpperCase()}</span>
+            </div>
           </div>
         </div>
       </div>
@@ -502,7 +502,7 @@ export default function LiveAuctionRoomPage({
               </div>
 
               {/* Main High-Res Canvas Presentation with Vignette */}
-              <div className="relative w-full aspect-[4/3] bg-[#0c0e13] overflow-hidden flex items-center justify-center">
+              <div className="relative w-full aspect-[4/3] max-h-[460px] bg-[#0c0e13] overflow-hidden flex items-center justify-center">
                 <img
                   alt={lot.title}
                   className="w-full h-full object-cover transition-transform duration-700 hover:scale-105"
@@ -558,14 +558,28 @@ export default function LiveAuctionRoomPage({
               <div className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-[#f2ca50]/5 to-transparent pointer-events-none" />
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="flex flex-col gap-1">
-                  <div className="flex items-center gap-2 text-rose-400 font-mono text-xs uppercase tracking-widest font-semibold">
-                    <span className="material-symbols-outlined text-sm animate-spin">
-                      timelapse
+                  <div
+                    className={`flex items-center gap-2 font-mono text-xs uppercase tracking-widest font-semibold ${
+                      isEnded ? 'text-[#4edea3]' : 'text-rose-400'
+                    }`}
+                  >
+                    <span
+                      className={`material-symbols-outlined text-sm ${
+                        !isEnded ? 'animate-spin' : ''
+                      }`}
+                    >
+                      {isEnded ? 'verified' : 'timelapse'}
                     </span>
-                    <span>TEMPO RESTANTE PARA ENCERRAMENTO</span>
+                    <span>
+                      {isEnded
+                        ? 'PREGÃO ENCERRADO & HORÁRIO CONSOLIDADO'
+                        : 'TEMPO RESTANTE PARA ENCERRAMENTO'}
+                    </span>
                   </div>
                   <p className="font-sans text-xs text-[#99907c]">
-                    Lances nos últimos 60 segundos ativam automaticamente extensão anti-sniping (+120s).
+                    {isEnded
+                      ? 'Este lote atingiu seu encerramento regulamentar.'
+                      : 'Lances nos últimos 120 segundos ativam automaticamente extensão anti-sniping (+120s).'}
                   </p>
                 </div>
 
@@ -610,9 +624,11 @@ export default function LiveAuctionRoomPage({
 
             {/* Curatorial Dossier & Authenticity Ledger Accordion */}
             <div className="rounded-xl bg-[#14171f] overflow-hidden border border-[#282a30] shadow-lg">
-              <div
+              <button
+                type="button"
+                aria-expanded={isDossierOpen}
                 onClick={() => setIsDossierOpen(!isDossierOpen)}
-                className="p-4 bg-[#1d2025] flex items-center justify-between cursor-pointer select-none hover:bg-[#282a30] transition-colors"
+                className="w-full p-4 bg-[#1d2025] flex items-center justify-between cursor-pointer select-none hover:bg-[#282a30] transition-colors text-left"
               >
                 <div className="flex items-center gap-3">
                   <span className="material-symbols-outlined text-[#f2ca50] text-lg">
@@ -628,13 +644,13 @@ export default function LiveAuctionRoomPage({
                     {isDossierOpen ? 'expand_less' : 'expand_more'}
                   </span>
                 </div>
-              </div>
+              </button>
 
               {isDossierOpen && (
-                <div className="p-6 flex flex-col gap-4">
-                  {/* Archival Custody Trail */}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pb-2">
-                    <div className="flex flex-col gap-1 p-3 rounded bg-[#0c0e13] border border-[#282a30]">
+                <div className="p-6 flex flex-col gap-5">
+                  {/* Archival Custody Trail (Hairline-divided instead of 3 nested boxes) */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-[#282a30]">
+                    <div className="flex flex-col gap-1 pb-4 md:pb-0 md:pr-5">
                       <span className="font-mono text-[10px] text-[#99907c] uppercase font-semibold">
                         SÉCULO XIX / XX
                       </span>
@@ -645,7 +661,7 @@ export default function LiveAuctionRoomPage({
                         Registrado em catálogo oficial com rastreabilidade histórica.
                       </span>
                     </div>
-                    <div className="flex flex-col gap-1 p-3 rounded bg-[#0c0e13] border border-[#282a30]">
+                    <div className="flex flex-col gap-1 py-4 md:py-0 md:px-5">
                       <span className="font-mono text-[10px] text-[#99907c] uppercase font-semibold">
                         AQUISIÇÃO HISTÓRICA
                       </span>
@@ -656,7 +672,7 @@ export default function LiveAuctionRoomPage({
                         Adquirido de coleção particular sob certificação documental.
                       </span>
                     </div>
-                    <div className="flex flex-col gap-1 p-3 rounded bg-[#0c0e13] border border-[#282a30]">
+                    <div className="flex flex-col gap-1 pt-4 md:pt-0 md:pl-5">
                       <span className="font-mono text-[10px] text-[#f2ca50] uppercase font-semibold">
                         PRESENTE
                       </span>
@@ -670,7 +686,7 @@ export default function LiveAuctionRoomPage({
                   </div>
 
                   {/* Cryptographic Verification Badges & IIIF API Endpoints */}
-                  <div className="flex flex-wrap items-center justify-between gap-4 pt-2 bg-[#0c0e13] p-4 rounded-lg border border-[#282a30]">
+                  <div className="flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-[#282a30]">
                     <div className="flex items-center gap-4 flex-wrap">
                       <div className="flex items-center gap-1.5 text-[#4edea3] font-mono text-[10px]">
                         <span className="material-symbols-outlined text-sm">verified_user</span>
@@ -931,7 +947,10 @@ export default function LiveAuctionRoomPage({
 
                     {/* Custom Bid Input */}
                     <div className="mt-4 pt-4 border-t border-[#282a30]">
-                      <label className="font-mono text-[10px] uppercase tracking-widest text-[#99907c] font-semibold block mb-1.5">
+                      <label
+                        htmlFor="custom-bid-input"
+                        className="font-mono text-[10px] uppercase tracking-widest text-[#99907c] font-semibold block mb-1.5"
+                      >
                         Lance Estratégico Customizado (R$)
                       </label>
                       <div className="flex gap-2">
@@ -940,6 +959,7 @@ export default function LiveAuctionRoomPage({
                             R$
                           </span>
                           <input
+                            id="custom-bid-input"
                             type="number"
                             value={customBidAmount}
                             onChange={(e) => setCustomBidAmount(e.target.value)}
@@ -1031,8 +1051,8 @@ export default function LiveAuctionRoomPage({
                 </span>
               </div>
 
-              {/* Chronological Stream List */}
-              <div className="flex flex-col gap-2 max-h-[360px] overflow-y-auto pr-1">
+              {/* Chronological Stream List (Hairline ledger rows; only top leader highlighted) */}
+              <div className="flex flex-col divide-y divide-[#282a30] max-h-[360px] overflow-y-auto pr-1">
                 {lot.bids.length === 0 ? (
                   <div className="py-8 text-center text-[#99907c] font-mono text-xs">
                     Aguardando primeiros lances regulamentares...
@@ -1046,15 +1066,15 @@ export default function LiveAuctionRoomPage({
                     return (
                       <div
                         key={b.id || idx}
-                        className={`p-3 rounded-lg flex items-center justify-between gap-3 shadow-sm relative overflow-hidden ${
+                        className={`flex items-center justify-between gap-3 relative overflow-hidden ${
                           isLeadingBid
-                            ? 'bg-[#0c0e13] border border-[#4edea3]/40'
-                            : 'bg-[#0c0e13]/60 border border-[#282a30]'
+                            ? 'p-3 mb-1 rounded-lg bg-[#0c0e13] border border-[#4edea3]/40 shadow-sm'
+                            : 'py-2.5 px-2'
                         }`}
                       >
                         <div className="flex flex-col pl-1">
                           <div className="flex items-center gap-2">
-                            <span className="font-mono text-[10px] text-[#99907c]">
+                            <span className="font-mono text-[10px] text-[#99907c] tabular-nums">
                               {new Date(b.createdAt).toLocaleTimeString('pt-BR')}
                             </span>
                             <span
@@ -1075,7 +1095,7 @@ export default function LiveAuctionRoomPage({
                         </div>
                         <div className="flex flex-col items-end">
                           <span
-                            className={`font-mono text-xs font-bold ${
+                            className={`font-mono text-xs font-bold tabular-nums ${
                               isLeadingBid ? 'text-[#f2ca50]' : 'text-[#e2e2ea]'
                             }`}
                           >

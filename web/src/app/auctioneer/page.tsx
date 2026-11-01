@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 import { apiRequest } from '@/lib/api'
 import { useAuth } from '@/contexts/AuthContext'
 import { formatCurrency, formatTimeRemaining } from '@/lib/utils'
@@ -18,14 +17,13 @@ interface ArtworkSearchResult {
 }
 
 export default function AuctioneerMasterCockpitPage() {
-  const router = useRouter()
   const { user } = useAuth()
 
   // Estado de confirmação em 2 passos para ações irreversíveis do Leiloeiro
   const [confirmAction, setConfirmAction] = useState<'hammer' | 'cancel' | null>(null)
 
   // Busca de obras na API pública
-  const [artQuery, setArtQuery] = useState('Vincent van Gogh')
+  const [artQuery, setArtQuery] = useState('Monet')
   const [artworks, setArtworks] = useState<ArtworkSearchResult[]>([])
   const [isSearchingArt, setIsSearchingArt] = useState(false)
   const [searchError, setSearchError] = useState('')
@@ -197,11 +195,13 @@ export default function AuctioneerMasterCockpitPage() {
     setPublishStatus('Transmitindo lote para a rede SSE...')
 
     try {
-      const now = new Date()
-      const startTime = now.toISOString()
+      const nowMs = Date.now()
+      const startTime = new Date(nowMs - 1000).toISOString()
       const endTime = new Date(
-        now.getTime() + parseInt(durationMinutes || '30') * 60 * 1000,
+        nowMs + parseInt(durationMinutes || '30') * 60 * 1000,
       ).toISOString()
+      const startPriceInCents = Math.round(parseFloat(startPriceBRL || '50000') * 100)
+      const minIncrementInCents = Math.round(parseFloat(minIncrementBRL || '5000') * 100)
 
       const created = await apiRequest<{ lot: any }>('/lots', {
         method: 'POST',
@@ -211,8 +211,10 @@ export default function AuctioneerMasterCockpitPage() {
           imageUrl,
           artist,
           externalApiId,
-          startPrice: Math.round(parseFloat(startPriceBRL) * 100),
-          minIncrement: Math.round(parseFloat(minIncrementBRL) * 100),
+          startPriceInCents,
+          minIncrementInCents,
+          startPrice: startPriceInCents,
+          minIncrement: minIncrementInCents,
           startTime,
           endTime,
         }),
@@ -290,7 +292,7 @@ export default function AuctioneerMasterCockpitPage() {
   }
 
   return (
-    <div className="w-full pt-20 bg-[#07090E] min-h-[calc(100vh-80px)] text-[#e2e2ea]">
+    <div className="w-full pt-32 md:pt-20 bg-[#07090E] min-h-[calc(100vh-80px)] text-[#e2e2ea]">
       {/* Operational Sub-Header Bar (Master Cockpit Status) */}
       <section className="w-full px-6 lg:px-12 py-3 bg-[#0c0e13] border-b border-[#282a30]">
         <div className="w-full max-w-[1600px] mx-auto flex flex-wrap items-center justify-between gap-4">
@@ -393,12 +395,12 @@ export default function AuctioneerMasterCockpitPage() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-[#14171f] rounded-lg border border-[#282a30]">
-                  <div className="flex flex-col">
+                <div className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-[#282a30] pt-1">
+                  <div className="flex flex-col pb-4 md:pb-0 md:pr-6">
                     <span className="font-mono text-[10px] text-[#99907c] uppercase">
                       Lance Líder Atual
                     </span>
-                    <span className="font-serif text-2xl text-[#f2ca50] font-bold mt-0.5">
+                    <span className="font-serif text-2xl text-[#f2ca50] font-bold mt-0.5 tabular-nums">
                       {formatCurrency(activeLiveLot.currentPrice)}
                     </span>
                     <span className="font-mono text-xs text-[#4edea3] mt-0.5">
@@ -406,11 +408,11 @@ export default function AuctioneerMasterCockpitPage() {
                     </span>
                   </div>
 
-                  <div className="flex flex-col">
+                  <div className="flex flex-col py-4 md:py-0 md:px-6">
                     <span className="font-mono text-[10px] text-[#99907c] uppercase">
                       Total de Lances no Lote
                     </span>
-                    <span className="font-serif text-2xl text-[#e2e2ea] font-bold mt-0.5">
+                    <span className="font-serif text-2xl text-[#e2e2ea] font-bold mt-0.5 tabular-nums">
                       {activeLiveLot.bidsCount || 0} Lances
                     </span>
                     <span className="font-mono text-xs text-[#99907c] mt-0.5">
@@ -418,7 +420,7 @@ export default function AuctioneerMasterCockpitPage() {
                     </span>
                   </div>
 
-                  <div className="flex flex-col justify-center gap-2">
+                  <div className="flex flex-col justify-center gap-2 pt-4 md:pt-0 md:pl-6">
                     {confirmAction === 'hammer' ? (
                       <div className="p-3 rounded-lg bg-[#0c0e13] border border-[#4edea3] space-y-2 font-mono">
                         <span className="block text-xs text-[#e2e2ea] font-bold">
@@ -557,48 +559,47 @@ export default function AuctioneerMasterCockpitPage() {
                 {/* Filter Chips */}
                 <div className="flex items-center gap-2 flex-wrap pt-1 font-mono text-[10px]">
                   <span className="text-[#99907c] uppercase tracking-wider mr-1">Filtros:</span>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setArtQuery('Monet')
-                      searchMuseumArtworks('Monet')
-                    }}
-                    className="px-3 py-1 rounded bg-[#d4af37] text-[#1c1400] font-bold"
-                  >
-                    Claude Monet
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setArtQuery('Van Gogh')
-                      searchMuseumArtworks('Van Gogh')
-                    }}
-                    className="px-3 py-1 rounded bg-[#282a30] text-[#d0c5af] hover:text-[#e2e2ea] transition-colors"
-                  >
-                    Vincent van Gogh
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setArtQuery('Rembrandt')
-                      searchMuseumArtworks('Rembrandt')
-                    }}
-                    className="px-3 py-1 rounded bg-[#282a30] text-[#d0c5af] hover:text-[#e2e2ea] transition-colors"
-                  >
-                    Rembrandt
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setArtQuery('Landscape')
-                      searchMuseumArtworks('Landscape')
-                    }}
-                    className="px-3 py-1 rounded bg-[#282a30] text-[#d0c5af] hover:text-[#e2e2ea] transition-colors"
-                  >
-                    Paisagens
-                  </button>
+                  {[
+                    { label: 'Claude Monet', query: 'Monet' },
+                    { label: 'Vincent van Gogh', query: 'Van Gogh' },
+                    { label: 'Rembrandt', query: 'Rembrandt' },
+                    { label: 'Paisagens', query: 'Landscape' },
+                  ].map((chip) => {
+                    const isChipActive =
+                      artQuery.trim().toLowerCase() === chip.query.toLowerCase()
+                    return (
+                      <button
+                        key={chip.query}
+                        type="button"
+                        onClick={() => {
+                          setArtQuery(chip.query)
+                          searchMuseumArtworks(chip.query)
+                        }}
+                        className={`px-3 py-1.5 rounded transition-colors cursor-pointer ${
+                          isChipActive
+                            ? 'bg-[#d4af37] text-[#1c1400] font-bold'
+                            : 'bg-[#282a30] text-[#d0c5af] hover:text-[#e2e2ea]'
+                        }`}
+                      >
+                        {chip.label}
+                      </button>
+                    )
+                  })}
                 </div>
               </form>
+
+              {searchError && (
+                <div className="p-3 rounded-lg bg-rose-500/10 border border-rose-500/30 flex items-center justify-between gap-3 font-mono text-xs text-rose-300">
+                  <span>{searchError}</span>
+                  <button
+                    type="button"
+                    onClick={() => searchMuseumArtworks(artQuery || 'Monet')}
+                    className="px-2.5 py-1 rounded bg-rose-500/20 hover:bg-rose-500/30 text-rose-200 text-[10px] uppercase font-bold shrink-0 cursor-pointer"
+                  >
+                    Tentar Novamente
+                  </button>
+                </div>
+              )}
 
               {/* Ingestion Queue Cards List */}
               <div className="flex flex-col gap-3 pt-2 max-h-[500px] overflow-y-auto pr-1">
@@ -706,13 +707,17 @@ export default function AuctioneerMasterCockpitPage() {
                 }}
                 className="flex flex-col gap-4"
               >
-                {/* Metadata Ingestion Block */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-[#1d2025] rounded-xl border border-[#282a30]">
+                {/* Metadata Ingestion Block (Hairline-separated instead of nested card) */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="flex flex-col gap-1 md:col-span-2">
-                    <label className="font-mono text-[10px] uppercase text-[#99907c] tracking-wider">
+                    <label
+                      htmlFor="lot-title"
+                      className="font-mono text-[10px] uppercase text-[#99907c] tracking-wider"
+                    >
                       Título Oficial da Obra (Catalogação JUCESP)
                     </label>
                     <input
+                      id="lot-title"
                       type="text"
                       value={title}
                       onChange={(e) => setTitle(e.target.value)}
@@ -721,10 +726,14 @@ export default function AuctioneerMasterCockpitPage() {
                   </div>
 
                   <div className="flex flex-col gap-1">
-                    <label className="font-mono text-[10px] uppercase text-[#99907c] tracking-wider">
+                    <label
+                      htmlFor="lot-artist"
+                      className="font-mono text-[10px] uppercase text-[#99907c] tracking-wider"
+                    >
                       Artista Autoral
                     </label>
                     <input
+                      id="lot-artist"
                       type="text"
                       value={artist}
                       onChange={(e) => setArtist(e.target.value)}
@@ -733,10 +742,14 @@ export default function AuctioneerMasterCockpitPage() {
                   </div>
 
                   <div className="flex flex-col gap-1">
-                    <label className="font-mono text-[10px] uppercase text-[#99907c] tracking-wider">
+                    <label
+                      htmlFor="lot-technique"
+                      className="font-mono text-[10px] uppercase text-[#99907c] tracking-wider"
+                    >
                       Técnica & Dimensões
                     </label>
                     <input
+                      id="lot-technique"
                       type="text"
                       value={techniqueDimensions}
                       onChange={(e) => setTechniqueDimensions(e.target.value)}
@@ -746,7 +759,10 @@ export default function AuctioneerMasterCockpitPage() {
 
                   <div className="flex flex-col gap-1 md:col-span-2">
                     <div className="flex items-center justify-between">
-                      <label className="font-mono text-[10px] uppercase text-[#99907c] tracking-wider">
+                      <label
+                        htmlFor="lot-manifest"
+                        className="font-mono text-[10px] uppercase text-[#99907c] tracking-wider"
+                      >
                         Manifesto IIIF Verificado (JSON-LD)
                       </label>
                       <span className="font-mono text-[10px] text-[#4edea3] font-semibold">
@@ -758,6 +774,7 @@ export default function AuctioneerMasterCockpitPage() {
                         verified_user
                       </span>
                       <input
+                        id="lot-manifest"
                         type="text"
                         value={manifestUrl}
                         readOnly
@@ -767,15 +784,18 @@ export default function AuctioneerMasterCockpitPage() {
                   </div>
                 </div>
 
-                {/* Financial & Escrow Parameters Block */}
-                <div className="p-4 bg-[#1d2025] rounded-xl border border-[#282a30] flex flex-col gap-4">
+                {/* Financial & Escrow Parameters Block (Hairline-separated instead of nested card) */}
+                <div className="pt-5 border-t border-[#282a30] flex flex-col gap-4">
                   <span className="font-mono text-[11px] uppercase text-[#f2ca50] font-bold tracking-widest">
                     Parâmetros Econômicos & Liquidação Financeira
                   </span>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {/* Lance Inicial */}
                     <div className="flex flex-col gap-1">
-                      <label className="font-mono text-[10px] text-[#99907c] uppercase tracking-wider">
+                      <label
+                        htmlFor="lot-start-price"
+                        className="font-mono text-[10px] text-[#99907c] uppercase tracking-wider"
+                      >
                         Lance Inicial (Reserva Mínima)
                       </label>
                       <div className="relative">
@@ -783,6 +803,7 @@ export default function AuctioneerMasterCockpitPage() {
                           R$
                         </span>
                         <input
+                          id="lot-start-price"
                           type="number"
                           value={startPriceBRL}
                           onChange={(e) => setStartPriceBRL(e.target.value)}
@@ -796,7 +817,10 @@ export default function AuctioneerMasterCockpitPage() {
 
                     {/* Incremento Mínimo */}
                     <div className="flex flex-col gap-1">
-                      <label className="font-mono text-[10px] text-[#99907c] uppercase tracking-wider">
+                      <label
+                        htmlFor="lot-min-increment"
+                        className="font-mono text-[10px] text-[#99907c] uppercase tracking-wider"
+                      >
                         Incremento Mínimo Obrigatório
                       </label>
                       <div className="relative">
@@ -804,6 +828,7 @@ export default function AuctioneerMasterCockpitPage() {
                           R$
                         </span>
                         <input
+                          id="lot-min-increment"
                           type="number"
                           value={minIncrementBRL}
                           onChange={(e) => setMinIncrementBRL(e.target.value)}
@@ -817,7 +842,10 @@ export default function AuctioneerMasterCockpitPage() {
 
                     {/* Anti-sniping toggle */}
                     <div className="flex flex-col gap-1">
-                      <label className="font-mono text-[10px] text-[#99907c] uppercase tracking-wider">
+                      <label
+                        htmlFor="lot-anti-sniping"
+                        className="font-mono text-[10px] text-[#99907c] uppercase tracking-wider"
+                      >
                         Regra Anti-Sniping (Soft Close)
                       </label>
                       <div className="flex items-center justify-between p-2.5 bg-[#0c0e13] rounded-lg border border-[#282a30]">
@@ -830,6 +858,7 @@ export default function AuctioneerMasterCockpitPage() {
                           </span>
                         </div>
                         <input
+                          id="lot-anti-sniping"
                           type="checkbox"
                           checked={antiSnipingEnabled}
                           onChange={(e) => setAntiSnipingEnabled(e.target.checked)}
@@ -840,7 +869,10 @@ export default function AuctioneerMasterCockpitPage() {
 
                     {/* Expected Duration */}
                     <div className="flex flex-col gap-1">
-                      <label className="font-mono text-[10px] text-[#99907c] uppercase tracking-wider">
+                      <label
+                        htmlFor="lot-duration"
+                        className="font-mono text-[10px] text-[#99907c] uppercase tracking-wider"
+                      >
                         Duração Prevista do Pregão
                       </label>
                       <div className="flex items-center bg-[#0c0e13] rounded-lg px-3 py-2 border border-[#282a30]">
@@ -848,6 +880,7 @@ export default function AuctioneerMasterCockpitPage() {
                           timer
                         </span>
                         <select
+                          id="lot-duration"
                           value={durationMinutes}
                           onChange={(e) => setDurationMinutes(e.target.value)}
                           className="bg-transparent text-[#e2e2ea] font-mono text-xs flex-1 focus:outline-none cursor-pointer"

@@ -11,7 +11,7 @@ export async function createLotController(
     description: z
       .string()
       .min(5, 'A descrição deve ter no mínimo 5 caracteres'),
-    imageUrl: z.string().url('URL da imagem inválida'),
+    imageUrl: z.string().min(1, 'URL da imagem inválida'),
     artist: z.string().nullable().optional(),
     externalApiId: z.string().nullable().optional(),
     startPriceInCents: z.number().int().positive().optional(),

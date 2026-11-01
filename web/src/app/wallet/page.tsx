@@ -17,7 +17,8 @@ interface TransactionItem {
 }
 
 export default function DigitalWalletPage() {
-  const { user, login } = useAuth()
+  const { user } = useAuth()
+  const isAuctioneer = user?.role === 'AUCTIONEER'
 
   const [balances, setBalances] = useState<{
     total: number
@@ -70,15 +71,10 @@ export default function DigitalWalletPage() {
         available,
       })
 
-      // Adiciona hashes criptográficos sintéticos se não existirem
-      const txs = (stmtRes?.transactions || []).map((t, idx) => ({
+      // Identificador real de auditoria por transação
+      const txs = (stmtRes?.transactions || []).map((t) => ({
         ...t,
-        hash:
-          t.hash ||
-          `0x${(
-            (idx + 1) * 987654321 +
-            new Date(t.createdAt).getTime()
-          ).toString(16)}...${t.id.slice(0, 4)}`,
+        hash: t.hash || t.id,
       }))
 
       setTransactions(txs)
@@ -140,7 +136,7 @@ export default function DigitalWalletPage() {
   })
 
   return (
-    <div className="w-full pt-20 bg-[#07090E] min-h-[calc(100vh-80px)] text-[#e2e2ea]">
+    <div className="w-full pt-32 md:pt-20 bg-[#07090E] min-h-[calc(100vh-80px)] text-[#e2e2ea]">
       {/* Dynamic Notification Bar (Toast) */}
       {toastMessage && (
         <div className="fixed bottom-8 right-8 z-50 p-4 rounded-xl bg-[#1d2025] border border-[#d4af37]/40 shadow-2xl transition-all duration-300 max-w-md">
@@ -168,7 +164,7 @@ export default function DigitalWalletPage() {
 
       {/* Page Header & Credential Strip */}
       <div className="w-full px-6 lg:px-12 py-10 bg-[#0c0e13] border-b border-[#282a30]">
-        <div className="max-w-[1400px] mx-auto flex flex-col xl:flex-row xl:items-end justify-between gap-6">
+        <div className="max-w-[1600px] mx-auto flex flex-col xl:flex-row xl:items-end justify-between gap-6">
           <div className="flex flex-col gap-2 max-w-3xl">
             <div className="flex items-center gap-3 mb-1 flex-wrap">
               <span className="px-3 py-1 rounded bg-[#4edea3]/10 text-[#4edea3] border border-[#4edea3]/30 font-mono text-[10px] tracking-widest uppercase flex items-center gap-1.5 font-bold">
@@ -180,10 +176,14 @@ export default function DigitalWalletPage() {
               </span>
             </div>
             <h1 className="font-serif text-4xl lg:text-5xl text-[#e2e2ea] tracking-tight">
-              Carteira Digital & Custódia Fiduciária
+              {isAuctioneer
+                ? 'Recebimentos & Caixa do Leiloeiro'
+                : 'Carteira Digital & Custódia Fiduciária'}
             </h1>
             <p className="font-sans text-base text-[#d0c5af] max-w-2xl mt-1">
-              Gestão de margens de garantia, cauções segregadas e liquidação financeira do licitante sob supervisão contábil e criptográfica.
+              {isAuctioneer
+                ? 'Apuração em tempo real das receitas de arrematação liquidadas e extrato fiduciário oficial da casa leiloeira.'
+                : 'Gestão de margens de garantia, cauções segregadas e liquidação financeira do licitante sob supervisão contábil e criptográfica.'}
             </p>
           </div>
 
@@ -230,7 +230,7 @@ export default function DigitalWalletPage() {
         </div>
       </div>
 
-      <div className="w-full px-6 lg:px-12 py-10 max-w-[1400px] mx-auto flex flex-col gap-10">
+      <div className="w-full px-6 lg:px-12 py-10 max-w-[1600px] mx-auto flex flex-col gap-5">
         {/* Tri-Fold Financial Metric Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Card 1: Saldo Total */}
@@ -397,9 +397,53 @@ export default function DigitalWalletPage() {
         </div>
 
         {/* Main Operational Grid: Deposit Simulator & Ledger Statement */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          {/* Left Column: Instant Reforço de Garantia Widget (4 cols) */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start mt-5">
+          {/* Left Column: Instant Reforço de Garantia (Bidder) or Resumo de Recebimentos (Auctioneer) (4 cols) */}
           <div className="lg:col-span-4 flex flex-col gap-6">
+            {isAuctioneer ? (
+              <div className="p-6 rounded-xl bg-[#14171f] border border-[#d4af37]/30 shadow-sm flex flex-col gap-4">
+                <div className="flex items-center justify-between pb-2 border-b border-[#282a30]">
+                  <div className="flex flex-col">
+                    <span className="font-mono text-[10px] uppercase tracking-wider text-[#f2ca50]">
+                      Tesouraria do Leiloeiro Oficial
+                    </span>
+                    <span className="font-serif text-lg text-[#e2e2ea]">
+                      Recebimentos de Liquidação
+                    </span>
+                  </div>
+                  <span className="material-symbols-outlined text-[#4edea3] text-xl">
+                    payments
+                  </span>
+                </div>
+
+                <p className="font-sans text-xs text-[#d0c5af] leading-relaxed">
+                  Como <strong>Leiloeiro Oficial ({user?.publicCode})</strong>, você não realiza lances nem deposita caução de licitante. O seu caixa recebe automaticamente 100% do valor dos lotes liquidados no instante da batida do martelo (<code className="text-[#4edea3] font-mono">SETTLEMENT_CREDIT</code>).
+                </p>
+
+                <div className="pt-3 border-t border-[#282a30] space-y-2 font-mono text-xs">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[#99907c] text-[10px] uppercase">Receita Acumulada:</span>
+                    <span className="text-[#4edea3] font-bold tabular-nums">
+                      {formatCurrency(balances.total)}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-[#99907c] text-[10px] uppercase">Liquidações no Extrato:</span>
+                    <span className="text-[#e2e2ea] font-bold tabular-nums">
+                      {transactions.filter((t) => t.type === 'SETTLEMENT_CREDIT').length} recebimentos
+                    </span>
+                  </div>
+                </div>
+
+                <Link
+                  href="/auctioneer"
+                  className="w-full py-3.5 bg-[#d4af37] text-[#1c1400] font-mono text-xs font-bold uppercase tracking-wider rounded-lg hover:bg-[#f2ca50] transition-all shadow-md flex items-center justify-center gap-2"
+                >
+                  <span className="material-symbols-outlined text-lg">gavel</span>
+                  <span>Ir para o Painel do Leiloeiro</span>
+                </Link>
+              </div>
+            ) : (
             <div className="p-6 rounded-xl bg-[#14171f] border border-[#282a30] shadow-sm flex flex-col gap-4">
               <div className="flex items-center justify-between pb-2 border-b border-[#282a30]">
                 <div className="flex flex-col">
@@ -444,7 +488,10 @@ export default function DigitalWalletPage() {
 
               {/* Custom Value Input */}
               <div className="flex flex-col gap-1">
-                <label className="font-mono text-[10px] text-[#99907c] uppercase">
+                <label
+                  htmlFor="deposit-amount-input"
+                  className="font-mono text-[10px] text-[#99907c] uppercase"
+                >
                   Ou digite o valor pretendido:
                 </label>
                 <div className="relative flex items-center">
@@ -452,6 +499,7 @@ export default function DigitalWalletPage() {
                     R$
                   </span>
                   <input
+                    id="deposit-amount-input"
                     type="number"
                     value={depositAmountBRL}
                     onChange={(e) => setDepositAmountBRL(e.target.value)}
@@ -503,7 +551,7 @@ export default function DigitalWalletPage() {
                       <span className="w-1.5 h-1.5 rounded-full bg-[#4edea3] inline-block animate-ping" />
                       Chave Copia-e-Cola Dinâmica
                     </span>
-                    <span className="text-[#99907c]">Expira em 14:59</span>
+                    <span className="text-[#99907c]">Liquidação Imediata</span>
                   </div>
                   <button
                     type="button"
@@ -518,7 +566,7 @@ export default function DigitalWalletPage() {
                     00020126580014br.gov.bcb.pix0136belmont-trust-custodia-fiduciaria-2026-sec-0001520400005303986
                   </button>
                   <span className="text-[10px] text-[#99907c] text-right font-mono">
-                    Clique para copiar a chave hash
+                    Clique para copiar a chave Pix
                   </span>
                 </div>
               ) : (
@@ -541,6 +589,7 @@ export default function DigitalWalletPage() {
                 <span>{isDepositing ? 'PROCESSANDO APORTE...' : 'Aportar Garantia Fiduciária Instantânea'}</span>
               </button>
             </div>
+            )}
 
             {/* Trust & Compliance Box */}
             <div className="p-4 rounded-xl bg-[#14171f] border border-[#282a30] flex flex-col gap-2 text-[#99907c] font-sans text-xs">
@@ -558,7 +607,7 @@ export default function DigitalWalletPage() {
 
           {/* Right Column: Audit Statement Ledger (8 cols) */}
           <div className="lg:col-span-8 flex flex-col gap-6">
-            <div className="p-6 rounded-xl bg-[#14171f] border border-[#282a30] shadow-sm flex flex-col gap-4">
+            <div className="p-6 rounded-xl bg-[#14171f] border border-[#282a30] shadow-sm flex flex-col gap-4 overflow-hidden">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-[#282a30]">
                 <div>
                   <span className="font-mono text-[10px] uppercase tracking-wider text-[#99907c]">
@@ -791,13 +840,17 @@ export default function DigitalWalletPage() {
                     verified_user
                   </span>
                   <span>
-                    Merkle Root: <strong className="text-[#e2e2ea]">0x4d5b2...f881c</strong> • Árvore de Auditoria Validada
+                    Último Registro:{' '}
+                    <strong className="text-[#e2e2ea]">
+                      {transactions[0]?.id ? `#${transactions[0].id.slice(0, 12)}` : 'Sem lançamentos'}
+                    </strong>{' '}
+                    • Livro-Razão Fiduciário Sincronizado
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
                   <span>Sincronização Criptográfica:</span>
-                  <span className="text-[#4edea3] font-semibold">
-                    {new Date().toLocaleDateString('pt-BR')} {new Date().toLocaleTimeString('pt-BR')} UTC-3
+                  <span className="text-[#4edea3] font-semibold tabular-nums">
+                    {new Date().toLocaleDateString('pt-BR')} {new Date().toLocaleTimeString('pt-BR')} BRT
                   </span>
                 </div>
               </div>

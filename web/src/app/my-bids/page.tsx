@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 import { apiRequest } from '@/lib/api'
 import { useAuth } from '@/contexts/AuthContext'
 import { formatCurrency, formatTimeRemaining } from '@/lib/utils'
@@ -22,7 +21,6 @@ interface BidItem {
 }
 
 export default function MyBidsPage() {
-  const router = useRouter()
   const { user } = useAuth()
   const [activeTab, setActiveTab] = useState<'ACTIVE' | 'WON' | 'ALL'>('ACTIVE')
   const [isLoading, setIsLoading] = useState(true)
@@ -121,10 +119,10 @@ export default function MyBidsPage() {
         : [...data.activeParticipations, ...data.wonLots, ...data.historicalParticipations]
 
   return (
-    <div className="w-full pt-20 bg-[#07090E] min-h-[calc(100vh-80px)] text-[#e2e2ea]">
+    <div className="w-full pt-32 md:pt-20 bg-[#07090E] min-h-[calc(100vh-80px)] text-[#e2e2ea]">
       {/* Header Banner */}
       <section className="w-full px-6 lg:px-12 py-8 bg-[#0c0e13] border-b border-[#282a30]">
-        <div className="w-full max-w-[1400px] mx-auto flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+        <div className="w-full max-w-[1600px] mx-auto flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
           <div>
             <div className="flex items-center gap-2 mb-2">
               <span className="material-symbols-outlined text-[#f2ca50] text-sm">
@@ -142,7 +140,7 @@ export default function MyBidsPage() {
             </p>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             <Link
               href="/wallet"
               className="px-4 py-2 rounded-lg bg-[#14161b] border border-[#d4af37]/30 text-xs font-mono text-[#f2ca50] hover:bg-[#1d2025] transition flex items-center gap-2"
@@ -162,12 +160,12 @@ export default function MyBidsPage() {
       </section>
 
       {/* Main Content Area */}
-      <main className="w-full max-w-[1400px] mx-auto px-6 lg:px-12 py-8">
+      <main className="w-full max-w-[1600px] mx-auto px-6 lg:px-12 py-8">
         {/* Navigation Tabs */}
-        <div className="flex items-center gap-3 border-b border-[#282a30] pb-4 mb-8">
+        <div className="flex items-center gap-3 border-b border-[#282a30] pb-4 mb-8 overflow-x-auto">
           <button
             onClick={() => setActiveTab('ACTIVE')}
-            className={`px-4 py-2 rounded-lg text-xs font-mono tracking-wider uppercase transition flex items-center gap-2 ${
+            className={`px-4 py-2 rounded-lg text-xs font-mono tracking-wider uppercase transition flex items-center gap-2 shrink-0 ${
               activeTab === 'ACTIVE'
                 ? 'bg-[#f2ca50] text-[#07090E] font-bold shadow-lg shadow-[#f2ca50]/10'
                 : 'bg-[#14161b] text-[#99907c] hover:text-[#e2e2ea] border border-[#282a30]'
@@ -179,7 +177,7 @@ export default function MyBidsPage() {
 
           <button
             onClick={() => setActiveTab('WON')}
-            className={`px-4 py-2 rounded-lg text-xs font-mono tracking-wider uppercase transition flex items-center gap-2 ${
+            className={`px-4 py-2 rounded-lg text-xs font-mono tracking-wider uppercase transition flex items-center gap-2 shrink-0 ${
               activeTab === 'WON'
                 ? 'bg-[#4edea3] text-[#07090E] font-bold shadow-lg shadow-[#4edea3]/10'
                 : 'bg-[#14161b] text-[#99907c] hover:text-[#e2e2ea] border border-[#282a30]'
@@ -191,7 +189,7 @@ export default function MyBidsPage() {
 
           <button
             onClick={() => setActiveTab('ALL')}
-            className={`px-4 py-2 rounded-lg text-xs font-mono tracking-wider uppercase transition flex items-center gap-2 ${
+            className={`px-4 py-2 rounded-lg text-xs font-mono tracking-wider uppercase transition flex items-center gap-2 shrink-0 ${
               activeTab === 'ALL'
                 ? 'bg-[#e2e2ea] text-[#07090E] font-bold'
                 : 'bg-[#14161b] text-[#99907c] hover:text-[#e2e2ea] border border-[#282a30]'
@@ -263,8 +261,12 @@ export default function MyBidsPage() {
                         </div>
                       )}
 
-                      <span className="px-2.5 py-1 rounded bg-black/60 border border-white/10 font-mono text-[10px] text-[#e2e2ea]">
-                        {item.status === 'LIVE' ? 'AO VIVO' : item.status === 'ENDED' ? 'ENCERRADO' : 'AGENDADO'}
+                      <span className="px-2.5 py-1 rounded bg-black/60 border border-white/10 font-mono text-[10px] text-[#e2e2ea] tabular-nums">
+                        {item.status === 'LIVE'
+                          ? `AO VIVO • ${formatTimeRemaining(item.endTime)}`
+                          : item.status === 'ENDED'
+                          ? 'ENCERRADO'
+                          : 'AGENDADO'}
                       </span>
                     </div>
                   </div>
@@ -279,7 +281,7 @@ export default function MyBidsPage() {
                     </h3>
 
                     {/* Financial Summary */}
-                    <div className="mt-4 pt-4 border-t border-[#1d2025] grid grid-cols-2 gap-3">
+                    <div className="mt-4 pt-4 border-t border-[#1d2025] grid grid-cols-2 gap-3 tabular-nums">
                       <div>
                         <span className="block font-mono text-[10px] text-[#99907c] uppercase">
                           Lance Atual
@@ -302,9 +304,9 @@ export default function MyBidsPage() {
                       </div>
                     </div>
 
-                    {/* Receipt code if won */}
+                    {/* Receipt code if won (Hairline-divided instead of nested card) */}
                     {item.receiptCode && (
-                      <div className="mt-4 p-3 rounded-lg bg-[#14161b] border border-[#d4af37]/30 flex items-center justify-between gap-2">
+                      <div className="mt-4 pt-3 border-t border-[#1d2025] flex items-center justify-between gap-2">
                         <div className="flex flex-col">
                           <span className="font-mono text-[9px] text-[#99907c] uppercase tracking-wider">
                             Código do Certificado
@@ -315,7 +317,7 @@ export default function MyBidsPage() {
                         </div>
                         <button
                           onClick={() => copyShareLink(item.receiptCode!)}
-                          className="px-2.5 py-1 rounded bg-[#282a30] hover:bg-[#343740] text-[10px] font-mono text-[#e2e2ea] transition flex items-center gap-1"
+                          className="px-2.5 py-1.5 rounded bg-[#282a30] hover:bg-[#343740] text-[10px] font-mono text-[#e2e2ea] transition flex items-center gap-1"
                         >
                           <span className="material-symbols-outlined text-xs">
                             {copiedCode === item.receiptCode ? 'check' : 'share'}
