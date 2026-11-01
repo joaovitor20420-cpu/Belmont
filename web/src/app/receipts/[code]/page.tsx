@@ -4,6 +4,8 @@ import React, { useState, useEffect, use } from 'react'
 import Link from 'next/link'
 import { apiRequest } from '@/lib/api'
 import { formatCurrency } from '@/lib/utils'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 
 interface ReceiptData {
   receipt: {
@@ -107,23 +109,24 @@ export default function ShareableReceiptPage({
             <span>Voltar ao Catálogo</span>
           </Link>
           <div className="flex items-center gap-3">
-            <button
+            <Button
+              type="button"
+              variant="outline"
               onClick={() => window.print()}
-              className="px-4 py-2 rounded-lg bg-[#14171f] text-xs font-mono text-[#e2e2ea] border border-[#282a30] hover:bg-[#1d2025] flex items-center gap-1.5 transition-colors cursor-pointer"
             >
               <span className="material-symbols-outlined text-sm">print</span>
               <span>Imprimir</span>
-            </button>
-            <button
+            </Button>
+            <Button
+              type="button"
               onClick={() => {
                 navigator.clipboard?.writeText(window.location.href)
                 showToast('Link do certificado copiado!')
               }}
-              className="px-4 py-2 rounded-lg bg-[#d4af37] text-xs font-mono text-[#1c1400] font-bold hover:bg-[#f2ca50] flex items-center gap-1.5 transition-colors cursor-pointer"
             >
               <span className="material-symbols-outlined text-sm">share</span>
               <span>Compartilhar</span>
-            </button>
+            </Button>
           </div>
         </div>
 

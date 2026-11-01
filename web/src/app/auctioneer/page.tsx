@@ -5,6 +5,16 @@ import Link from 'next/link'
 import { apiRequest } from '@/lib/api'
 import { useAuth } from '@/contexts/AuthContext'
 import { formatCurrency, formatTimeRemaining } from '@/lib/utils'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
 
 interface ArtworkSearchResult {
   id: string
@@ -14,6 +24,11 @@ interface ArtworkSearchResult {
   mediumDisplay: string | null
   imageUrl: string | null
   isPublicDomain: boolean
+}
+
+function toLocalDatetimeInputValue(date: Date): string {
+  const pad = (n: number) => String(n).padStart(2, '0')
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`
 }
 
 export default function AuctioneerMasterCockpitPage() {
@@ -39,11 +54,18 @@ export default function AuctioneerMasterCockpitPage() {
   const [minIncrementBRL, setMinIncrementBRL] = useState('5000') // R$ 5.000,00
   const [antiSnipingEnabled, setAntiSnipingEnabled] = useState(true)
   const [durationMinutes, setDurationMinutes] = useState('30')
+  const [launchMode, setLaunchMode] = useState<'IMMEDIATE' | 'SCHEDULED'>('IMMEDIATE')
+  const [scheduledDateTime, setScheduledDateTime] = useState<string>(() =>
+    toLocalDatetimeInputValue(new Date(Date.now() + 15 * 60 * 1000)),
+  )
   const [isPublishing, setIsPublishing] = useState(false)
   const [publishStatus, setPublishStatus] = useState('Selecione uma obra na API ao lado para configurar o lote')
 
-  // Lote ao vivo ativo para controle do martelo
+  // Lote ao vivo ativo e fila de lotes agendados
   const [activeLiveLot, setActiveLiveLot] = useState<any | null>(null)
+  const [scheduledLots, setScheduledLots] = useState<any[]>([])
+  const [startingLotId, setStartingLotId] = useState<string | null>(null)
+  const [cancellingScheduledId, setCancellingScheduledId] = useState<string | null>(null)
   const [actionFeedback, setActionFeedback] = useState<{
     text: string
     color: string
@@ -103,20 +125,19 @@ export default function AuctioneerMasterCockpitPage() {
     } catch {}
   }
 
-  // Buscar lote ativo para o console inferior
+  // Buscar lote ativo ao vivo e fila de lotes agendados
   const refreshActiveLot = async () => {
     try {
-      const res = await apiRequest<{ lots: any[] }>('/lots?status=LIVE')
-      if (res.lots && res.lots.length > 0) {
-        setActiveLiveLot(res.lots[0])
+      const [liveRes, schedRes] = await Promise.all([
+        apiRequest<{ lots: any[] }>('/lots?status=LIVE'),
+        apiRequest<{ lots: any[] }>('/lots?status=SCHEDULED'),
+      ])
+      if (liveRes.lots && liveRes.lots.length > 0) {
+        setActiveLiveLot(liveRes.lots[0])
       } else {
-        const schedRes = await apiRequest<{ lots: any[] }>('/lots?status=SCHEDULED')
-        if (schedRes.lots && schedRes.lots.length > 0) {
-          setActiveLiveLot(schedRes.lots[0])
-        } else {
-          setActiveLiveLot(null)
-        }
+        setActiveLiveLot(null)
       }
+      setScheduledLots(schedRes.lots || [])
     } catch {}
   }
 
@@ -129,6 +150,54 @@ export default function AuctioneerMasterCockpitPage() {
     }, 6000)
     return () => clearInterval(timer)
   }, [])
+
+  // Atalho de pré-seleção de minutos futuros para agendamento
+  const applySchedulePresetMinutes = (minutesFromNow: number) => {
+    setScheduledDateTime(
+      toLocalDatetimeInputValue(new Date(Date.now() + minutesFromNow * 60 * 1000)),
+    )
+  }
+
+  // Iniciar imediatamente um lote que estava agendado
+  const handleStartScheduledLot = async (lotId: string, lotTitle: string) => {
+    setStartingLotId(lotId)
+    try {
+      await apiRequest(`/lots/${lotId}/start`, { method: 'POST' })
+      setActionFeedback({
+        text: `PREGÃO INICIADO! O lote "${lotTitle}" está AO VIVO na Sala de Pregão.`,
+        color: 'text-[#4edea3] font-bold',
+      })
+      refreshActiveLot()
+    } catch (err: any) {
+      setActionFeedback({
+        text: err.message || 'Erro ao iniciar pregão agendado.',
+        color: 'text-rose-400 font-bold',
+      })
+    } finally {
+      setStartingLotId(null)
+    }
+  }
+
+  // Cancelar um lote agendado na fila
+  const handleCancelScheduledLot = async (lotId: string, lotTitle: string) => {
+    setCancellingScheduledId(lotId)
+    try {
+      await apiRequest(`/lots/${lotId}/cancel`, { method: 'POST' })
+      setActionFeedback({
+        text: `AGENDAMENTO CANCELADO! O lote "${lotTitle}" foi removido da fila oficial.`,
+        color: 'text-[#4edea3] font-bold',
+      })
+      refreshActiveLot()
+      refreshEndedLots()
+    } catch (err: any) {
+      setActionFeedback({
+        text: err.message || 'Erro ao cancelar lote agendado.',
+        color: 'text-rose-400 font-bold',
+      })
+    } finally {
+      setCancellingScheduledId(null)
+    }
+  }
 
   // Cancelar lote sem lances (Regra de Negócio Oficial)
   const handleCancelLot = async () => {
@@ -179,7 +248,7 @@ export default function AuctioneerMasterCockpitPage() {
     setPublishStatus(`Obra #${art.id} selecionada para pregão`)
   }
 
-  // Publicar lote
+  // Publicar ou agendar lote
   const handlePublishLot = async () => {
     if (!user || user.role !== 'AUCTIONEER') {
       setActionFeedback({
@@ -191,15 +260,35 @@ export default function AuctioneerMasterCockpitPage() {
 
     if (!title || !imageUrl) return
 
+    const nowMs = Date.now()
+    const durationMs = parseInt(durationMinutes || '30') * 60 * 1000
+    let startTimeIso: string
+    let endTimeIso: string
+
+    if (launchMode === 'SCHEDULED') {
+      const scheduledStartMs = new Date(scheduledDateTime).getTime()
+      if (!Number.isFinite(scheduledStartMs) || scheduledStartMs <= nowMs + 10000) {
+        setActionFeedback({
+          text: 'Horário inválido: selecione uma data e horário futuros para agendar o lote.',
+          color: 'text-rose-400 font-bold',
+        })
+        return
+      }
+      startTimeIso = new Date(scheduledStartMs).toISOString()
+      endTimeIso = new Date(scheduledStartMs + durationMs).toISOString()
+    } else {
+      startTimeIso = new Date(nowMs - 1000).toISOString()
+      endTimeIso = new Date(nowMs + durationMs).toISOString()
+    }
+
     setIsPublishing(true)
-    setPublishStatus('Transmitindo lote para a rede SSE...')
+    setPublishStatus(
+      launchMode === 'SCHEDULED'
+        ? 'Registrando agendamento oficial no catálogo...'
+        : 'Transmitindo lote para a rede SSE...',
+    )
 
     try {
-      const nowMs = Date.now()
-      const startTime = new Date(nowMs - 1000).toISOString()
-      const endTime = new Date(
-        nowMs + parseInt(durationMinutes || '30') * 60 * 1000,
-      ).toISOString()
       const startPriceInCents = Math.round(parseFloat(startPriceBRL || '50000') * 100)
       const minIncrementInCents = Math.round(parseFloat(minIncrementBRL || '5000') * 100)
 
@@ -215,16 +304,28 @@ export default function AuctioneerMasterCockpitPage() {
           minIncrementInCents,
           startPrice: startPriceInCents,
           minIncrement: minIncrementInCents,
-          startTime,
-          endTime,
+          startTime: startTimeIso,
+          endTime: endTimeIso,
         }),
       })
 
-      setPublishStatus('Transmitido com sucesso via SSE para todos os terminais ao vivo!')
-      setActionFeedback({
-        text: `LOTE #${created.lot.id.slice(0, 4).toUpperCase()} PUBLICADO E AO VIVO NA REDE!`,
-        color: 'text-[#4edea3] font-bold',
-      })
+      if (launchMode === 'SCHEDULED' || created.lot.status === 'SCHEDULED') {
+        const formattedSchedule = new Date(created.lot.startTime).toLocaleString('pt-BR', {
+          dateStyle: 'short',
+          timeStyle: 'short',
+        })
+        setPublishStatus(`Lote agendado para abertura em ${formattedSchedule}`)
+        setActionFeedback({
+          text: `LOTE #${created.lot.id.slice(0, 4).toUpperCase()} AGENDADO COM SUCESSO PARA ${formattedSchedule}!`,
+          color: 'text-[#f2ca50] font-bold',
+        })
+      } else {
+        setPublishStatus('Transmitido com sucesso via SSE para todos os terminais ao vivo!')
+        setActionFeedback({
+          text: `LOTE #${created.lot.id.slice(0, 4).toUpperCase()} PUBLICADO E AO VIVO NA REDE!`,
+          color: 'text-[#4edea3] font-bold',
+        })
+      }
       refreshActiveLot()
     } catch (err: any) {
       setPublishStatus('Falha na homologação do lote')
@@ -330,17 +431,24 @@ export default function AuctioneerMasterCockpitPage() {
           <div className="flex items-center gap-6 font-mono text-xs">
             <div className="flex items-center gap-1.5">
               <span className="material-symbols-outlined text-[#f2ca50] text-sm">
+                schedule
+              </span>
+              <span className="text-[#99907c]">AGENDADOS:</span>
+              <span className="text-[#f2ca50] font-bold tabular-nums">{scheduledLots.length}</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="material-symbols-outlined text-[#f2ca50] text-sm">
                 gavel
               </span>
               <span className="text-[#99907c]">LOTES ENCERRADOS:</span>
-              <span className="text-[#e2e2ea] font-bold">{endedLots.length}</span>
+              <span className="text-[#e2e2ea] font-bold tabular-nums">{endedLots.length}</span>
             </div>
             <div className="flex items-center gap-1.5">
               <span className="material-symbols-outlined text-[#4edea3] text-sm">
                 payments
               </span>
               <span className="text-[#99907c]">CAIXA TOTAL:</span>
-              <span className="text-[#4edea3] font-bold">
+              <span className="text-[#4edea3] font-bold tabular-nums">
                 {formatCurrency(totalReceivedInCents)}
               </span>
             </div>
@@ -348,10 +456,10 @@ export default function AuctioneerMasterCockpitPage() {
         </div>
       </section>
 
-      {/* TOP LIVE LOT CONTROL COCKPIT (Visível no topo para acesso imediato do Leiloeiro) */}
-      {(activeLiveLot || actionFeedback) && (
+      {/* TOP LIVE LOT & SCHEDULED QUEUE CONTROL COCKPIT (Visível no topo para acesso imediato do Leiloeiro) */}
+      {(activeLiveLot || scheduledLots.length > 0 || actionFeedback) && (
         <section className="w-full max-w-[1600px] mx-auto px-6 lg:px-12 pt-6">
-          <div className="bg-[#0c0e13] rounded-xl p-6 border border-[#d4af37]/40 shadow-2xl flex flex-col gap-4">
+          <div className="bg-[#0c0e13] rounded-xl p-6 border border-[#d4af37]/40 shadow-2xl flex flex-col gap-5">
             {actionFeedback && (
               <div className="p-3 bg-[#1d2025] rounded-lg border border-[#d4af37]/40 flex items-center justify-between font-mono text-xs">
                 <span className={actionFeedback.color}>{actionFeedback.text}</span>
@@ -496,6 +604,91 @@ export default function AuctioneerMasterCockpitPage() {
                   </div>
                 </div>
               </>
+            )}
+
+            {/* FILA DE LOTES AGENDADOS (Agendamentos Oficiais do Leiloeiro) */}
+            {scheduledLots.length > 0 && (
+              <div className={activeLiveLot ? 'pt-5 border-t border-[#282a30] flex flex-col gap-3' : 'flex flex-col gap-3'}>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="material-symbols-outlined text-[#f2ca50] text-lg">
+                      calendar_clock
+                    </span>
+                    <span className="font-serif text-lg text-[#e2e2ea]">
+                      Fila de Lotes Agendados ({scheduledLots.length})
+                    </span>
+                  </div>
+                  <span className="font-mono text-[10px] text-[#99907c] uppercase tracking-wider">
+                    Abertura automática no horário programado ou início manual imediato
+                  </span>
+                </div>
+
+                <div className="divide-y divide-[#282a30] border-t border-[#282a30]">
+                  {scheduledLots.map((schedLot) => {
+                    const formattedStart = new Date(schedLot.startTime).toLocaleString('pt-BR', {
+                      dateStyle: 'short',
+                      timeStyle: 'short',
+                    })
+                    const isStartingThis = startingLotId === schedLot.id
+                    const isCancellingThis = cancellingScheduledId === schedLot.id
+                    return (
+                      <div
+                        key={schedLot.id}
+                        className="py-3 flex flex-col md:flex-row md:items-center justify-between gap-4 font-mono text-xs"
+                      >
+                        <div className="flex items-center gap-3 min-w-0">
+                          <img
+                            src={schedLot.imageUrl || '/lot-preview.png'}
+                            alt={schedLot.title}
+                            className="w-12 h-12 rounded object-cover bg-[#14171f] border border-[#282a30] shrink-0"
+                          />
+                          <div className="flex flex-col min-w-0">
+                            <div className="flex items-center gap-2">
+                              <Badge className="bg-[#f2ca50]/15 text-[#f2ca50] border-[#d4af37]/30">
+                                Agendado • #{schedLot.id.slice(0, 4).toUpperCase()}
+                              </Badge>
+                              <span className="text-[#99907c] text-[11px] tabular-nums">
+                                Abertura: {formattedStart} ({formatTimeRemaining(schedLot.startTime)})
+                              </span>
+                            </div>
+                            <span className="font-serif text-base text-[#e2e2ea] truncate mt-0.5">
+                              {schedLot.artist ? `${schedLot.artist} — ` : ''}&ldquo;{schedLot.title}&rdquo;
+                            </span>
+                            <span className="text-[11px] text-[#99907c] tabular-nums">
+                              Lance Inicial: {formatCurrency(schedLot.startPrice)} • Incremento: {formatCurrency(schedLot.minIncrement)}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2 shrink-0">
+                          <Button
+                            type="button"
+                            variant="secondary"
+                            size="sm"
+                            onClick={() => handleStartScheduledLot(schedLot.id, schedLot.title)}
+                            disabled={isStartingThis || isCancellingThis}
+                          >
+                            <span className="material-symbols-outlined text-sm">play_arrow</span>
+                            <span>{isStartingThis ? 'Iniciando...' : 'Iniciar Pregão Agora'}</span>
+                          </Button>
+                          <Button asChild variant="outline" size="sm">
+                            <Link href={`/lots/${schedLot.id}`}>Ver Lote</Link>
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => handleCancelScheduledLot(schedLot.id, schedLot.title)}
+                            disabled={isStartingThis || isCancellingThis}
+                          >
+                            {isCancellingThis ? 'Cancelando...' : 'Cancelar'}
+                          </Button>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
             )}
           </div>
         </section>
@@ -895,6 +1088,100 @@ export default function AuctioneerMasterCockpitPage() {
                   </div>
                 </div>
 
+                {/* Modalidade de Abertura & Agendamento Oficial */}
+                <div className="pt-5 border-t border-[#282a30] flex flex-col gap-4">
+                  <span className="font-mono text-[11px] uppercase text-[#f2ca50] font-bold tracking-widest">
+                    Modalidade de Abertura & Agendamento do Pregão
+                  </span>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 font-mono text-xs">
+                    <button
+                      type="button"
+                      onClick={() => setLaunchMode('IMMEDIATE')}
+                      className={`py-3 px-4 rounded-lg border flex items-center justify-between transition cursor-pointer ${
+                        launchMode === 'IMMEDIATE'
+                          ? 'bg-[#4edea3]/10 border-[#4edea3] text-[#4edea3] font-bold'
+                          : 'bg-[#0c0e13] border-[#282a30] text-[#99907c] hover:text-[#e2e2ea]'
+                      }`}
+                    >
+                      <span className="flex items-center gap-2">
+                        <span className="material-symbols-outlined text-base">sensors</span>
+                        <span>Abrir Ao Vivo Agora</span>
+                      </span>
+                      <span className="text-[10px] uppercase">Imediato</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setLaunchMode('SCHEDULED')
+                        if (!scheduledDateTime) {
+                          applySchedulePresetMinutes(15)
+                        }
+                      }}
+                      className={`py-3 px-4 rounded-lg border flex items-center justify-between transition cursor-pointer ${
+                        launchMode === 'SCHEDULED'
+                          ? 'bg-[#d4af37]/15 border-[#d4af37] text-[#f2ca50] font-bold'
+                          : 'bg-[#0c0e13] border-[#282a30] text-[#99907c] hover:text-[#e2e2ea]'
+                      }`}
+                    >
+                      <span className="flex items-center gap-2">
+                        <span className="material-symbols-outlined text-base">calendar_clock</span>
+                        <span>Agendar para Horário Futuro</span>
+                      </span>
+                      <span className="text-[10px] uppercase">Programado</span>
+                    </button>
+                  </div>
+
+                  {launchMode === 'SCHEDULED' && (
+                    <div className="flex flex-col gap-3 pt-1 font-mono text-xs">
+                      <div className="flex flex-col md:flex-row md:items-end justify-between gap-3">
+                        <div className="flex flex-col gap-1 flex-1">
+                          <label
+                            htmlFor="lot-schedule-datetime"
+                            className="text-[10px] text-[#99907c] uppercase tracking-wider"
+                          >
+                            Data e Horário Oficial de Abertura do Pregão
+                          </label>
+                          <input
+                            id="lot-schedule-datetime"
+                            type="datetime-local"
+                            value={scheduledDateTime}
+                            onChange={(e) => setScheduledDateTime(e.target.value)}
+                            className="w-full bg-[#0c0e13] text-[#f2ca50] font-mono text-xs font-bold px-3 py-2.5 rounded-lg border border-[#d4af37]/50 focus:outline-none focus:border-[#d4af37] tabular-nums"
+                          />
+                        </div>
+
+                        <div className="flex flex-col gap-1">
+                          <span className="text-[10px] text-[#99907c] uppercase tracking-wider">
+                            Atalhos Rápidos de Agendamento
+                          </span>
+                          <div className="flex items-center gap-1.5">
+                            {[
+                              { label: '+5 min', mins: 5 },
+                              { label: '+15 min', mins: 15 },
+                              { label: '+1 hora', mins: 60 },
+                              { label: '+24h', mins: 1440 },
+                            ].map((preset) => (
+                              <button
+                                key={preset.mins}
+                                type="button"
+                                onClick={() => applySchedulePresetMinutes(preset.mins)}
+                                className="px-3 py-2.5 rounded-lg bg-[#0c0e13] hover:bg-[#1d2025] border border-[#282a30] hover:border-[#d4af37]/50 text-[#e2e2ea] text-[11px] font-bold transition cursor-pointer tabular-nums"
+                              >
+                                {preset.label}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                      <span className="text-[10px] text-[#99907c]">
+                        O lote ficará visível no Catálogo como &ldquo;Agendado&rdquo; e entrará AO VIVO automaticamente no horário definido (ou quando o Leiloeiro clicar em &ldquo;Iniciar Pregão Agora&rdquo;).
+                      </span>
+                    </div>
+                  )}
+                </div>
+
                 {/* Publicação Master CTA Button */}
                 <div className="flex flex-col gap-2 pt-1">
                   <button
@@ -903,12 +1190,16 @@ export default function AuctioneerMasterCockpitPage() {
                     className="w-full py-4 px-6 bg-[#d4af37] text-[#1c1400] font-mono text-xs uppercase tracking-wider font-bold rounded-lg flex items-center justify-center gap-2 hover:bg-[#f2ca50] shadow-xl transition-all cursor-pointer disabled:opacity-50"
                   >
                     <span className="material-symbols-outlined text-xl">
-                      broadcast_on_personal
+                      {launchMode === 'SCHEDULED' ? 'calendar_clock' : 'broadcast_on_personal'}
                     </span>
                     <span>
                       {isPublishing
-                        ? 'TRANSMITINDO LOTE PARA A REDE SSE...'
-                        : 'ABRIR PREGÃO OFICIAL E PUBLICAR LOTE EM REDE SSE →'}
+                        ? launchMode === 'SCHEDULED'
+                          ? 'REGISTRANDO AGENDAMENTO OFICIAL...'
+                          : 'TRANSMITINDO LOTE PARA A REDE SSE...'
+                        : launchMode === 'SCHEDULED'
+                          ? 'AGENDAR LOTE OFICIAL NO CATÁLOGO →'
+                          : 'ABRIR PREGÃO OFICIAL E PUBLICAR LOTE EM REDE SSE →'}
                     </span>
                   </button>
 
@@ -961,63 +1252,60 @@ export default function AuctioneerMasterCockpitPage() {
               Nenhum lote foi encerrado até o momento. Lotes liquidados aparecerão aqui com os dados do arrematante e certificado.
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full font-mono text-xs text-left">
-                <thead className="bg-[#14171f] text-[#99907c] uppercase border-b border-[#282a30]">
-                  <tr>
-                    <th className="p-3">Obra / Título</th>
-                    <th className="p-3">Arrematante</th>
-                    <th className="p-3 text-right">Lances</th>
-                    <th className="p-3 text-right">Valor Final</th>
-                    <th className="p-3 text-center">Status / Certificado</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[#282a30]">
-                  {endedLots.map((lot) => {
-                    const hasWinner = lot.bidsCount > 0 && lot.currentWinner
-                    return (
-                      <tr key={lot.id} className="hover:bg-[#14171f]/50 transition">
-                        <td className="p-3">
-                          <div className="flex items-center gap-3">
-                            <img
-                              src={lot.imageUrl || '/lot-preview.png'}
-                              alt={lot.title}
-                              className="w-10 h-10 object-cover rounded border border-[#282a30]"
-                            />
-                            <div>
-                              <span className="block font-medium text-[#e2e2ea] line-clamp-1">{lot.title}</span>
-                              <span className="block text-[10px] text-[#99907c]">{lot.artist || 'Mestre da Pintura'}</span>
-                            </div>
+            <Table>
+              <TableHeader className="bg-[#14171f]">
+                <TableRow>
+                  <TableHead>Obra / Título</TableHead>
+                  <TableHead>Arrematante</TableHead>
+                  <TableHead className="text-right">Lances</TableHead>
+                  <TableHead className="text-right">Valor Final</TableHead>
+                  <TableHead className="text-center">Status / Certificado</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {endedLots.map((lot) => {
+                  const hasWinner = lot.bidsCount > 0 && lot.currentWinner
+                  return (
+                    <TableRow key={lot.id}>
+                      <TableCell>
+                        <div className="flex items-center gap-3">
+                          <img
+                            src={lot.imageUrl || '/lot-preview.png'}
+                            alt={lot.title}
+                            className="w-10 h-10 object-cover rounded border border-[#282a30]"
+                          />
+                          <div>
+                            <span className="block font-medium text-[#e2e2ea] line-clamp-1">{lot.title}</span>
+                            <span className="block text-[10px] text-[#99907c]">{lot.artist || 'Mestre da Pintura'}</span>
                           </div>
-                        </td>
-                        <td className="p-3">
-                          {hasWinner ? (
-                            <span className="px-2 py-1 rounded bg-[#4edea3]/10 text-[#4edea3] font-bold">
-                              {lot.currentWinner?.publicCode} ({lot.currentWinner?.maskedName})
-                            </span>
-                          ) : (
-                            <span className="text-[#99907c]">Sem Lances</span>
-                          )}
-                        </td>
-                        <td className="p-3 text-right text-[#e2e2ea]">{lot.bidsCount}</td>
-                        <td className="p-3 text-right font-bold text-[#f2ca50]">
-                          {formatCurrency(lot.currentPrice)}
-                        </td>
-                        <td className="p-3 text-center">
-                          <Link
-                            href={`/audit/${lot.id}`}
-                            className="inline-flex items-center gap-1 px-3 py-1 rounded bg-[#282a30] hover:bg-[#343740] text-[10px] text-[#e2e2ea] transition"
-                          >
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        {hasWinner ? (
+                          <Badge variant="secondary" className="bg-[#4edea3]/10 text-[#4edea3] border-[#4edea3]/30">
+                            {lot.currentWinner?.publicCode} ({lot.currentWinner?.maskedName})
+                          </Badge>
+                        ) : (
+                          <span className="text-[#99907c]">Sem Lances</span>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-right text-[#e2e2ea] tabular-nums">{lot.bidsCount}</TableCell>
+                      <TableCell className="text-right font-bold text-[#f2ca50] tabular-nums">
+                        {formatCurrency(lot.currentPrice)}
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <Button asChild variant="outline" size="sm">
+                          <Link href={`/audit/${lot.id}`}>
                             <span className="material-symbols-outlined text-xs">verified</span>
                             <span>Trilha de Auditoria</span>
                           </Link>
-                        </td>
-                      </tr>
-                    )
-                  })}
-                </tbody>
-              </table>
-            </div>
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  )
+                })}
+              </TableBody>
+            </Table>
           )}
         </div>
       </section>

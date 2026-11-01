@@ -5,6 +5,8 @@ import Link from 'next/link'
 import { apiRequest } from '@/lib/api'
 import { useAuth } from '@/contexts/AuthContext'
 import { formatCurrency } from '@/lib/utils'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 
 interface AuditChainNode {
   index: number
@@ -177,21 +179,19 @@ export default function CertificadosAuditoriaPage({
         </p>
         <div className="mt-6 flex items-center justify-center gap-3">
           {user?.role === 'BIDDER' && (
-            <Link
-              href="/my-bids"
-              className="inline-flex items-center gap-2 rounded-lg bg-[#4edea3] px-5 py-2.5 text-xs text-[#07090E] font-bold hover:bg-[#43c490] transition uppercase"
-            >
-              <span className="material-symbols-outlined text-sm">trophy</span>
-              <span>Ir para Meus Arremates</span>
-            </Link>
+            <Button asChild variant="secondary">
+              <Link href="/my-bids">
+                <span className="material-symbols-outlined text-sm">trophy</span>
+                <span>Ir para Meus Arremates</span>
+              </Link>
+            </Button>
           )}
-          <Link
-            href="/"
-            className="inline-flex items-center gap-2 rounded-lg bg-[#1d2025] border border-[#d4af37]/40 px-5 py-2.5 text-xs text-[#f2ca50] hover:bg-[#282a30] transition uppercase"
-          >
-            <span className="material-symbols-outlined text-sm">arrow_back</span>
-            <span>Voltar ao Catálogo</span>
-          </Link>
+          <Button asChild variant="outline" className="border-[#d4af37]/40 text-[#f2ca50]">
+            <Link href="/">
+              <span className="material-symbols-outlined text-sm">arrow_back</span>
+              <span>Voltar ao Catálogo</span>
+            </Link>
+          </Button>
         </div>
       </div>
     )

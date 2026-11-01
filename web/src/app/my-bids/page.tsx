@@ -5,6 +5,8 @@ import Link from 'next/link'
 import { apiRequest } from '@/lib/api'
 import { useAuth } from '@/contexts/AuthContext'
 import { formatCurrency, formatTimeRemaining } from '@/lib/utils'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 
 interface BidItem {
   lotId: string
@@ -245,29 +247,38 @@ export default function MyBidsPage() {
                     {/* Position Badges */}
                     <div className="absolute top-3 left-3 right-3 flex items-center justify-between gap-2">
                       {item.hasWon ? (
-                        <div className="flex items-center gap-1.5 px-3 py-1 rounded bg-[#4edea3] text-[#07090E] font-mono text-[10px] font-bold tracking-wider uppercase shadow-lg">
+                        <Badge variant="secondary" className="px-3 py-1 shadow-lg">
                           <span className="material-symbols-outlined text-xs">trophy</span>
                           <span>ARREMATADO</span>
-                        </div>
+                        </Badge>
                       ) : item.isLeading ? (
-                        <div className="flex items-center gap-1.5 px-3 py-1 rounded bg-[#4edea3]/20 border border-[#4edea3]/50 text-[#4edea3] font-mono text-[10px] font-bold tracking-wider uppercase shadow-lg backdrop-blur-md">
+                        <Badge
+                          variant="outline"
+                          className="px-3 py-1 bg-[#4edea3]/20 border-[#4edea3]/50 text-[#4edea3] shadow-lg backdrop-blur-md"
+                        >
                           <span className="h-1.5 w-1.5 rounded-full bg-[#4edea3] animate-pulse" />
                           <span>VOCÊ ESTÁ GANHANDO</span>
-                        </div>
+                        </Badge>
                       ) : (
-                        <div className="flex items-center gap-1.5 px-3 py-1 rounded bg-rose-500/20 border border-rose-500/50 text-rose-300 font-mono text-[10px] font-bold tracking-wider uppercase shadow-lg backdrop-blur-md">
+                        <Badge
+                          variant="outline"
+                          className="px-3 py-1 bg-rose-500/20 border-rose-500/50 text-rose-300 shadow-lg backdrop-blur-md"
+                        >
                           <span className="material-symbols-outlined text-xs">warning</span>
                           <span>LANCE SUPERADO</span>
-                        </div>
+                        </Badge>
                       )}
 
-                      <span className="px-2.5 py-1 rounded bg-black/60 border border-white/10 font-mono text-[10px] text-[#e2e2ea] tabular-nums">
+                      <Badge
+                        variant="outline"
+                        className="px-2.5 py-1 bg-black/60 border-white/10 text-[#e2e2ea] tabular-nums"
+                      >
                         {item.status === 'LIVE'
                           ? `AO VIVO • ${formatTimeRemaining(item.endTime)}`
                           : item.status === 'ENDED'
                           ? 'ENCERRADO'
                           : 'AGENDADO'}
-                      </span>
+                      </Badge>
                     </div>
                   </div>
 
@@ -333,39 +344,44 @@ export default function MyBidsPage() {
                 <div className="p-5 pt-0 space-y-2">
                   {item.hasWon ? (
                     <div className="flex flex-col gap-2">
-                      <Link
-                        href={`/audit/${item.lotId}`}
-                        className="w-full py-2.5 rounded-lg bg-[#4edea3] text-[#07090E] font-mono text-xs font-bold uppercase tracking-wider hover:bg-[#43c490] transition text-center flex items-center justify-center gap-2 shadow-lg shadow-[#4edea3]/10"
-                      >
-                        <span className="material-symbols-outlined text-sm">verified_user</span>
-                        <span>Acessar Certificado & Auditoria</span>
-                      </Link>
-                      {item.receiptCode && (
-                        <Link
-                          href={`/receipts/${item.receiptCode}`}
-                          className="w-full py-2 rounded-lg bg-[#14161b] border border-[#d4af37]/40 text-[#f2ca50] font-mono text-[11px] font-bold uppercase tracking-wider hover:bg-[#1d2025] transition text-center flex items-center justify-center gap-1.5"
-                        >
-                          <span className="material-symbols-outlined text-xs">receipt_long</span>
-                          <span>Comprovante Compartilhável ({item.receiptCode})</span>
+                      <Button asChild variant="secondary" className="w-full">
+                        <Link href={`/audit/${item.lotId}`}>
+                          <span className="material-symbols-outlined text-sm">verified_user</span>
+                          <span>Acessar Certificado & Auditoria</span>
                         </Link>
+                      </Button>
+                      {item.receiptCode && (
+                        <Button
+                          asChild
+                          variant="outline"
+                          size="sm"
+                          className="w-full border-[#d4af37]/40 text-[#f2ca50]"
+                        >
+                          <Link href={`/receipts/${item.receiptCode}`}>
+                            <span className="material-symbols-outlined text-xs">receipt_long</span>
+                            <span>Comprovante Compartilhável ({item.receiptCode})</span>
+                          </Link>
+                        </Button>
                       )}
                     </div>
                   ) : item.status === 'LIVE' ? (
-                    <Link
-                      href={`/lots/${item.lotId}`}
-                      className="w-full py-2.5 rounded-lg bg-[#14161b] border border-[#d4af37]/40 text-[#f2ca50] font-mono text-xs font-bold uppercase tracking-wider hover:bg-[#1d2025] transition text-center flex items-center justify-center gap-2"
+                    <Button
+                      asChild
+                      variant="outline"
+                      className="w-full border-[#d4af37]/40 text-[#f2ca50]"
                     >
-                      <span className="material-symbols-outlined text-sm">gavel</span>
-                      <span>{item.isLeading ? 'Acompanhar Pregão' : 'Cobrir Lance Imediatamente'}</span>
-                    </Link>
+                      <Link href={`/lots/${item.lotId}`}>
+                        <span className="material-symbols-outlined text-sm">gavel</span>
+                        <span>{item.isLeading ? 'Acompanhar Pregão' : 'Cobrir Lance Imediatamente'}</span>
+                      </Link>
+                    </Button>
                   ) : (
-                    <Link
-                      href={`/lots/${item.lotId}`}
-                      className="w-full py-2.5 rounded-lg bg-[#14161b] border border-[#282a30] text-[#99907c] font-mono text-xs uppercase tracking-wider hover:text-[#e2e2ea] transition text-center flex items-center justify-center gap-2"
-                    >
-                      <span className="material-symbols-outlined text-sm">gavel</span>
-                      <span>Pregão Encerrado (Superado)</span>
-                    </Link>
+                    <Button asChild variant="outline" className="w-full text-[#99907c]">
+                      <Link href={`/lots/${item.lotId}`}>
+                        <span className="material-symbols-outlined text-sm">gavel</span>
+                        <span>Pregão Encerrado (Superado)</span>
+                      </Link>
+                    </Button>
                   )}
                 </div>
               </div>

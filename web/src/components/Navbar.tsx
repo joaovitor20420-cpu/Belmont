@@ -6,6 +6,19 @@ import { usePathname, useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
 import { apiRequest } from '@/lib/api'
 import { formatCurrency } from '@/lib/utils'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Separator } from '@/components/ui/separator'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 export function Navbar() {
   const pathname = usePathname()
@@ -409,16 +422,15 @@ export function Navbar() {
               </div>
             ) : (
               <div className="flex items-center gap-2">
-                <button
+                <Button
                   type="button"
                   onClick={() => {
                     setAuthTab('LOGIN')
                     setShowLoginModal(true)
                   }}
-                  className="px-4 py-2 bg-[#d4af37] text-[#1c1400] font-mono text-xs uppercase tracking-wider font-bold rounded hover:bg-[#f2ca50] transition-colors cursor-pointer"
                 >
                   Entrar / Cadastrar
-                </button>
+                </Button>
               </div>
             )}
           </div>
@@ -448,69 +460,40 @@ export function Navbar() {
         </nav>
       </header>
 
-      {/* Modal de Login & Cadastro de Conta */}
-      {showLoginModal && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-label="Acesso Belmont Auctions"
-          onClick={() => setShowLoginModal(false)}
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
-        >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            className="relative w-full max-w-md max-h-[90vh] overflow-y-auto rounded-2xl bg-[#14171f] border border-[#d4af37]/30 p-6 shadow-2xl"
-          >
-            <div className="flex items-center justify-between pb-4 border-b border-[#282a30]">
-              <div>
-                <h3 className="font-serif text-lg text-[#e2e2ea]">
-                  Acesso Belmont Auctions
-                </h3>
-                <p className="font-sans text-xs text-[#99907c]">
-                  Entre na sua conta ou cadastre um novo usuário licitante
-                </p>
-              </div>
-              <button
-                type="button"
-                aria-label="Fechar modal"
-                onClick={() => setShowLoginModal(false)}
-                className="w-9 h-9 rounded-lg flex items-center justify-center text-[#99907c] hover:text-[#e2e2ea] hover:bg-[#282a30]/60 transition-colors cursor-pointer"
-              >
-                ✕
-              </button>
-            </div>
+      {/* Modal de Login & Cadastro de Conta com shadcn/ui Dialog + Tabs */}
+      <Dialog open={showLoginModal} onOpenChange={setShowLoginModal}>
+        <DialogContent className="bg-[#14171f] border-[#d4af37]/30 text-[#e2e2ea] sm:max-w-md max-h-[90vh] overflow-y-auto">
+          <DialogHeader className="pb-3 border-b border-[#282a30]">
+            <DialogTitle className="font-serif text-lg text-[#e2e2ea]">
+              Acesso Belmont Auctions
+            </DialogTitle>
+            <DialogDescription className="font-sans text-xs text-[#99907c]">
+              Entre na sua conta ou cadastre um novo usuário licitante
+            </DialogDescription>
+          </DialogHeader>
 
-            {/* Abas Entrar vs Criar Conta */}
-            <div className="grid grid-cols-2 gap-1 p-1 bg-[#0c0e13] rounded-lg mt-4 border border-[#282a30]">
-              <button
-                type="button"
-                onClick={() => {
-                  setAuthTab('LOGIN')
-                  setLoginError('')
-                }}
-                className={`py-2 rounded font-mono text-xs uppercase tracking-wider transition-all cursor-pointer ${
-                  authTab === 'LOGIN'
-                    ? 'bg-[#d4af37] text-[#1c1400] font-bold'
-                    : 'text-[#99907c] hover:text-[#e2e2ea]'
-                }`}
+          <Tabs
+            value={authTab}
+            onValueChange={(val) => {
+              setAuthTab(val as 'LOGIN' | 'REGISTER')
+              setLoginError('')
+            }}
+            className="w-full"
+          >
+            <TabsList className="grid w-full grid-cols-2 bg-[#0c0e13] border border-[#282a30] h-10">
+              <TabsTrigger
+                value="LOGIN"
+                className="data-[state=active]:bg-[#d4af37] data-[state=active]:text-[#1c1400]"
               >
                 Entrar
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setAuthTab('REGISTER')
-                  setLoginError('')
-                }}
-                className={`py-2 rounded font-mono text-xs uppercase tracking-wider transition-all cursor-pointer ${
-                  authTab === 'REGISTER'
-                    ? 'bg-[#d4af37] text-[#1c1400] font-bold'
-                    : 'text-[#99907c] hover:text-[#e2e2ea]'
-                }`}
+              </TabsTrigger>
+              <TabsTrigger
+                value="REGISTER"
+                className="data-[state=active]:bg-[#d4af37] data-[state=active]:text-[#1c1400]"
               >
                 Criar Conta (Usuário)
-              </button>
-            </div>
+              </TabsTrigger>
+            </TabsList>
 
             {loginError && (
               <div className="my-3 p-3 rounded bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs font-mono">
@@ -518,163 +501,142 @@ export function Navbar() {
               </div>
             )}
 
-            {authTab === 'LOGIN' ? (
-              <>
-                <form onSubmit={handleManualLogin} className="mt-4 space-y-4">
-                  <div>
-                    <label
-                      htmlFor="login-email"
-                      className="block font-mono text-xs text-[#99907c] uppercase mb-1"
-                    >
-                      E-mail
-                    </label>
-                    <input
-                      id="login-email"
-                      type="email"
-                      autoComplete="email"
-                      value={emailInput}
-                      onChange={(e) => setEmailInput(e.target.value)}
-                      placeholder="seu.email@exemplo.com"
-                      className="w-full bg-[#0c0e13] border border-[#4d4635] rounded px-3 py-2 text-sm text-[#e2e2ea] focus:outline-none focus:border-[#d4af37]"
-                    />
-                  </div>
-
-                  <div>
-                    <label
-                      htmlFor="login-password"
-                      className="block font-mono text-xs text-[#99907c] uppercase mb-1"
-                    >
-                      Senha
-                    </label>
-                    <input
-                      id="login-password"
-                      type="password"
-                      autoComplete="current-password"
-                      value={passwordInput}
-                      onChange={(e) => setPasswordInput(e.target.value)}
-                      placeholder="••••••••"
-                      className="w-full bg-[#0c0e13] border border-[#4d4635] rounded px-3 py-2 text-sm text-[#e2e2ea] focus:outline-none focus:border-[#d4af37]"
-                    />
-                  </div>
-
-                  <button
-                    type="submit"
-                    disabled={isLoggingIn}
-                    className="w-full py-2.5 bg-[#d4af37] text-[#1c1400] font-mono text-xs font-bold uppercase tracking-wider rounded hover:bg-[#f2ca50] transition-colors cursor-pointer disabled:opacity-50"
-                  >
-                    {isLoggingIn ? 'Autenticando...' : 'Entrar no Sistema'}
-                  </button>
-                </form>
-
-                <div className="mt-6 pt-4 border-t border-[#282a30]">
-                  <div className="font-mono text-[10px] uppercase text-[#99907c] mb-2">
-                    Acesso Oficial do Leiloeiro (Para Publicar Lotes)
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => handleTestLogin('auctioneer@belmont.com')}
-                    className="w-full p-3 rounded-lg bg-[#1d2025] hover:bg-[#282a30] text-left border border-[#d4af37]/40 flex items-center justify-between transition cursor-pointer"
-                  >
-                    <div>
-                      <div className="font-mono text-xs font-bold text-[#f2ca50]">
-                        LEI-0001 • Leiloeiro Oficial Belmont
-                      </div>
-                      <div className="text-[11px] text-[#99907c] font-mono">
-                        auctioneer@belmont.com
-                      </div>
-                    </div>
-                    <span className="px-2.5 py-1 rounded bg-[#f2ca50]/10 text-[#f2ca50] font-mono text-[10px] uppercase font-bold">
-                      Entrar como Leiloeiro →
-                    </span>
-                  </button>
+            <TabsContent value="LOGIN" className="mt-4">
+              <form onSubmit={handleManualLogin} className="space-y-4">
+                <div className="space-y-1.5">
+                  <Label htmlFor="login-email" className="text-[#99907c]">
+                    E-mail
+                  </Label>
+                  <Input
+                    id="login-email"
+                    type="email"
+                    autoComplete="email"
+                    value={emailInput}
+                    onChange={(e) => setEmailInput(e.target.value)}
+                    placeholder="seu.email@exemplo.com"
+                  />
                 </div>
-              </>
-            ) : (
-              <form onSubmit={handleRegisterSubmit} className="mt-4 space-y-3.5">
-                <div>
-                  <label
-                    htmlFor="reg-name"
-                    className="block font-mono text-xs text-[#99907c] uppercase mb-1"
-                  >
+
+                <div className="space-y-1.5">
+                  <Label htmlFor="login-password" className="text-[#99907c]">
+                    Senha
+                  </Label>
+                  <Input
+                    id="login-password"
+                    type="password"
+                    autoComplete="current-password"
+                    value={passwordInput}
+                    onChange={(e) => setPasswordInput(e.target.value)}
+                    placeholder="••••••••"
+                  />
+                </div>
+
+                <Button
+                  type="submit"
+                  disabled={isLoggingIn}
+                  className="w-full"
+                >
+                  {isLoggingIn ? 'Autenticando...' : 'Entrar no Sistema'}
+                </Button>
+              </form>
+
+              <Separator className="my-5 bg-[#282a30]" />
+
+              <div>
+                <div className="font-mono text-[10px] uppercase text-[#99907c] mb-2">
+                  Acesso Oficial do Leiloeiro (Para Publicar Lotes)
+                </div>
+                <button
+                  type="button"
+                  onClick={() => handleTestLogin('auctioneer@belmont.com')}
+                  className="w-full p-3 rounded-lg bg-[#1d2025] hover:bg-[#282a30] text-left border border-[#d4af37]/40 flex items-center justify-between transition cursor-pointer"
+                >
+                  <div>
+                    <div className="font-mono text-xs font-bold text-[#f2ca50]">
+                      LEI-0001 • Leiloeiro Oficial Belmont
+                    </div>
+                    <div className="text-[11px] text-[#99907c] font-mono">
+                      auctioneer@belmont.com
+                    </div>
+                  </div>
+                  <Badge variant="outline" className="border-[#d4af37]/40 text-[#f2ca50]">
+                    Entrar como Leiloeiro →
+                  </Badge>
+                </button>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="REGISTER" className="mt-4">
+              <form onSubmit={handleRegisterSubmit} className="space-y-3.5">
+                <div className="space-y-1.5">
+                  <Label htmlFor="reg-name" className="text-[#99907c]">
                     Nome Completo
-                  </label>
-                  <input
+                  </Label>
+                  <Input
                     id="reg-name"
                     type="text"
                     autoComplete="name"
                     value={regName}
                     onChange={(e) => setRegName(e.target.value)}
                     placeholder="Ex: João Victor Silva"
-                    className="w-full bg-[#0c0e13] border border-[#4d4635] rounded px-3 py-2 text-sm text-[#e2e2ea] focus:outline-none focus:border-[#d4af37]"
                   />
                 </div>
 
-                <div>
-                  <label
-                    htmlFor="reg-email"
-                    className="block font-mono text-xs text-[#99907c] uppercase mb-1"
-                  >
+                <div className="space-y-1.5">
+                  <Label htmlFor="reg-email" className="text-[#99907c]">
                     E-mail
-                  </label>
-                  <input
+                  </Label>
+                  <Input
                     id="reg-email"
                     type="email"
                     autoComplete="email"
                     value={regEmail}
                     onChange={(e) => setRegEmail(e.target.value)}
                     placeholder="joao@exemplo.com"
-                    className="w-full bg-[#0c0e13] border border-[#4d4635] rounded px-3 py-2 text-sm text-[#e2e2ea] focus:outline-none focus:border-[#d4af37]"
                   />
                 </div>
 
-                <div>
-                  <label
-                    htmlFor="reg-document"
-                    className="block font-mono text-xs text-[#99907c] uppercase mb-1"
-                  >
+                <div className="space-y-1.5">
+                  <Label htmlFor="reg-document" className="text-[#99907c]">
                     CPF (11 dígitos)
-                  </label>
-                  <input
+                  </Label>
+                  <Input
                     id="reg-document"
                     type="text"
                     inputMode="numeric"
                     value={regDocument}
                     onChange={(e) => setRegDocument(e.target.value)}
                     placeholder="12345678901"
-                    className="w-full bg-[#0c0e13] border border-[#4d4635] rounded px-3 py-2 text-sm text-[#e2e2ea] focus:outline-none focus:border-[#d4af37]"
                   />
                 </div>
 
-                <div>
-                  <label
-                    htmlFor="reg-password"
-                    className="block font-mono text-xs text-[#99907c] uppercase mb-1"
-                  >
+                <div className="space-y-1.5">
+                  <Label htmlFor="reg-password" className="text-[#99907c]">
                     Senha (mín. 6 caracteres)
-                  </label>
-                  <input
+                  </Label>
+                  <Input
                     id="reg-password"
                     type="password"
                     autoComplete="new-password"
                     value={regPassword}
                     onChange={(e) => setRegPassword(e.target.value)}
                     placeholder="••••••••"
-                    className="w-full bg-[#0c0e13] border border-[#4d4635] rounded px-3 py-2 text-sm text-[#e2e2ea] focus:outline-none focus:border-[#d4af37]"
                   />
                 </div>
 
-                <button
+                <Button
                   type="submit"
+                  variant="secondary"
                   disabled={isLoggingIn}
-                  className="w-full py-2.5 bg-[#4edea3] text-[#07090e] font-mono text-xs font-bold uppercase tracking-wider rounded hover:bg-emerald-400 transition-colors cursor-pointer disabled:opacity-50"
+                  className="w-full"
                 >
                   {isLoggingIn ? 'Criando Conta...' : 'Criar Conta de Licitante & Entrar'}
-                </button>
+                </Button>
               </form>
-            )}
-          </div>
-        </div>
-      )}
+            </TabsContent>
+          </Tabs>
+        </DialogContent>
+      </Dialog>
     </>
   )
 }

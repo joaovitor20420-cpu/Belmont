@@ -14,6 +14,18 @@ export class SettleExpiredLotsUseCase {
   async execute(): Promise<SettleExpiredLotsResponse> {
     const now = new Date()
 
+    // Ativa automaticamente lotes agendados cujo horário de início já chegou
+    await prisma.lot.updateMany({
+      where: {
+        status: 'SCHEDULED',
+        startTime: { lte: now },
+        endTime: { gt: now },
+      },
+      data: {
+        status: 'LIVE',
+      },
+    })
+
     const expiredLots = await prisma.lot.findMany({
       where: {
         status: 'LIVE',

@@ -21,6 +21,8 @@ import { liveAuctionStreamController } from './controllers/liveAuctionStream.js'
 import { cancelLotController } from './controllers/cancelLot.js'
 import { settleExpiredLotsController } from './controllers/settleExpiredLots.js'
 import { getMyBidsController } from './controllers/getMyBids.js'
+import { prisma } from './lib/prisma.js'
+import { formatLotToDTO } from './use-cases/createLot.js'
 
 export async function appRoutes(app: FastifyInstance) {
   app.post(
@@ -359,6 +361,57 @@ export async function appRoutes(app: FastifyInstance) {
       },
     },
     cancelLotController,
+  )
+
+  app.post(
+    '/lots/:id/start',
+    {
+      onRequest: [verifyJwt, verifyUserRole('AUCTIONEER')],
+      schema: {
+        tags: ['Lotes'],
+        summary: 'Iniciar imediatamente um lote agendado',
+        description:
+          'Antecipa a abertura de um lote com status SCHEDULED, colocando-o imediatamente em pregão ao vivo (LIVE).',
+        params: z.object({
+          id: z.string().uuid('ID do lote inválido'),
+        }),
+      },
+    },
+    async (request, reply) => {
+      const { id } = z.object({ id: z.string().uuid() }).parse(request.params)
+      const lot = await prisma.lot.findUnique({ where: { id } })
+      if (!lot) {
+        return reply.status(404).send({ message: 'Lote não encontrado.' })
+      }
+      if (lot.status !== 'SCHEDULED') {
+        return reply.status(400).send({
+          message: 'Apenas lotes agendados podem ser iniciados antecipadamente.',
+        })
+      }
+      const now = new Date()
+      const configuredDurationMs = Math.max(
+        15 * 60 * 1000,
+        lot.endTime.getTime() - lot.startTime.getTime(),
+      )
+      const updated = await prisma.lot.update({
+        where: { id },
+        data: {
+          status: 'LIVE',
+          startTime: now,
+          endTime: new Date(now.getTime() + configuredDurationMs),
+        },
+        include: {
+          currentWinner: {
+            select: {
+              id: true,
+              maskedName: true,
+              publicCode: true,
+            },
+          },
+        },
+      })
+      return reply.status(200).send({ lot: formatLotToDTO(updated) })
+    },
   )
 
   app.post(

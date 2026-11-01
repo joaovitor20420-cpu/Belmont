@@ -40,8 +40,19 @@ export class GetLotDetailsUseCase {
       throw new ResourceNotFoundError()
     }
 
+    const now = new Date()
+
+    // Auto-ativação se o lote estava agendado e o horário de início já chegou
+    if (lot.status === 'SCHEDULED' && now >= lot.startTime && now < lot.endTime) {
+      await this.lotsRepository.update(id, { status: 'LIVE' })
+      lot = await this.lotsRepository.findById(id)
+      if (!lot) {
+        throw new ResourceNotFoundError()
+      }
+    }
+
     // Auto-liquidação se o lote venceu e ainda está marcado como LIVE
-    if (lot.status === 'LIVE' && new Date() >= lot.endTime) {
+    if (lot.status === 'LIVE' && now >= lot.endTime) {
       try {
         const settleLotUseCase = makeSettleLotUseCase()
         await settleLotUseCase.execute({ lotId: id })

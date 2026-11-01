@@ -1,15 +1,56 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
 
 @layer base {
   :root {
+    --radius: 0.625rem;
     --background: #07090e;
     --foreground: #e2e2ea;
     --card: #14171f;
     --card-foreground: #e2e2ea;
+    --popover: #0c0e13;
+    --popover-foreground: #e2e2ea;
     --primary: #f2ca50;
+    --primary-foreground: #1c1400;
     --primary-container: #d4af37;
     --secondary: #4edea3;
+    --secondary-foreground: #07090e;
     --secondary-container: #00a572;
+    --muted: #1d2025;
+    --muted-foreground: #99907c;
+    --accent: #282a30;
+    --accent-foreground: #f2ca50;
+    --destructive: #f43f5e;
+    --border: #282a30;
+    --input: #282a30;
+    --ring: #d4af37;
     --surface: #111319;
     --surface-lowest: #0c0e13;
     --surface-low: #14171f;

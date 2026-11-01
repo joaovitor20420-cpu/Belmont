@@ -5,6 +5,8 @@ import Link from 'next/link'
 import { apiRequest } from '@/lib/api'
 import { formatCurrency, formatTimeRemaining } from '@/lib/utils'
 import { useAuth } from '@/contexts/AuthContext'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 
 interface LotItem {
   id: string
@@ -516,39 +518,39 @@ export default function CatalogVitrinePage() {
                     <div className="absolute inset-0 bg-gradient-to-t from-[#14171f] via-transparent to-transparent" />
 
                     {/* STATUS BADGE */}
-                    <div className="absolute top-3 left-3 flex items-center gap-1.5 px-2.5 py-1 bg-[#0c0e13]/85 backdrop-blur-md rounded shadow border border-white/5">
+                    <Badge
+                      variant="outline"
+                      className="absolute top-3 left-3 flex items-center gap-1.5 px-2.5 py-1 bg-[#0c0e13]/85 backdrop-blur-md border-white/5"
+                    >
                       {isLive && (
                         <>
                           <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
-                          <span className="font-mono text-[10px] uppercase tracking-widest text-[#ffdad6] font-bold">
-                            PREGÃO AO VIVO
-                          </span>
+                          <span className="text-[#ffdad6]">PREGÃO AO VIVO</span>
                         </>
                       )}
                       {isScheduled && (
                         <>
                           <span className="w-2 h-2 rounded-full bg-[#f2ca50]" />
-                          <span className="font-mono text-[10px] uppercase tracking-widest text-[#f2ca50] font-bold">
-                            AGENDADO
-                          </span>
+                          <span className="text-[#f2ca50]">AGENDADO</span>
                         </>
                       )}
                       {isEnded && (
                         <>
                           <span className="w-2 h-2 rounded-full bg-[#4edea3]" />
-                          <span className="font-mono text-[10px] uppercase tracking-widest text-[#4edea3] font-bold">
-                            ENCERRADO & LIQUIDADO
-                          </span>
+                          <span className="text-[#4edea3]">ENCERRADO & LIQUIDADO</span>
                         </>
                       )}
-                    </div>
+                    </Badge>
 
                     {/* TIME BADGE */}
-                    <div className="absolute top-3 right-3 px-2 py-1 bg-[#0c0e13]/85 backdrop-blur-md rounded font-mono text-[11px] font-bold text-[#f2ca50] border border-white/5">
+                    <Badge
+                      variant="outline"
+                      className="absolute top-3 right-3 px-2 py-1 bg-[#0c0e13]/85 backdrop-blur-md text-[11px] text-[#f2ca50] border-white/5 tabular-nums"
+                    >
                       {isLive && formatTimeRemaining(lot.endTime)}
-                      {isScheduled && 'Em breve'}
+                      {isScheduled && `Abre em ${formatTimeRemaining(lot.startTime)}`}
                       {isEnded && 'Liquidado'}
-                    </div>
+                    </Badge>
 
                     <div className="absolute bottom-2 left-3 text-[#99907c] font-mono text-[10px]">
                       IIIF: #{lot.id.slice(0, 6)}
@@ -576,7 +578,7 @@ export default function CatalogVitrinePage() {
                           {isEnded ? 'Arrematado por' : isScheduled ? 'Lance Inicial' : 'Lance Atual'}
                         </span>
                         <span
-                          className={`font-mono text-sm font-bold ${
+                          className={`font-mono text-sm font-bold tabular-nums ${
                             isEnded ? 'text-[#4edea3]' : 'text-[#f2ca50]'
                           }`}
                         >
@@ -587,53 +589,60 @@ export default function CatalogVitrinePage() {
                         <span>
                           {isEnded ? (
                             <>Vencedor: <strong className="text-[#4edea3]">{lot.currentWinner?.publicCode || 'Sem lances'}</strong></>
+                          ) : isScheduled ? (
+                            <>Abertura: <strong className="text-[#f2ca50] tabular-nums">{new Date(lot.startTime).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })}</strong></>
                           ) : isMyLead ? (
                             <span className="text-[#4edea3] font-bold">Você é o Líder!</span>
                           ) : (
                             <>Líder: <strong className="text-[#e2e2ea] font-normal">{lot.currentWinner?.publicCode || 'Sem lances'}</strong></>
                           )}
                         </span>
-                        <span className="text-[#99907c]">{lot.bidsCount} lances</span>
+                        <span className="text-[#99907c] tabular-nums">{lot.bidsCount} lances</span>
                       </div>
                     </div>
 
                     {/* ACTION BUTTON */}
                     {isEnded ? (
                       isMyLead ? (
-                        <Link
-                          href="/my-bids"
-                          className="w-full py-2.5 bg-[#4edea3]/15 hover:bg-[#4edea3]/25 text-[#4edea3] rounded font-mono text-[11px] uppercase tracking-widest font-bold transition-all shadow cursor-pointer flex items-center justify-center gap-1.5 border border-[#4edea3]/40"
+                        <Button
+                          asChild
+                          variant="secondary"
+                          className="w-full bg-[#4edea3]/15 hover:bg-[#4edea3]/25 text-[#4edea3] border border-[#4edea3]/40"
                         >
-                          <span className="material-symbols-outlined text-sm text-[#4edea3]">
-                            verified_user
-                          </span>
-                          <span>Arrematado por Você • Ver Certificado</span>
-                        </Link>
+                          <Link href="/my-bids">
+                            <span className="material-symbols-outlined text-sm text-[#4edea3]">
+                              verified_user
+                            </span>
+                            <span>Arrematado por Você • Ver Certificado</span>
+                          </Link>
+                        </Button>
                       ) : (
-                        <Link
-                          href={`/lots/${lot.id}`}
-                          className="w-full py-2.5 bg-[#1d2025] hover:bg-[#282a30] text-[#99907c] rounded font-mono text-[11px] uppercase tracking-widest font-semibold transition-all shadow cursor-pointer flex items-center justify-center gap-1.5 border border-[#282a30]"
+                        <Button
+                          asChild
+                          variant="outline"
+                          className="w-full text-[#99907c]"
                         >
-                          <span className="material-symbols-outlined text-sm">
-                            gavel
-                          </span>
-                          <span>Pregão Encerrado</span>
-                        </Link>
+                          <Link href={`/lots/${lot.id}`}>
+                            <span className="material-symbols-outlined text-sm">
+                              gavel
+                            </span>
+                            <span>Pregão Encerrado</span>
+                          </Link>
+                        </Button>
                       )
                     ) : (
-                      <Link
-                        href={`/lots/${lot.id}`}
-                        className={`w-full py-2.5 rounded font-mono text-[11px] uppercase tracking-widest font-bold transition-all shadow cursor-pointer flex items-center justify-center gap-1.5 ${
-                          isMyLead
-                            ? 'bg-[#282a30] hover:bg-[#d4af37] text-[#e2e2ea] hover:text-[#1c1400]'
-                            : 'bg-[#d4af37] text-[#1c1400] hover:bg-[#f2ca50]'
-                        }`}
+                      <Button
+                        asChild
+                        variant={isMyLead ? 'outline' : 'default'}
+                        className="w-full"
                       >
-                        <span>{isMyLead ? 'Defender Posição' : isLive ? 'Entrar na Disputa' : 'Acompanhar Lote'}</span>
-                        <span className="material-symbols-outlined text-sm">
-                          arrow_forward
-                        </span>
-                      </Link>
+                        <Link href={`/lots/${lot.id}`}>
+                          <span>{isMyLead ? 'Defender Posição' : isLive ? 'Entrar na Disputa' : 'Ver Lote Agendado'}</span>
+                          <span className="material-symbols-outlined text-sm">
+                            arrow_forward
+                          </span>
+                        </Link>
+                      </Button>
                     )}
                   </div>
 

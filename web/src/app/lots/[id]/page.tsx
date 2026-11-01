@@ -5,6 +5,8 @@ import Link from 'next/link'
 import { apiRequest, API_BASE_URL } from '@/lib/api'
 import { useAuth } from '@/contexts/AuthContext'
 import { formatCurrency } from '@/lib/utils'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 
 interface BidRecord {
   id: string
@@ -181,6 +183,18 @@ export default function LiveAuctionRoomPage({
             refreshUser()
           }
 
+          if (payload.type === 'LOT_STARTED') {
+            setLot((prev) => {
+              if (!prev) return prev
+              return {
+                ...prev,
+                status: 'LIVE',
+                startTime: payload.startTime || prev.startTime,
+                endTime: payload.endTime || prev.endTime,
+              }
+            })
+          }
+
           if (payload.type === 'LOT_SETTLED') {
             setLot((prev) => {
               if (!prev) return prev
@@ -217,6 +231,16 @@ export default function LiveAuctionRoomPage({
     }
   }, [id, refreshUser])
 
+  // Transição automática de SCHEDULED -> LIVE quando o relógio atinge startTime
+  useEffect(() => {
+    if (lot?.status === 'SCHEDULED') {
+      const sMs = new Date(lot.startTime).getTime()
+      if (now >= sMs) {
+        fetchLot()
+      }
+    }
+  }, [now, lot?.status, lot?.startTime])
+
   if (isLoading) {
     return (
       <div className="w-full pt-32 pb-20 flex min-h-[70vh] flex-col items-center justify-center gap-4 text-[#99907c] font-mono">
@@ -247,14 +271,39 @@ export default function LiveAuctionRoomPage({
     )
   }
 
-  const remainingMs = Math.max(0, new Date(lot.endTime).getTime() - now)
-  const isEnded = lot.status === 'ENDED' || remainingMs <= 0
-  const isClosingSoon = remainingMs > 0 && remainingMs <= 120000
+  const startMs = new Date(lot.startTime).getTime()
+  const endMs = new Date(lot.endTime).getTime()
+  const isScheduled = lot.status === 'SCHEDULED' && now < startMs
+  const remainingMs = isScheduled
+    ? Math.max(0, startMs - now)
+    : Math.max(0, endMs - now)
+  const isEnded = lot.status === 'ENDED' || (!isScheduled && remainingMs <= 0)
+  const isClosingSoon = !isScheduled && remainingMs > 0 && remainingMs <= 120000
 
   const remainingSecondsTotal = Math.floor(remainingMs / 1000)
   const countdownHours = Math.floor(remainingSecondsTotal / 3600)
   const countdownMinutes = Math.floor((remainingSecondsTotal % 3600) / 60)
   const countdownSeconds = remainingSecondsTotal % 60
+
+  // Iniciar pregão agendado imediatamente (Leiloeiro Oficial)
+  const handleStartLotNow = async () => {
+    setIsSettling(true)
+    try {
+      await apiRequest(`/lots/${id}/start`, { method: 'POST' })
+      setBidFeedback({
+        type: 'success',
+        message: 'Pregão oficial iniciado! O lote está AO VIVO para recebimento de lances.',
+      })
+      fetchLot()
+    } catch (err: any) {
+      setBidFeedback({
+        type: 'error',
+        message: err.message || 'Erro ao iniciar pregão agendado.',
+      })
+    } finally {
+      setIsSettling(false)
+    }
+  }
 
   // Cálculo de lance mínimo
   const minAllowedBid =
@@ -560,26 +609,38 @@ export default function LiveAuctionRoomPage({
                 <div className="flex flex-col gap-1">
                   <div
                     className={`flex items-center gap-2 font-mono text-xs uppercase tracking-widest font-semibold ${
-                      isEnded ? 'text-[#4edea3]' : 'text-rose-400'
+                      isEnded
+                        ? 'text-[#4edea3]'
+                        : isScheduled
+                          ? 'text-[#f2ca50]'
+                          : 'text-rose-400'
                     }`}
                   >
                     <span
                       className={`material-symbols-outlined text-sm ${
-                        !isEnded ? 'animate-spin' : ''
+                        !isEnded && !isScheduled ? 'animate-spin' : ''
                       }`}
                     >
-                      {isEnded ? 'verified' : 'timelapse'}
+                      {isEnded
+                        ? 'verified'
+                        : isScheduled
+                          ? 'calendar_clock'
+                          : 'timelapse'}
                     </span>
                     <span>
                       {isEnded
                         ? 'PREGÃO ENCERRADO & HORÁRIO CONSOLIDADO'
-                        : 'TEMPO RESTANTE PARA ENCERRAMENTO'}
+                        : isScheduled
+                          ? 'TEMPO PARA ABERTURA DO PREGÃO AGENDADO'
+                          : 'TEMPO RESTANTE PARA ENCERRAMENTO'}
                     </span>
                   </div>
                   <p className="font-sans text-xs text-[#99907c]">
                     {isEnded
                       ? 'Este lote atingiu seu encerramento regulamentar.'
-                      : 'Lances nos últimos 120 segundos ativam automaticamente extensão anti-sniping (+120s).'}
+                      : isScheduled
+                        ? `Abertura programada para ${new Date(lot.startTime).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })}.`
+                        : 'Lances nos últimos 120 segundos ativam automaticamente extensão anti-sniping (+120s).'}
                   </p>
                 </div>
 
@@ -725,19 +786,20 @@ export default function LiveAuctionRoomPage({
                   <span className="inline-block w-2 h-2 rounded-full bg-[#f2ca50] animate-ping" />
                   {isEnded ? 'VALOR DE ARREMATAÇÃO' : 'LANCE LÍDER ATUAL'}
                 </span>
-                <span
-                  className={`px-3 py-1 rounded font-mono text-xs font-semibold flex items-center gap-1.5 ${
+                <Badge
+                  variant={isMyBid ? 'secondary' : 'outline'}
+                  className={
                     isMyBid
-                      ? 'bg-[#4edea3]/20 text-[#4edea3] border border-[#4edea3]/40'
-                      : 'bg-[#1d2025] text-[#d0c5af]'
-                  }`}
+                      ? 'bg-[#4edea3]/20 text-[#4edea3] border-[#4edea3]/40 px-3 py-1'
+                      : 'bg-[#1d2025] text-[#d0c5af] px-3 py-1'
+                  }
                 >
                   <span className="material-symbols-outlined text-xs">gavel</span>
                   <span>
                     Líder: {lot.currentWinner?.publicCode || 'Sem lances'}
                     {isMyBid ? ' (Você)' : ''}
                   </span>
-                </span>
+                </Badge>
               </div>
 
               {/* Monumental Price Typography */}
@@ -787,54 +849,77 @@ export default function LiveAuctionRoomPage({
                       Como Leiloeiro Oficial, você acompanha os lances desta sala em tempo real e recebe os valores da liquidação, mas não submete lances.
                     </p>
                     <div className="flex flex-col gap-2 pt-1">
-                      {confirmingSettle ? (
+                      {isScheduled ? (
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          onClick={handleStartLotNow}
+                          disabled={isSettling}
+                          className="w-full"
+                        >
+                          {isSettling ? 'INICIANDO PREGÃO...' : 'INICIAR PREGÃO AO VIVO AGORA'}
+                        </Button>
+                      ) : confirmingSettle ? (
                         <div className="p-3 rounded-lg bg-[#14171f] border border-[#4edea3]/50 space-y-2">
                           <span className="block text-xs text-[#e2e2ea] font-bold">
                             Confirmar encerramento e liquidação definitiva deste lote?
                           </span>
                           <div className="grid grid-cols-2 gap-2">
-                            <button
+                            <Button
                               type="button"
+                              variant="secondary"
+                              size="sm"
                               onClick={() => {
                                 setConfirmingSettle(false)
                                 handleSettle()
                               }}
                               disabled={isSettling}
-                              className="py-2 bg-[#4edea3] text-[#07090e] text-xs font-bold uppercase rounded hover:bg-emerald-400 transition cursor-pointer"
                             >
                               {isSettling ? 'Liquidando...' : 'Confirmar Martelo'}
-                            </button>
-                            <button
+                            </Button>
+                            <Button
                               type="button"
+                              variant="outline"
+                              size="sm"
                               onClick={() => setConfirmingSettle(false)}
-                              className="py-2 bg-[#282a30] text-[#e2e2ea] text-xs uppercase rounded hover:bg-[#343740] transition cursor-pointer"
                             >
                               Cancelar
-                            </button>
+                            </Button>
                           </div>
                         </div>
                       ) : (
-                        <button
+                        <Button
                           type="button"
+                          variant="secondary"
                           onClick={() => setConfirmingSettle(true)}
                           disabled={isSettling}
-                          className="w-full py-3 bg-[#4edea3] text-[#07090e] text-xs uppercase tracking-wider font-bold rounded-lg hover:bg-emerald-400 transition cursor-pointer disabled:opacity-50"
+                          className="w-full"
                         >
                           BATER MARTELO & ENCERRAR LOTE AGORA
-                        </button>
+                        </Button>
                       )}
-                      <Link
-                        href="/auctioneer"
-                        className="w-full py-2.5 bg-[#1d2025] text-[#f2ca50] text-xs uppercase tracking-wider font-semibold rounded-lg hover:bg-[#282a30] transition text-center border border-[#d4af37]/30"
-                      >
-                        Abrir Painel do Leiloeiro
-                      </Link>
+                      <Button asChild variant="outline" className="w-full text-[#f2ca50] border-[#d4af37]/30">
+                        <Link href="/auctioneer">Abrir Painel do Leiloeiro</Link>
+                      </Button>
                     </div>
                   </div>
                 ) : (
                   <>
-                    {/* Contextual Guidance for Logged-out or Low-Balance Bidders */}
-                    {!user ? (
+                    {/* Contextual Guidance for Scheduled, Logged-out, or Low-Balance Bidders */}
+                    {isScheduled ? (
+                      <div className="mb-4 p-3 rounded-lg bg-[#1d2025] border border-[#d4af37]/40 font-mono text-xs text-[#f2ca50] flex items-center justify-between gap-2">
+                        <span>
+                          Pregão agendado para abertura em{' '}
+                          <strong>
+                            {new Date(lot.startTime).toLocaleString('pt-BR', {
+                              dateStyle: 'short',
+                              timeStyle: 'short',
+                            })}
+                          </strong>
+                          . Os lances serão liberados automaticamente no horário oficial.
+                        </span>
+                      </div>
+                    ) : !user ? (
                       <div className="mb-4 p-3 rounded-lg bg-[#1d2025] border border-[#d4af37]/40 font-mono text-xs text-[#f2ca50] flex items-center justify-between gap-2">
                         <span>Faça login ou crie uma conta no topo para ofertar lances.</span>
                       </div>
@@ -853,7 +938,7 @@ export default function LiveAuctionRoomPage({
                     ) : null}
 
                     {/* 2-Step Inline Confirmation Bar for High-Stakes Bids */}
-                    {pendingBidAmount !== null && (
+                    {pendingBidAmount !== null && !isScheduled && (
                       <div className="mb-4 p-4 rounded-xl bg-[#0c0e13] border-2 border-[#d4af37] space-y-3 font-mono shadow-xl">
                         <div className="flex items-center justify-between">
                           <span className="text-xs uppercase text-[#f2ca50] font-bold">
@@ -895,12 +980,20 @@ export default function LiveAuctionRoomPage({
                       <button
                         type="button"
                         onClick={() => setPendingBidAmount(minAllowedBid)}
-                        disabled={isBidding || !user || !hasEnoughBalance}
+                        disabled={isBidding || isScheduled || !user || !hasEnoughBalance}
                         className="w-full py-4 px-6 bg-[#d4af37] hover:bg-[#f2ca50] text-[#1c1400] font-mono text-xs font-bold uppercase tracking-wider rounded-lg transition-all shadow-lg hover:shadow-[#d4af37]/20 active:scale-[0.99] flex items-center justify-between cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         <span className="flex items-center gap-2">
-                          <span className="material-symbols-outlined text-lg">gavel</span>
-                          <span>{isBidding ? 'PROCESSANDO LANCE...' : 'COBRIR LANCE MÍNIMO'}</span>
+                          <span className="material-symbols-outlined text-lg">
+                            {isScheduled ? 'calendar_clock' : 'gavel'}
+                          </span>
+                          <span>
+                            {isScheduled
+                              ? 'PREGÃO AGENDADO (AGUARDANDO ABERTURA)'
+                              : isBidding
+                                ? 'PROCESSANDO LANCE...'
+                                : 'COBRIR LANCE MÍNIMO'}
+                          </span>
                         </span>
                         <span className="font-mono text-sm">
                           {formatCurrency(minAllowedBid)} →
@@ -930,7 +1023,7 @@ export default function LiveAuctionRoomPage({
                               key={multiplier}
                               type="button"
                               onClick={() => setPendingBidAmount(totalBid)}
-                              disabled={isBidding || !user || !canAfford}
+                              disabled={isBidding || isScheduled || !user || !canAfford}
                               className="py-2.5 px-2 rounded-lg bg-[#1d2025] hover:bg-[#282a30] hover:text-[#f2ca50] text-[#e2e2ea] border border-[#282a30] transition-colors flex flex-col items-center cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                             >
                               <span className="text-[#f2ca50] font-mono text-xs font-bold">

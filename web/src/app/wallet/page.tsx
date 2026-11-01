@@ -5,6 +5,8 @@ import Link from 'next/link'
 import { apiRequest } from '@/lib/api'
 import { useAuth } from '@/contexts/AuthContext'
 import { formatCurrency } from '@/lib/utils'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 
 interface TransactionItem {
   id: string
@@ -167,10 +169,13 @@ export default function DigitalWalletPage() {
         <div className="max-w-[1600px] mx-auto flex flex-col xl:flex-row xl:items-end justify-between gap-6">
           <div className="flex flex-col gap-2 max-w-3xl">
             <div className="flex items-center gap-3 mb-1 flex-wrap">
-              <span className="px-3 py-1 rounded bg-[#4edea3]/10 text-[#4edea3] border border-[#4edea3]/30 font-mono text-[10px] tracking-widest uppercase flex items-center gap-1.5 font-bold">
+              <Badge
+                variant="outline"
+                className="px-3 py-1 bg-[#4edea3]/10 text-[#4edea3] border-[#4edea3]/30"
+              >
                 <span className="w-2 h-2 rounded-full bg-[#4edea3] inline-block" />
                 Conta Segregada Ativa
-              </span>
+              </Badge>
               <span className="font-mono text-[10px] text-[#99907c] tracking-wider uppercase">
                 Custódia Multilateral • Lei 21.981/32
               </span>
@@ -579,15 +584,16 @@ export default function DigitalWalletPage() {
               )}
 
               {/* Action Button */}
-              <button
+              <Button
                 type="button"
+                size="lg"
                 onClick={handleExecuteDeposit}
                 disabled={isDepositing}
-                className="w-full py-3.5 bg-[#d4af37] text-[#1c1400] font-mono text-xs font-bold uppercase tracking-wider rounded-lg hover:bg-[#f2ca50] transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                className="w-full"
               >
                 <span className="material-symbols-outlined text-lg">verified</span>
                 <span>{isDepositing ? 'PROCESSANDO APORTE...' : 'Aportar Garantia Fiduciária Instantânea'}</span>
-              </button>
+              </Button>
             </div>
             )}
 
