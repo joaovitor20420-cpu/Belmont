@@ -13,7 +13,7 @@ import { AuctionNotActiveError } from '../src/use-cases/errors/auction-not-activ
 
 async function runBusinessRulesTests() {
   console.log('🧪 ========================================================')
-  console.log('   INICIANDO SUÍTE DE TESTES DAS REGRAS DE NEGÓCIO (VERZEL)')
+  console.log('   10.1 — SUÍTE DE TESTES AUTOMATIZADOS (CONCORRÊNCIA, SALDO & INTEGRIDADE)')
   console.log('========================================================\n')
 
   // 1. Preparação dos Usuários de Teste (Leiloeiro, Licitante 1, Licitante 2)
@@ -27,14 +27,28 @@ async function runBusinessRulesTests() {
     where: { email: 'bidder2@belmont.com' },
   })
 
-  // Restaura saldos para estado previsível
+  // Salva saldos originais para restaurar de forma idempotente no finally
+  const origAuctioneer = {
+    balanceTotal: auctioneer.balanceTotal,
+    balanceCommitted: auctioneer.balanceCommitted,
+  }
+  const origBidder1 = {
+    balanceTotal: bidder1.balanceTotal,
+    balanceCommitted: bidder1.balanceCommitted,
+  }
+  const origBidder2 = {
+    balanceTotal: bidder2.balanceTotal,
+    balanceCommitted: bidder2.balanceCommitted,
+  }
+
+  // Configura saldos isolados para a bateria de testes
   await prisma.user.update({
     where: { id: bidder1.id },
-    data: { balanceTotal: BigInt(5000000), balanceCommitted: BigInt(0) }, // R$ 50.000
+    data: { balanceTotal: BigInt(5000000), balanceCommitted: BigInt(0) }, // R$ 50.000,00
   })
   await prisma.user.update({
     where: { id: bidder2.id },
-    data: { balanceTotal: BigInt(5000000), balanceCommitted: BigInt(0) }, // R$ 50.000
+    data: { balanceTotal: BigInt(5000000), balanceCommitted: BigInt(0) }, // R$ 50.000,00
   })
 
   const createBidUseCase = makeCreateBidUseCase()
@@ -61,6 +75,8 @@ async function runBusinessRulesTests() {
       endTime,
     },
   })
+
+  let virginLotId: string | null = null
 
   console.log(`✓ Lote de teste criado: #${testLot.id.slice(0, 8)} (Inicial: R$ 1.000,00 | Inc: R$ 100,00)`)
 
@@ -196,7 +212,6 @@ async function runBusinessRulesTests() {
     // TESTE 8: Anti-Sniping (+2 minutos nos 2 minutos finais)
     // ----------------------------------------------------
     console.log('\n[REGRA 8] Testando prorrogação Anti-Sniping nos minutos finais...')
-    // Simula lote a 60 segundos do encerramento
     const closingEndTime = new Date(Date.now() + 60 * 1000) // 1 minuto restante
     await prisma.lot.update({
       where: { id: testLot.id },
@@ -215,9 +230,32 @@ async function runBusinessRulesTests() {
     console.log('  ✓ Anti-sniping acionado: fim do lote prorrogado em +2 minutos com sucesso.')
 
     // ----------------------------------------------------
-    // TESTE 9: Cancelamento de Lote com Lances é PROIBIDO
+    // TESTE 9: Concorrência Pessimista (SELECT ... FOR UPDATE)
     // ----------------------------------------------------
-    console.log('\n[REGRA 9] Testando proibição de cancelamento de lote com lances...')
+    console.log('\n[REGRA 9] Testando concorrência simultânea (2 lances paralelos no mesmo microssegundo)...')
+    const concurrentResults = await Promise.allSettled([
+      createBidUseCase.execute({
+        lotId: testLot.id,
+        bidderId: bidder2.id,
+        amountInCents: 170000, // R$ 1.700,00
+      }),
+      createBidUseCase.execute({
+        lotId: testLot.id,
+        bidderId: bidder2.id,
+        amountInCents: 170000, // Tentativa simultânea duplicada de R$ 1.700,00
+      }),
+    ])
+
+    const fulfilledCount = concurrentResults.filter((r) => r.status === 'fulfilled').length
+    const rejectedCount = concurrentResults.filter((r) => r.status === 'rejected').length
+    assert.equal(fulfilledCount, 1, 'Exatamente 1 lance concorrente deve vencer o lock')
+    assert.equal(rejectedCount, 1, 'O 2º lance simultâneo deve ser rejeitado após serialização')
+    console.log('  ✓ Lock pessimista FOR UPDATE validado: 1 aceito e 1 rejeitado sem condição de corrida.')
+
+    // ----------------------------------------------------
+    // TESTE 10: Cancelamento de Lote com Lances sem autoRefund é PROIBIDO
+    // ----------------------------------------------------
+    console.log('\n[REGRA 10] Testando proibição de cancelamento simples de lote com lances...')
     await assert.rejects(
       async () => {
         await cancelLotUseCase.execute({
@@ -227,14 +265,14 @@ async function runBusinessRulesTests() {
         })
       },
       (err: any) => err instanceof LotCancellationError,
-      'Deveria proibir cancelamento de lote com lances.',
+      'Deveria proibir cancelamento simples de lote com lances.',
     )
-    console.log('  ✓ Cancelamento de lote com lances bloqueado com sucesso (integridade jurídica).')
+    console.log('  ✓ Cancelamento simples de lote com lances bloqueado com sucesso.')
 
     // ----------------------------------------------------
-    // TESTE 10: Cancelamento de Lote SEM lances é PERMITIDO
+    // TESTE 11: Cancelamento de Lote SEM lances é PERMITIDO
     // ----------------------------------------------------
-    console.log('\n[REGRA 10] Testando cancelamento de lote virgem (0 lances)...')
+    console.log('\n[REGRA 11] Testando cancelamento de lote virgem (0 lances)...')
     const virginLot = await prisma.lot.create({
       data: {
         userId: auctioneer.id,
@@ -249,6 +287,7 @@ async function runBusinessRulesTests() {
         endTime,
       },
     })
+    virginLotId = virginLot.id
 
     const cancelRes = await cancelLotUseCase.execute({
       lotId: virginLot.id,
@@ -260,20 +299,45 @@ async function runBusinessRulesTests() {
     console.log('  ✓ Lote sem lances cancelado com sucesso.')
 
     // ----------------------------------------------------
-    // TESTE 11: Auditoria Criptográfica de Integridade da Hash Chain
+    // TESTE 12: Auditoria Criptográfica de Integridade da Hash Chain
     // ----------------------------------------------------
-    console.log('\n[REGRA 11] Testando verificação criptográfica da Hash Chain...')
+    console.log('\n[REGRA 12] Testando verificação criptográfica da Hash Chain (Cenário Íntegro)...')
     const auditRes = await verifyLotAuditUseCase.execute({ lotId: testLot.id })
     assert.equal(auditRes.isValid, true)
     assert.equal(auditRes.chainStatus, 'VERIFIED_INTEGRAL')
     console.log(`  ✓ Trilha de lances 100% íntegra (auditados ${auditRes.totalBidsChecked} elos com HMAC-SHA256).`)
 
     // ----------------------------------------------------
-    // TESTE 12: Liquidação Definitiva (Settlement) & Crédito do Leiloeiro
+    // TESTE 13: Detecção Matemática de Adulteração Direta no Banco (Tamper Detection)
     // ----------------------------------------------------
-    console.log('\n[REGRA 12] Testando liquidação definitiva (martelo batido)...')
+    console.log('\n[REGRA 13] Testando detecção de adulteração clandestina (+1 centavo direto no SQL)...')
+    await prisma.bid.update({
+      where: { id: bid1Res.bid.id },
+      data: { amount: BigInt(100001) }, // +1 centavo adulterado fora da aplicação
+    })
+
+    const tamperedAuditRes = await verifyLotAuditUseCase.execute({ lotId: testLot.id })
+    assert.equal(tamperedAuditRes.isValid, false, 'Auditoria deve reprovar cadeia adulterada')
+    assert.equal(tamperedAuditRes.chainStatus, 'TAMPERED_OR_CORRUPTED')
+    if (!tamperedAuditRes.isValid) {
+      assert.equal(tamperedAuditRes.tamperedBid.sequenceNumber, 1)
+    }
+
+    // Restaura valor original e revalida integridade
+    await prisma.bid.update({
+      where: { id: bid1Res.bid.id },
+      data: { amount: BigInt(100000) },
+    })
+    const restoredAuditRes = await verifyLotAuditUseCase.execute({ lotId: testLot.id })
+    assert.equal(restoredAuditRes.isValid, true)
+    console.log('  ✓ Adulteração de 1 centavo detectada no elo #1 e restaurada com sucesso.')
+
+    // ----------------------------------------------------
+    // TESTE 14: Liquidação Definitiva (Settlement) & Crédito do Leiloeiro
+    // ----------------------------------------------------
+    console.log('\n[REGRA 14] Testando liquidação definitiva (martelo batido)...')
     const auctioneerBeforeSettle = await prisma.user.findUniqueOrThrow({ where: { id: auctioneer.id } })
-    const winnerBeforeSettle = await prisma.user.findUniqueOrThrow({ where: { id: bidder1.id } })
+    const winnerBeforeSettle = await prisma.user.findUniqueOrThrow({ where: { id: bidder2.id } })
 
     const settleRes = await settleLotUseCase.execute({
       lotId: testLot.id,
@@ -283,23 +347,23 @@ async function runBusinessRulesTests() {
 
     assert.equal(settleRes.lot.status, 'ENDED')
     assert.ok(settleRes.receipt)
-    assert.equal(settleRes.receipt.finalAmount, 150000)
+    assert.equal(settleRes.receipt.finalAmount, 170000)
     assert.match(settleRes.receipt.code, /^REC-\d{4}-[A-F0-9]{6}$/)
 
     // Verifica saldo do vencedor debitado definitivamente
-    const winnerAfterSettle = await prisma.user.findUniqueOrThrow({ where: { id: bidder1.id } })
-    assert.equal(winnerAfterSettle.balanceTotal, winnerBeforeSettle.balanceTotal - BigInt(150000))
+    const winnerAfterSettle = await prisma.user.findUniqueOrThrow({ where: { id: bidder2.id } })
+    assert.equal(winnerAfterSettle.balanceTotal, winnerBeforeSettle.balanceTotal - BigInt(170000))
     assert.equal(winnerAfterSettle.balanceCommitted, BigInt(0))
 
     // Verifica saldo do leiloeiro creditado com o valor arrematado
     const auctioneerAfterSettle = await prisma.user.findUniqueOrThrow({ where: { id: auctioneer.id } })
-    assert.equal(auctioneerAfterSettle.balanceTotal, auctioneerBeforeSettle.balanceTotal + BigInt(150000))
+    assert.equal(auctioneerAfterSettle.balanceTotal, auctioneerBeforeSettle.balanceTotal + BigInt(170000))
     console.log('  ✓ Liquidação concluída: Vencedor debitado, Leiloeiro creditado, Comprovante oficial emitido.')
 
     // ----------------------------------------------------
-    // TESTE 13: Idempotência da Liquidação
+    // TESTE 15: Idempotência da Liquidação
     // ----------------------------------------------------
-    console.log('\n[REGRA 13] Testando idempotência da liquidação...')
+    console.log('\n[REGRA 15] Testando idempotência da liquidação...')
     const secondSettleRes = await settleLotUseCase.execute({
       lotId: testLot.id,
       requestedByUserId: auctioneer.id,
@@ -309,20 +373,19 @@ async function runBusinessRulesTests() {
     assert.equal(secondSettleRes.alreadySettled, true)
     assert.equal(secondSettleRes.receipt?.code, settleRes.receipt.code)
 
-    // Saldos não devem sofrer novo débito ou crédito
-    const winnerAfterSecondSettle = await prisma.user.findUniqueOrThrow({ where: { id: bidder1.id } })
+    const winnerAfterSecondSettle = await prisma.user.findUniqueOrThrow({ where: { id: bidder2.id } })
     assert.equal(winnerAfterSecondSettle.balanceTotal, winnerAfterSettle.balanceTotal)
     console.log('  ✓ Idempotência confirmada: chamada subsequente não duplica débitos/créditos.')
 
     // ----------------------------------------------------
-    // TESTE 14: Lote Encerrado rejeita novos lances
+    // TESTE 16: Lote Encerrado rejeita novos lances
     // ----------------------------------------------------
-    console.log('\n[REGRA 14] Testando rejeição de lance em lote já encerrado...')
+    console.log('\n[REGRA 16] Testando rejeição de lance em lote já encerrado...')
     await assert.rejects(
       async () => {
         await createBidUseCase.execute({
           lotId: testLot.id,
-          bidderId: bidder2.id,
+          bidderId: bidder1.id,
           amountInCents: 200000,
         })
       },
@@ -332,14 +395,31 @@ async function runBusinessRulesTests() {
     console.log('  ✓ Lance em lote encerrado recusado ("lote encerrado").')
 
     console.log('\n🎉 ========================================================')
-    console.log('   TODAS AS 14 REGRAS DE NEGÓCIO FORAM APROVADAS COM SUCESSO!')
+    console.log('   TODAS AS 16 SUÍTES DE TESTES (10.1) APROVADAS COM SUCESSO!')
     console.log('========================================================\n')
   } finally {
-    // Limpeza dos lotes de teste
+    // Limpeza dos lotes de teste e restauração integral dos saldos originais
     await prisma.walletTransaction.deleteMany({ where: { lotId: testLot.id } }).catch(() => {})
     await prisma.receipt.deleteMany({ where: { lotId: testLot.id } }).catch(() => {})
     await prisma.bid.deleteMany({ where: { lotId: testLot.id } }).catch(() => {})
     await prisma.lot.delete({ where: { id: testLot.id } }).catch(() => {})
+
+    if (virginLotId) {
+      await prisma.lot.delete({ where: { id: virginLotId } }).catch(() => {})
+    }
+
+    await prisma.user.update({
+      where: { id: auctioneer.id },
+      data: origAuctioneer,
+    }).catch(() => {})
+    await prisma.user.update({
+      where: { id: bidder1.id },
+      data: origBidder1,
+    }).catch(() => {})
+    await prisma.user.update({
+      where: { id: bidder2.id },
+      data: origBidder2,
+    }).catch(() => {})
   }
 }
 
