@@ -74,6 +74,24 @@ export default function AuctioneerMasterCockpitPage() {
   const [isCancelling, setIsCancelling] = useState(false)
   const [endedLots, setEndedLots] = useState<any[]>([])
   const [totalReceivedInCents, setTotalReceivedInCents] = useState(0)
+  // Obras já vinculadas a lotes não cancelados (externalApiId / título -> status)
+  const [usedItems, setUsedItems] = useState<Record<string, 'LIVE' | 'SCHEDULED' | 'ENDED'>>({})
+
+  const refreshUsedItems = async () => {
+    try {
+      const res = await apiRequest<{ lots: any[] }>('/lots?limit=500')
+      const map: Record<string, 'LIVE' | 'SCHEDULED' | 'ENDED'> = {}
+      for (const l of res.lots || []) {
+        if (l.externalApiId) map[`id:${l.externalApiId}`] = l.status
+        if (l.title) map[`t:${String(l.title).trim().toLowerCase()}`] = l.status
+      }
+      setUsedItems(map)
+    } catch {}
+  }
+
+  const getItemUsage = (id?: string | number | null, itemTitle?: string | null) =>
+    (id != null && id !== '' ? usedItems[`id:${id}`] : undefined) ||
+    (itemTitle ? usedItems[`t:${itemTitle.trim().toLowerCase()}`] : undefined)
 
   // Realizar busca inicial de obras na API Pública
   const searchMuseumArtworks = async (queryText: string) => {
@@ -85,8 +103,9 @@ export default function AuctioneerMasterCockpitPage() {
       )
       const list = data.items || []
       setArtworks(list)
-      if (list.length > 0 && !title) {
-        const first = list[0]
+      const firstAvailable = list.find((a) => !getItemUsage(a.id, a.title))
+      if (firstAvailable && !title) {
+        const first = firstAvailable
         setTitle(first.title)
         setArtist(first.artistTitle || 'Mestre da Pintura')
         setTechniqueDimensions(`${first.mediumDisplay || 'Óleo sobre tela'} • ${first.dateDisplay || 'Acervo Histórico'}`)
@@ -105,6 +124,7 @@ export default function AuctioneerMasterCockpitPage() {
   useEffect(() => {
     if (user?.role === 'AUCTIONEER') {
       searchMuseumArtworks('Monet')
+      refreshUsedItems()
     }
   }, [user])
 
@@ -238,6 +258,17 @@ export default function AuctioneerMasterCockpitPage() {
 
   // Selecionar obra da lista de ingestão
   const handleSelectArtwork = (art: ArtworkSearchResult) => {
+    const usage = getItemUsage(art.id, art.title)
+    if (usage) {
+      setActionFeedback({
+        text:
+          usage === 'ENDED'
+            ? `A obra "${art.title}" já foi leiloada e não pode ser republicada.`
+            : `A obra "${art.title}" já possui um lote ativo ou agendado.`,
+        color: 'text-rose-400 font-bold',
+      })
+      return
+    }
     setTitle(art.title)
     setArtist(art.artistTitle || 'Mestre da Pintura')
     setTechniqueDimensions(`${art.mediumDisplay || 'Óleo sobre tela'} • ${art.dateDisplay || 'Séc. XIX'}`)
@@ -258,6 +289,18 @@ export default function AuctioneerMasterCockpitPage() {
     }
 
     if (!title || !imageUrl) return
+
+    const usage = getItemUsage(externalApiId, title)
+    if (usage) {
+      setActionFeedback({
+        text:
+          usage === 'ENDED'
+            ? `A obra "${title}" já foi leiloada e não pode ser republicada em um novo lote.`
+            : `A obra "${title}" já possui um lote ativo ou agendado no catálogo.`,
+        color: 'text-rose-400 font-bold',
+      })
+      return
+    }
 
     const nowMs = Date.now()
     const durationMs = parseInt(durationMinutes || '30') * 60 * 1000
@@ -326,6 +369,7 @@ export default function AuctioneerMasterCockpitPage() {
         })
       }
       refreshActiveLot()
+      refreshUsedItems()
     } catch (err: any) {
       setPublishStatus('Falha na homologação do lote')
       setActionFeedback({
@@ -825,9 +869,15 @@ export default function AuctioneerMasterCockpitPage() {
                           <span className="font-serif text-base text-[#e2e2ea] truncate">
                             {art.title}
                           </span>
-                          <span className="px-2 py-0.5 bg-[#4edea3]/20 text-[#4edea3] font-mono text-[9px] rounded uppercase font-semibold">
-                            Domínio Público
-                          </span>
+                          {getItemUsage(art.id, art.title) ? (
+                            <span className="px-2 py-0.5 bg-rose-500/15 text-rose-400 font-mono text-[9px] rounded uppercase font-semibold shrink-0">
+                              {getItemUsage(art.id, art.title) === 'ENDED' ? 'Já Leiloada' : 'Em Lote Ativo'}
+                            </span>
+                          ) : (
+                            <span className="px-2 py-0.5 bg-[#4edea3]/20 text-[#4edea3] font-mono text-[9px] rounded uppercase font-semibold shrink-0">
+                              Domínio Público
+                            </span>
+                          )}
                         </div>
                         <span className="font-sans text-xs text-[#f2ca50] font-medium">
                           {art.artistTitle || 'Artista Não Especificado'}
@@ -844,9 +894,10 @@ export default function AuctioneerMasterCockpitPage() {
                         <button
                           type="button"
                           onClick={() => handleSelectArtwork(art)}
-                          className="px-3 py-1.5 bg-[#d4af37] text-[#1c1400] font-mono text-[10px] rounded uppercase font-bold flex items-center gap-1 shadow-sm hover:bg-[#f2ca50] transition-colors cursor-pointer"
+                          disabled={!!getItemUsage(art.id, art.title)}
+                          className="px-3 py-1.5 bg-[#d4af37] text-[#1c1400] font-mono text-[10px] rounded uppercase font-bold flex items-center gap-1 shadow-sm hover:bg-[#f2ca50] transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-[#d4af37]"
                         >
-                          <span>Importar Metadados</span>
+                          <span>{getItemUsage(art.id, art.title) ? 'Indisponível' : 'Importar Metadados'}</span>
                           <span className="material-symbols-outlined text-sm">
                             arrow_forward
                           </span>

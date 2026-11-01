@@ -24,6 +24,41 @@ export class PrismaLotsRepository implements LotsRepository {
     })
   }
 
+  async findExistingNonCancelledByItem({
+    externalApiId,
+    title,
+  }: {
+    externalApiId?: string | null
+    title: string
+  }): Promise<Lot | null> {
+    const cleanExternalId = externalApiId?.trim() || null
+    const cleanTitle = title.trim()
+
+    const orConditions: Prisma.LotWhereInput[] = [
+      {
+        title: {
+          equals: cleanTitle,
+          mode: 'insensitive',
+        },
+      },
+    ]
+
+    if (cleanExternalId) {
+      orConditions.unshift({
+        externalApiId: cleanExternalId,
+      })
+    }
+
+    return prisma.lot.findFirst({
+      where: {
+        status: {
+          not: 'CANCELLED',
+        },
+        OR: orConditions,
+      },
+    })
+  }
+
   async findMany({
     status,
     page = 1,

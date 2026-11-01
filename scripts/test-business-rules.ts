@@ -3,6 +3,7 @@ import { prisma } from '../src/lib/prisma.js'
 import { makeCreateBidUseCase } from '../src/use-cases/factories/makeCreateBidUseCase.js'
 import { makeSettleLotUseCase } from '../src/use-cases/factories/makeSettleLotUseCase.js'
 import { makeCancelLotUseCase } from '../src/use-cases/factories/makeCancelLotUseCase.js'
+import { makeCreateLotUseCase } from '../src/use-cases/factories/makeCreateLotUseCase.js'
 import { makeVerifyLotAuditTrailUseCase } from '../src/use-cases/factories/makeVerifyLotAuditTrailUseCase.js'
 import { AuctioneerCannotBidError } from '../src/use-cases/errors/auctioneer-cannot-bid-error.js'
 import { SelfOutbidError } from '../src/use-cases/errors/self-outbid-error.js'
@@ -394,8 +395,30 @@ async function runBusinessRulesTests() {
     )
     console.log('  ✓ Lance em lote encerrado recusado ("lote encerrado").')
 
+    // ----------------------------------------------------
+    // TESTE 17: Obra já leiloada não pode ser republicada
+    // ----------------------------------------------------
+    console.log('\n[REGRA 17] Testando bloqueio de republicação de obra já leiloada...')
+    await assert.rejects(
+      async () => {
+        await makeCreateLotUseCase().execute({
+          userId: auctioneer.id,
+          title: testLot.title,
+          description: 'Tentativa de republicar obra já arrematada',
+          imageUrl: '/arles.png',
+          startPriceInCents: 100000,
+          minIncrementInCents: 10000,
+          startTime: new Date(Date.now() + 60_000),
+          endTime: new Date(Date.now() + 3_600_000),
+        })
+      },
+      (err: any) => err instanceof Error && err.message.includes('já foi leiloada'),
+      'Deveria impedir criar lote com obra já leiloada.',
+    )
+    console.log('  ✓ Obra já leiloada bloqueada para novo lote.')
+
     console.log('\n🎉 ========================================================')
-    console.log('   TODAS AS 16 SUÍTES DE TESTES (10.1) APROVADAS COM SUCESSO!')
+    console.log('   TODAS AS 17 SUÍTES DE TESTES (10.1) APROVADAS COM SUCESSO!')
     console.log('========================================================\n')
   } finally {
     // Limpeza dos lotes de teste e restauração integral dos saldos originais

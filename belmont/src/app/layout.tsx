@@ -25,9 +25,9 @@ const jetbrainsMono = JetBrains_Mono({
 })
 
 export const metadata: Metadata = {
-  title: 'Belmont Fine Art Auctions ? Cat?logo Institucional & Vitrine',
+  title: 'Belmont Fine Art Auctions — Catálogo Institucional & Vitrine',
   description:
-    'Belmont Auctions Est. 1894. Cust?dia fiduci?ria auditada e licita??es concorrentes em microssegundos com tecnologia SSE e trilha criptogr?fica HMAC-SHA256.',
+    'Belmont Auctions Est. 1894. Custódia fiduciária auditada e licitações concorrentes em microssegundos com tecnologia SSE e trilha criptográfica HMAC-SHA256.',
   icons: {
     icon: '/belmont-crest.svg',
     shortcut: '/belmont-crest.svg',
@@ -85,7 +85,7 @@ export default function RootLayout({
                         BELMONT AUCTIONS
                       </div>
                       <div className="text-xs text-[#99907c]">
-                        ? 1894?2026 Belmont Fine Art Institutional Trust. Todos os direitos reservados.
+                        © 1894–2026 Belmont Fine Art Institutional Trust. Todos os direitos reservados.
                       </div>
                     </div>
                   </div>

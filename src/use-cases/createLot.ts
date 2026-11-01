@@ -104,6 +104,24 @@ export class CreateLotUseCase {
       throw new Error('O incremento mínimo deve ser maior que zero.')
     }
 
+    // Regra de Unicidade: Impede criar lote com item já leiloado ou em pregão
+    const existingItemLot = await this.lotsRepository.findExistingNonCancelledByItem({
+      externalApiId,
+      title,
+    })
+
+    if (existingItemLot) {
+      if (existingItemLot.status === 'ENDED') {
+        throw new Error(
+          `Esta obra ("${existingItemLot.title}") já foi leiloada anteriormente e não pode ser republicada em um novo lote.`,
+        )
+      }
+
+      throw new Error(
+        `Esta obra ("${existingItemLot.title}") já possui um lote ativo ou agendado no catálogo.`,
+      )
+    }
+
     const start = new Date(startTime)
     const end = new Date(endTime)
 
