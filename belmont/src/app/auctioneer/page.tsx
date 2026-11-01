@@ -442,7 +442,7 @@ export default function AuctioneerMasterCockpitPage() {
         <div className="w-full max-w-[1600px] mx-auto flex flex-wrap items-center justify-between gap-4">
           {/* Official License Identity */}
           <div className="flex items-center gap-4 flex-wrap">
-            <div className="flex items-center gap-2 px-3 py-1 bg-[#282a30] rounded border border-[#4d4635]/40">
+            <div className="flex items-center gap-2 px-3 py-1 bg-[#282a30] rounded border border-[#4d4635]/40 max-w-full">
               <span className="material-symbols-outlined text-[#f2ca50] text-base">
                 gavel
               </span>
@@ -450,19 +450,19 @@ export default function AuctioneerMasterCockpitPage() {
                 LEI-0001
               </span>
               <span className="text-[#99907c] text-xs">/</span>
-              <span className="font-mono text-xs text-[#d0c5af]">
+              <span className="font-mono text-xs text-[#d0c5af] truncate">
                 LEILOEIRO OFICIAL MATRICULADO (JUCESP #894)
               </span>
             </div>
 
-            <div className="flex items-center gap-2 px-3 py-1 bg-[#4edea3]/10 border border-[#4edea3]/30 rounded">
+            <div className="flex items-center gap-2 px-3 py-1 bg-[#4edea3]/10 border border-[#4edea3]/30 rounded max-w-full">
               <span className="relative flex h-2 w-2">
                 {activeLiveLot && (
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#4edea3] opacity-75" />
                 )}
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-[#4edea3]" />
               </span>
-              <span className="font-mono text-[10px] uppercase tracking-widest text-[#4edea3] font-bold">
+              <span className="font-mono text-[10px] uppercase tracking-widest text-[#4edea3] font-bold truncate">
                 {activeLiveLot
                   ? `PREGÃO AO VIVO • ${activeLiveLot.title}`
                   : 'PAINEL PRONTO PARA PUBLICAÇÃO'}
@@ -471,7 +471,7 @@ export default function AuctioneerMasterCockpitPage() {
           </div>
 
           {/* Real Operational Metrics */}
-          <div className="flex items-center gap-6 font-mono text-xs">
+          <div className="flex flex-wrap items-center gap-3 sm:gap-6 font-mono text-xs">
             <div className="flex items-center gap-1.5">
               <span className="material-symbols-outlined text-[#f2ca50] text-sm">
                 schedule
@@ -526,7 +526,7 @@ export default function AuctioneerMasterCockpitPage() {
                       <span className="font-serif text-lg text-[#e2e2ea]">
                         Console de Controle do Pregão Ativo
                       </span>
-                      <span className="font-mono text-xs text-[#f2ca50]">
+                      <span className="font-mono text-xs text-[#f2ca50] line-clamp-1">
                         LOTE #{activeLiveLot.id.slice(0, 4).toUpperCase()} • {activeLiveLot.artist}, &ldquo;{activeLiveLot.title}&rdquo;
                       </span>
                     </div>
@@ -624,12 +624,12 @@ export default function AuctioneerMasterCockpitPage() {
                         </div>
                       </div>
                     ) : (
-                      <div className="flex flex-wrap items-center gap-2">
+                      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                         <button
                           type="button"
                           onClick={() => setConfirmAction('hammer')}
                           disabled={isSettling}
-                          className="flex-1 py-3 px-4 bg-[#4edea3] text-[#07090e] font-mono text-xs uppercase tracking-wider font-bold rounded-lg flex items-center justify-center gap-2 hover:bg-emerald-400 shadow-lg cursor-pointer disabled:opacity-50"
+                          className="flex-1 py-3 px-4 min-h-[48px] bg-[#4edea3] text-[#07090e] font-mono text-xs uppercase tracking-wider font-bold rounded-lg flex items-center justify-center gap-2 hover:bg-emerald-400 shadow-lg cursor-pointer disabled:opacity-50"
                         >
                           <span className="material-symbols-outlined text-base">gavel</span>
                           <span>{isSettling ? 'LIQUIDANDO...' : 'BATER MARTELO & LIQUIDAR'}</span>
@@ -638,7 +638,7 @@ export default function AuctioneerMasterCockpitPage() {
                           type="button"
                           onClick={() => setConfirmAction('cancel')}
                           disabled={isCancelling}
-                          className="py-3 px-4 bg-rose-600/20 text-rose-300 border border-rose-500/40 font-mono text-xs uppercase tracking-wider font-bold rounded-lg hover:bg-rose-600/30 transition cursor-pointer disabled:opacity-50"
+                          className="py-3 px-4 min-h-[48px] bg-rose-600/20 text-rose-300 border border-rose-500/40 font-mono text-xs uppercase tracking-wider font-bold rounded-lg hover:bg-rose-600/30 transition flex items-center justify-center cursor-pointer disabled:opacity-50"
                         >
                           {activeLiveLot.bidsCount > 0
                             ? 'Cancelar c/ Estorno'
@@ -705,7 +705,7 @@ export default function AuctioneerMasterCockpitPage() {
                           </div>
                         </div>
 
-                        <div className="flex items-center gap-2 shrink-0">
+                        <div className="grid grid-cols-3 gap-1.5 sm:flex sm:items-center sm:gap-2 shrink-0 w-full sm:w-auto">
                           <Button
                             type="button"
                             variant="secondary"
@@ -850,9 +850,9 @@ export default function AuctioneerMasterCockpitPage() {
                 {artworks.map((art) => (
                   <div
                     key={art.id}
-                    className="p-3 bg-[#1d2025] rounded-xl border border-[#282a30] hover:border-[#d4af37]/40 flex flex-col md:flex-row gap-4 shadow-md transition-colors"
+                    className="p-3 bg-[#1d2025] rounded-xl border border-[#282a30] hover:border-[#d4af37]/40 flex flex-col sm:flex-row gap-3 sm:gap-4 shadow-md transition-colors"
                   >
-                    <div className="w-full md:w-36 h-28 shrink-0 overflow-hidden rounded-lg bg-[#0c0e13] relative group">
+                    <div className="w-full sm:w-36 h-36 sm:h-28 shrink-0 overflow-hidden rounded-lg bg-[#0c0e13] relative group">
                       <img
                         alt={art.title}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
@@ -895,7 +895,7 @@ export default function AuctioneerMasterCockpitPage() {
                           type="button"
                           onClick={() => handleSelectArtwork(art)}
                           disabled={!!getItemUsage(art.id, art.title)}
-                          className="px-3 py-1.5 bg-[#d4af37] text-[#1c1400] font-mono text-[10px] rounded uppercase font-bold flex items-center gap-1 shadow-sm hover:bg-[#f2ca50] transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-[#d4af37]"
+                          className="px-3 py-2 min-h-[40px] bg-[#d4af37] text-[#1c1400] font-mono text-[11px] rounded uppercase font-bold flex items-center gap-1 shadow-sm hover:bg-[#f2ca50] transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-[#d4af37]"
                         >
                           <span>{getItemUsage(art.id, art.title) ? 'Indisponível' : 'Importar Metadados'}</span>
                           <span className="material-symbols-outlined text-sm">
@@ -966,7 +966,7 @@ export default function AuctioneerMasterCockpitPage() {
                       type="text"
                       value={title}
                       onChange={(e) => setTitle(e.target.value)}
-                      className="bg-[#0c0e13] text-[#e2e2ea] font-sans text-xs px-3 py-2 rounded-lg border border-[#282a30] focus:outline-none focus:border-[#d4af37]"
+                      className="bg-[#0c0e13] text-[#e2e2ea] font-sans text-xs px-3 py-2.5 min-h-[44px] rounded-lg border border-[#282a30] focus:outline-none focus:border-[#d4af37]"
                     />
                   </div>
 
@@ -1052,7 +1052,7 @@ export default function AuctioneerMasterCockpitPage() {
                           type="number"
                           value={startPriceBRL}
                           onChange={(e) => setStartPriceBRL(e.target.value)}
-                          className="w-full bg-[#0c0e13] text-[#e2e2ea] font-mono text-xs font-bold pl-10 pr-3 py-2.5 rounded-lg border border-[#282a30] focus:outline-none focus:border-[#d4af37]"
+                          className="w-full bg-[#0c0e13] text-[#e2e2ea] font-mono text-xs font-bold pl-10 pr-3 py-2.5 min-h-[44px] rounded-lg border border-[#282a30] focus:outline-none focus:border-[#d4af37]"
                         />
                       </div>
                       <span className="font-mono text-[10px] text-[#99907c]">
@@ -1150,7 +1150,7 @@ export default function AuctioneerMasterCockpitPage() {
                     <button
                       type="button"
                       onClick={() => setLaunchMode('IMMEDIATE')}
-                      className={`py-3 px-4 rounded-lg border flex items-center justify-between transition cursor-pointer ${
+                      className={`py-3 px-4 min-h-[48px] rounded-lg border flex items-center justify-between transition cursor-pointer ${
                         launchMode === 'IMMEDIATE'
                           ? 'bg-[#4edea3]/10 border-[#4edea3] text-[#4edea3] font-bold'
                           : 'bg-[#0c0e13] border-[#282a30] text-[#99907c] hover:text-[#e2e2ea]'
@@ -1208,18 +1208,18 @@ export default function AuctioneerMasterCockpitPage() {
                           <span className="text-[10px] text-[#99907c] uppercase tracking-wider">
                             Atalhos Rápidos de Agendamento
                           </span>
-                          <div className="flex items-center gap-1.5">
+                          <div className="grid grid-cols-4 gap-1.5 sm:flex sm:items-center sm:gap-2">
                             {[
                               { label: '+5 min', mins: 5 },
                               { label: '+15 min', mins: 15 },
-                              { label: '+1 hora', mins: 60 },
+                              { label: '+1h', mins: 60 },
                               { label: '+24h', mins: 1440 },
                             ].map((preset) => (
                               <button
                                 key={preset.mins}
                                 type="button"
                                 onClick={() => applySchedulePresetMinutes(preset.mins)}
-                                className="px-3 py-2.5 rounded-lg bg-[#0c0e13] hover:bg-[#1d2025] border border-[#282a30] hover:border-[#d4af37]/50 text-[#e2e2ea] text-[11px] font-bold transition cursor-pointer tabular-nums"
+                                className="px-1 sm:px-3 py-2 min-h-[40px] flex items-center justify-center rounded-lg bg-[#0c0e13] hover:bg-[#1d2025] border border-[#282a30] hover:border-[#d4af37]/50 text-[#e2e2ea] text-[10px] sm:text-[11px] font-bold transition cursor-pointer tabular-nums text-center"
                               >
                                 {preset.label}
                               </button>
@@ -1239,7 +1239,7 @@ export default function AuctioneerMasterCockpitPage() {
                   <button
                     type="submit"
                     disabled={isPublishing}
-                    className="w-full py-4 px-6 bg-[#d4af37] text-[#1c1400] font-mono text-xs uppercase tracking-wider font-bold rounded-lg flex items-center justify-center gap-2 hover:bg-[#f2ca50] shadow-xl transition-all cursor-pointer disabled:opacity-50"
+                    className="w-full py-3.5 sm:py-4 px-4 sm:px-6 min-h-[50px] bg-[#d4af37] text-[#1c1400] font-mono text-xs uppercase tracking-wider font-bold rounded-lg flex items-center justify-center gap-2 hover:bg-[#f2ca50] shadow-xl transition-all cursor-pointer disabled:opacity-50 text-center leading-snug"
                   >
                     <span className="material-symbols-outlined text-xl">
                       {launchMode === 'SCHEDULED' ? 'calendar_clock' : 'broadcast_on_personal'}
@@ -1255,7 +1255,7 @@ export default function AuctioneerMasterCockpitPage() {
                     </span>
                   </button>
 
-                  <div className="flex items-center justify-between px-1 text-[#99907c] font-mono text-[10px]">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-2 px-1 text-[#99907c] font-mono text-[10px]">
                     <span className="flex items-center gap-1">
                       <span className="material-symbols-outlined text-[#4edea3] text-sm">
                         lock
@@ -1273,8 +1273,8 @@ export default function AuctioneerMasterCockpitPage() {
 
       {/* SEÇÃO OFICIAL: RESULTADOS DOS LOTES ENCERRADOS & TOTAL RECEBIDO (REQUISITO VERZEL) */}
       <section className="w-full max-w-[1600px] mx-auto px-3.5 sm:px-6 lg:px-12 pb-8">
-        <div className="bg-[#0c0e13] rounded-xl p-6 border border-[#282a30] shadow-xl flex flex-col gap-6">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-[#282a30]">
+        <div className="bg-[#0c0e13] rounded-xl p-4 sm:p-6 border border-[#282a30] shadow-xl flex flex-col gap-4 sm:gap-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 pb-4 border-b border-[#282a30]">
             <div className="flex items-center gap-3">
               <span className="material-symbols-outlined text-[#f2ca50] text-2xl">
                 payments
@@ -1305,7 +1305,7 @@ export default function AuctioneerMasterCockpitPage() {
             </div>
           ) : (
             <div className="overflow-x-auto -mx-4 px-4 sm:-mx-6 sm:px-6">
-            <Table>
+            <Table className="whitespace-nowrap">
               <TableHeader className="bg-[#14171f]">
                 <TableRow>
                   <TableHead>Obra / Título</TableHead>
