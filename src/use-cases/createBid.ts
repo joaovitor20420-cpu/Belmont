@@ -5,6 +5,7 @@ import { AuctionNotActiveError } from './errors/auction-not-active-error.js'
 import { SelfOutbidError } from './errors/self-outbid-error.js'
 import { InvalidBidAmountError } from './errors/invalid-bid-amount-error.js'
 import { InsufficientFundsError } from './errors/insufficient-funds-error.js'
+import { AuctioneerCannotBidError } from './errors/auctioneer-cannot-bid-error.js'
 import { calculateBidHash } from '../utils/cryptoAudit.js'
 import { auctionEvents } from '../lib/auctionEvents.js'
 
@@ -65,14 +66,21 @@ export class CreateBidUseCase {
 
       // 2. Validações de status, horário e leiloeiro criador
       const now = new Date()
-      if (lot.status !== 'LIVE' || now > lot.endTime) {
-        throw new AuctionNotActiveError(
-          'O leilão deste lote não está ativo no momento.',
-        )
+
+      if (lot.status === 'CANCELLED') {
+        throw new AuctionNotActiveError('Este lote foi cancelado.')
+      }
+
+      if (lot.status === 'SCHEDULED' || now < lot.startTime) {
+        throw new AuctionNotActiveError('O leilão deste lote ainda não foi iniciado.')
+      }
+
+      if (lot.status === 'ENDED' || now >= lot.endTime) {
+        throw new AuctionNotActiveError('O leilão deste lote já foi encerrado.')
       }
 
       if (lot.userId && lot.userId === bidderId) {
-        throw new Error(
+        throw new AuctioneerCannotBidError(
           'O leiloeiro criador não tem permissão para dar lances no próprio lote.',
         )
       }
@@ -96,7 +104,7 @@ export class CreateBidUseCase {
         )
       }
 
-      // 5. Lock pessimista no Licitante e checagem de saldo disponível
+      // 5. Lock pessimista no Licitante e checagem de papel e saldo disponível
       const bidderRaw = await tx.$queryRaw<User[]>`
         SELECT * FROM users WHERE id = ${bidderId} FOR UPDATE
       `
@@ -104,6 +112,12 @@ export class CreateBidUseCase {
 
       if (!bidder) {
         throw new ResourceNotFoundError()
+      }
+
+      if (bidder.role === 'AUCTIONEER') {
+        throw new AuctioneerCannotBidError(
+          'Usuários com perfil de Leiloeiro não têm permissão para dar lances.',
+        )
       }
 
       const balanceAvailable = bidder.balanceTotal - bidder.balanceCommitted

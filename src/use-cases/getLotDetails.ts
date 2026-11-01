@@ -1,6 +1,7 @@
 import type { LotsRepository } from '../repositories/lotsRepository.js'
 import { formatLotToDTO, type LotDTO } from './createLot.js'
 import { ResourceNotFoundError } from './errors/resource-not-found-error.js'
+import { makeSettleLotUseCase } from './factories/makeSettleLotUseCase.js'
 import { prisma } from '../lib/prisma.js'
 
 export interface LotDetailsDTO extends LotDTO {
@@ -33,7 +34,20 @@ export class GetLotDetailsUseCase {
   constructor(private lotsRepository: LotsRepository) {}
 
   async execute({ id }: GetLotDetailsRequest): Promise<GetLotDetailsResponse> {
-    const lot = await this.lotsRepository.findById(id)
+    let lot = await this.lotsRepository.findById(id)
+
+    if (!lot) {
+      throw new ResourceNotFoundError()
+    }
+
+    // Auto-liquidação se o lote venceu e ainda está marcado como LIVE
+    if (lot.status === 'LIVE' && new Date() >= lot.endTime) {
+      try {
+        const settleLotUseCase = makeSettleLotUseCase()
+        await settleLotUseCase.execute({ lotId: id })
+        lot = await this.lotsRepository.findById(id)
+      } catch {}
+    }
 
     if (!lot) {
       throw new ResourceNotFoundError()

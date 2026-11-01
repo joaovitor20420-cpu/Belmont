@@ -3,120 +3,120 @@
 @layer base {
   :root {
     --background: #07090e;
-    --foreground: #f8fafc;
-    --card: #0d121d;
-    --card-foreground: #f8fafc;
-    --primary: #d4af37;
-    --primary-foreground: #07090e;
-    --muted: #151c2b;
-    --muted-foreground: #94a3b8;
-    --border: #1e293b;
-    --accent: #1e293b;
+    --foreground: #e2e2ea;
+    --card: #14171f;
+    --card-foreground: #e2e2ea;
+    --primary: #f2ca50;
+    --primary-container: #d4af37;
+    --secondary: #4edea3;
+    --secondary-container: #00a572;
+    --surface: #111319;
+    --surface-lowest: #0c0e13;
+    --surface-low: #14171f;
+    --surface-container: #1d2025;
+    --surface-high: #282a30;
+    --surface-highest: #33353b;
+    --outline: #99907c;
+    --outline-variant: #4d4635;
+    --on-surface: #e2e2ea;
+    --on-surface-variant: #d0c5af;
+    --error: #ffb4ab;
+    --error-container: #93000a;
   }
 }
 
 body {
   background-color: var(--background);
   color: var(--foreground);
-  font-family: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
+  font-family: var(--font-inter), system-ui, -apple-system, sans-serif;
   min-height: 100vh;
-  selection-background-color: #d4af37;
-  selection-color: #07090e;
 }
 
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
+  display: none;
 }
-::-webkit-scrollbar-track {
-  background: #07090e;
+
+/* Typography Classes */
+.font-headline-xl {
+  font-family: var(--font-playfair), Georgia, serif;
+  font-size: 56px;
+  line-height: 64px;
+  letter-spacing: -0.02em;
 }
-::-webkit-scrollbar-thumb {
-  background: #1e293b;
-  border-radius: 9999px;
+
+.font-headline-lg {
+  font-family: var(--font-playfair), Georgia, serif;
+  font-size: 40px;
+  line-height: 48px;
+  letter-spacing: -0.015em;
 }
-::-webkit-scrollbar-thumb:hover {
-  background: #334155;
+
+.font-headline-md {
+  font-family: var(--font-playfair), Georgia, serif;
+  font-size: 28px;
+  line-height: 36px;
+}
+
+.font-headline-sm {
+  font-family: var(--font-playfair), Georgia, serif;
+  font-size: 22px;
+  line-height: 28px;
+}
+
+.font-body-lg {
+  font-family: var(--font-inter), system-ui, sans-serif;
+  font-size: 18px;
+  line-height: 28px;
+}
+
+.font-body-md {
+  font-family: var(--font-inter), system-ui, sans-serif;
+  font-size: 15px;
+  line-height: 24px;
+}
+
+.font-body-sm {
+  font-family: var(--font-inter), system-ui, sans-serif;
+  font-size: 13px;
+  line-height: 20px;
+}
+
+.font-label-lg {
+  font-family: var(--font-jetbrains), monospace;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.font-label-md {
+  font-family: var(--font-jetbrains), monospace;
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.font-label-sm {
+  font-family: var(--font-jetbrains), monospace;
+  font-size: 10px;
+  line-height: 14px;
 }
 
 /* Luxury Surfaces & Glassmorphism */
 .glass-panel {
-  background: rgba(13, 18, 29, 0.78);
+  background: rgba(20, 23, 31, 0.85);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(212, 175, 55, 0.15);
 }
 
-.glass-panel-hover {
-  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-}
-.glass-panel-hover:hover {
-  border-color: rgba(212, 175, 55, 0.4);
-  box-shadow: 0 10px 30px -10px rgba(212, 175, 55, 0.12);
-  transform: translateY(-2px);
-}
-
-/* Typography Gradient */
 .gold-gradient-text {
   background: linear-gradient(135deg, #fffbeb 0%, #fef08a 25%, #d4af37 60%, #b45309 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
-.emerald-gradient-text {
-  background: linear-gradient(135deg, #ecfdf5 0%, #6ee7b7 50%, #10b981 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-/* Luxury Certificate Border Pattern */
 .guilloche-border {
   border: 2px double rgba(212, 175, 55, 0.4);
   box-shadow: inset 0 0 20px rgba(212, 175, 55, 0.05);
-}
-
-/* Live Pulse Animation */
-@keyframes livePulse {
-  0%, 100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.6;
-    transform: scale(1.08);
-  }
-}
-
-.animate-live-pulse {
-  animation: livePulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-
-/* Shimmer Effect */
-@keyframes shimmer {
-  100% {
-    transform: translateX(100%);
-  }
-}
-
-.shimmer-hover {
-  position: relative;
-  overflow: hidden;
-}
-.shimmer-hover::after {
-  position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  transform: translateX(-100%);
-  background-image: linear-gradient(
-    90deg,
-    rgba(255, 255, 255, 0) 0,
-    rgba(255, 255, 255, 0.08) 20%,
-    rgba(255, 255, 255, 0.18) 60%,
-    rgba(255, 255, 255, 0)
-  );
-  animation: shimmer 2.5s infinite;
-  content: '';
 }

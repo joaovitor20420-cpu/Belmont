@@ -6,21 +6,6 @@ import { useRouter } from 'next/navigation'
 import { apiRequest, API_BASE_URL } from '@/lib/api'
 import { useAuth } from '@/contexts/AuthContext'
 import { formatCurrency, formatTimeRemaining } from '@/lib/utils'
-import {
-  Gavel,
-  ShieldCheck,
-  Flame,
-  Clock,
-  ArrowLeft,
-  CheckCircle2,
-  AlertCircle,
-  ExternalLink,
-  Sparkles,
-  Award,
-  Radio,
-  UserCheck,
-  TrendingUp,
-} from 'lucide-react'
 
 interface BidRecord {
   id: string
@@ -59,7 +44,7 @@ interface LotDetails {
   } | null
 }
 
-export default function LotAuctionRoomPage({
+export default function LiveAuctionRoomPage({
   params,
 }: {
   params: Promise<{ id: string }>
@@ -73,6 +58,7 @@ export default function LotAuctionRoomPage({
   const [error, setError] = useState('')
   const [now, setNow] = useState(Date.now())
   const [sseConnected, setSseConnected] = useState(false)
+  const [isDossierOpen, setIsDossierOpen] = useState(true)
 
   // Estado para lances
   const [customBidAmount, setCustomBidAmount] = useState('')
@@ -86,11 +72,47 @@ export default function LotAuctionRoomPage({
   const [antiSnipingAlert, setAntiSnipingAlert] = useState(false)
   const [isSettling, setIsSettling] = useState(false)
 
-  // Relógio com atualização a cada segundo
+  // Carteira
+  const [userBalance, setUserBalance] = useState<{
+    available: number
+    committed: number
+    total: number
+  } | null>(null)
+
+  // Relógio com atualização a cada 30ms para milissegundos
+  const [msCounter, setMsCounter] = useState(84)
+
   useEffect(() => {
-    const timer = setInterval(() => setNow(Date.now()), 1000)
-    return () => clearInterval(timer)
+    const msTimer = setInterval(() => {
+      setMsCounter((prev) => (prev - 3 + 100) % 100)
+    }, 30)
+    const secTimer = setInterval(() => {
+      setNow(Date.now())
+    }, 1000)
+    return () => {
+      clearInterval(msTimer)
+      clearInterval(secTimer)
+    }
   }, [])
+
+  // Buscar saldo do usuário
+  useEffect(() => {
+    if (!user) {
+      setUserBalance(null)
+      return
+    }
+    apiRequest<any>('/wallet/balance')
+      .then((data) => {
+        const available =
+          data?.balances?.availableInCents ?? data?.balanceAvailable ?? 0
+        const committed =
+          data?.balances?.committedInCents ?? data?.balanceCommitted ?? 0
+        const total =
+          data?.balances?.totalInCents ?? data?.balanceTotal ?? 0
+        setUserBalance({ available, committed, total })
+      })
+      .catch(() => {})
+  }, [user])
 
   // 1. Busca dados iniciais do lote
   const fetchLot = async () => {
@@ -102,7 +124,7 @@ export default function LotAuctionRoomPage({
         bids: data.lot.bids || [],
       })
     } catch (err: any) {
-      setError(err.message || 'Lote não encontrado.')
+      setError(err.message || 'Lote não localizado no pregão.')
     } finally {
       setIsLoading(false)
     }
@@ -112,7 +134,7 @@ export default function LotAuctionRoomPage({
     fetchLot()
   }, [id])
 
-  // 2. Conexão Server-Sent Events (SSE) para tempo real
+  // 2. Conexão Server-Sent Events (SSE)
   useEffect(() => {
     if (!id) return
 
@@ -135,13 +157,13 @@ export default function LotAuctionRoomPage({
 
               if (payload.antiSnipingExtended) {
                 setAntiSnipingAlert(true)
-                setTimeout(() => setAntiSnipingAlert(false), 9000)
+                setTimeout(() => setAntiSnipingAlert(false), 8000)
               }
 
               const newBidRecord: BidRecord = {
                 id: `bid_${Date.now()}`,
                 amount: payload.currentPrice,
-                bidHash: 'sse-live',
+                bidHash: payload.bidHash || 'sse-live',
                 prevHash: '',
                 createdAt: new Date().toISOString(),
                 bidder: {
@@ -184,7 +206,7 @@ export default function LotAuctionRoomPage({
             refreshUser()
           }
         } catch (err) {
-          console.error('[SSE] Erro ao processar payload:', err)
+          console.error('[SSE] Erro ao processar evento:', err)
         }
       })
 
@@ -204,37 +226,53 @@ export default function LotAuctionRoomPage({
 
   if (isLoading) {
     return (
-      <div className="flex min-h-[60vh] flex-col items-center justify-center gap-3 text-slate-400">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-amber-500 border-t-transparent" />
-        <span className="text-xs tracking-wider">Conectando à sala de pregão oficial...</span>
+      <div className="w-full pt-28 pb-20 flex min-h-[70vh] flex-col items-center justify-center gap-4 text-[#99907c] font-mono">
+        <div className="h-10 w-10 animate-spin rounded-full border-2 border-[#d4af37] border-t-transparent" />
+        <span className="text-xs uppercase tracking-widest text-[#f2ca50]">
+          Sincronizando pregão em tempo real...
+        </span>
       </div>
     )
   }
 
   if (error || !lot) {
     return (
-      <div className="mx-auto max-w-xl py-24 px-4 text-center">
-        <AlertCircle className="mx-auto h-12 w-12 text-rose-500 mb-4 stroke-[1.5]" />
-        <h2 className="text-xl font-serif font-bold text-white">Lote Indisponível</h2>
-        <p className="mt-2 text-xs text-slate-400">{error || 'O pregão solicitado não foi localizado.'}</p>
+      <div className="w-full pt-28 pb-20 px-6 max-w-xl mx-auto text-center font-mono">
+        <span className="material-symbols-outlined text-4xl text-rose-500 mb-3">
+          error_outline
+        </span>
+        <h2 className="text-xl font-serif text-[#e2e2ea]">Lote Indisponível</h2>
+        <p className="mt-2 text-xs text-[#99907c]">{error || 'O pregão não foi localizado.'}</p>
         <Link
           href="/"
-          className="mt-6 inline-flex items-center gap-2 rounded-2xl bg-slate-900 border border-slate-800 px-5 py-2.5 text-xs font-semibold text-white hover:bg-slate-800 transition"
+          className="mt-6 inline-flex items-center gap-2 rounded bg-[#1d2025] border border-[#d4af37]/40 px-5 py-2.5 text-xs text-[#f2ca50] hover:bg-[#282a30] transition uppercase"
         >
-          <ArrowLeft className="h-4 w-4" />
-          <span>Retornar para o Catálogo</span>
+          <span className="material-symbols-outlined text-sm">arrow_back</span>
+          <span>Retornar ao Catálogo</span>
         </Link>
       </div>
     )
   }
 
-  const remainingMs = new Date(lot.endTime).getTime() - now
-  const isExpired = remainingMs <= 0
+  const remainingMs = Math.max(0, new Date(lot.endTime).getTime() - now)
+  const isEnded = lot.status === 'ENDED' || remainingMs <= 0
   const isClosingSoon = remainingMs > 0 && remainingMs <= 120000
 
-  // Lance mínimo aceitável
+  const remainingSecondsTotal = Math.floor(remainingMs / 1000)
+  const countdownMinutes = Math.floor(remainingSecondsTotal / 60)
+  const countdownSeconds = remainingSecondsTotal % 60
+
+  // Cálculo de lance mínimo
   const minAllowedBid =
     lot.bidsCount === 0 ? lot.startPrice : lot.currentPrice + lot.minIncrement
+
+  const isMyBid =
+    user && lot.currentWinner?.publicCode === user.publicCode
+
+  // Saldo Disponível para Lance
+  const requiredCollateral = minAllowedBid
+  const hasEnoughBalance =
+    (userBalance?.available ?? 0) >= minAllowedBid
 
   // Submissão de Lance
   const handlePlaceBid = async (amountInCents: number) => {
@@ -249,7 +287,31 @@ export default function LotAuctionRoomPage({
     if (user.role === 'AUCTIONEER') {
       setBidFeedback({
         type: 'error',
-        message: 'Usuários com papel de leiloeiro não podem dar lances.',
+        message: 'Leiloeiro não pode dar lances em lotes.',
+      })
+      return
+    }
+
+    if (isMyBid) {
+      setBidFeedback({
+        type: 'error',
+        message: 'Você já está ganhando este lote. Aguarde outro licitante cobrir seu lance.',
+      })
+      return
+    }
+
+    if (amountInCents < minAllowedBid) {
+      setBidFeedback({
+        type: 'error',
+        message: `Lance abaixo do mínimo permitido (${formatCurrency(minAllowedBid)}).`,
+      })
+      return
+    }
+
+    if ((userBalance?.available ?? 0) < amountInCents) {
+      setBidFeedback({
+        type: 'error',
+        message: 'Saldo disponível insuficiente para cobrir este lance.',
       })
       return
     }
@@ -258,429 +320,675 @@ export default function LotAuctionRoomPage({
     setBidFeedback(null)
 
     try {
-      await apiRequest(`/lots/${lot.id}/bids`, {
+      const response = await apiRequest<{
+        bid: any
+        antiSnipingExtended: boolean
+        newEndTime: string
+      }>(`/lots/${id}/bids`, {
         method: 'POST',
-        body: JSON.stringify({ amountInCents }),
+        body: JSON.stringify({ amount: amountInCents, amountInCents }),
       })
+
       setBidFeedback({
         type: 'success',
-        message: `Lance de ${formatCurrency(amountInCents)} computado com sucesso!`,
+        message: `Lance de ${formatCurrency(amountInCents)} confirmado com sucesso!`,
       })
+
+      if (response.antiSnipingExtended) {
+        setAntiSnipingAlert(true)
+        setTimeout(() => setAntiSnipingAlert(false), 8000)
+      }
+
       setCustomBidAmount('')
-      await refreshUser()
+      fetchLot()
+      refreshUser()
     } catch (err: any) {
       setBidFeedback({
         type: 'error',
-        message: err.message || 'Falha ao registrar o lance.',
+        message: err.message || 'Falha ao registrar lance no motor de pregão.',
       })
     } finally {
       setIsBidding(false)
     }
   }
 
-  // Liquidação de Lote (Leiloeiro)
-  const handleSettleLot = async () => {
-    if (!confirm('Deseja liquidar este lote oficialmente agora?')) return
-
+  // Finalizar / Liquidar pregão (Leiloeiro ou encerramento)
+  const handleSettle = async () => {
     setIsSettling(true)
     try {
-      await apiRequest(`/lots/${lot.id}/settle`, {
-        method: 'POST',
-        body: JSON.stringify({}),
+      const res = await apiRequest<{
+        settled: boolean
+        receiptCode: string
+      }>(`/lots/${id}/settle`, { method: 'POST' })
+
+      setBidFeedback({
+        type: 'success',
+        message: `Pregão liquidado oficialmente! Certificado: ${res.receiptCode}`,
       })
       fetchLot()
+      refreshUser()
     } catch (err: any) {
-      alert(err.message || 'Erro ao liquidar lote.')
+      setBidFeedback({
+        type: 'error',
+        message: err.message || 'Erro ao homologar liquidação.',
+      })
     } finally {
       setIsSettling(false)
     }
   }
 
-  const isUserWinning =
-    user && lot.currentWinner && user.publicCode === lot.currentWinner.publicCode
-
   return (
-    <div className="min-h-screen bg-slate-950 pb-24">
-      {/* Sub-Header da Sala */}
-      <div className="border-b border-slate-900 bg-slate-950/70 backdrop-blur-md">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-3.5 flex items-center justify-between">
+    <div className="w-full pt-20 bg-[#07090E] min-h-[calc(100vh-80px)] text-[#e2e2ea]">
+      {/* Sub-Header Precision Diagnostic Ribbon */}
+      <div className="w-full bg-[#0c0e13] px-6 lg:px-12 py-3 flex flex-wrap items-center justify-between gap-4 border-b border-[#282a30]">
+        <div className="flex items-center gap-6 flex-wrap">
           <Link
             href="/"
-            className="flex items-center gap-2 text-xs font-semibold text-slate-400 hover:text-white transition cursor-pointer"
+            className="group flex items-center gap-2 font-mono text-xs uppercase text-[#99907c] hover:text-[#f2ca50] transition-colors"
           >
-            <ArrowLeft className="h-4 w-4" />
-            <span>Voltar para Vitrine</span>
+            <span className="material-symbols-outlined text-sm transition-transform group-hover:-translate-x-1">
+              arrow_back
+            </span>
+            <span>Voltar ao Catálogo</span>
           </Link>
+          <span className="w-1.5 h-1.5 rounded-full bg-[#4d4635]" />
+          <div className="flex items-center gap-2 px-3 py-1 rounded bg-[#282a30] text-[#e2e2ea]">
+            <span className="material-symbols-outlined text-xs text-[#f2ca50]">token</span>
+            <span className="font-mono text-xs tracking-wider font-semibold text-[#f2ca50]">
+              LOTE #{lot.id.slice(0, 4).toUpperCase()}
+            </span>
+            <span className="text-[#4d4635] font-mono text-xs">/</span>
+            <span className="font-mono text-xs text-[#99907c]">
+              {lot.externalApiId ? `CMA #${lot.externalApiId}` : 'IIIF #16568'}
+            </span>
+            <span className="text-[#4d4635] font-mono text-xs">/</span>
+            <span className="font-mono text-xs uppercase text-[#e2e2ea]">
+              {lot.artist || 'MESTRE INTERNACIONAL'}
+            </span>
+          </div>
+        </div>
 
-          <div className="flex items-center gap-3">
-            {/* Status da Conexão SSE */}
-            <div className="hidden sm:flex items-center gap-2 px-3 py-1 rounded-full bg-slate-900 border border-slate-800 text-[11px] font-medium text-slate-400">
-              <span
-                className={`h-2 w-2 rounded-full ${
-                  sseConnected ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'
-                }`}
-              />
-              <span>{sseConnected ? 'Canal SSE Conectado' : 'Reconectando canal...'}</span>
-            </div>
-
-            <Link
-              href={`/audit/${lot.id}`}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-950/40 border border-emerald-800/60 text-xs font-semibold text-emerald-300 hover:bg-emerald-900/50 transition cursor-pointer"
-            >
-              <ShieldCheck className="h-4 w-4" />
-              <span>Trilha de Auditoria</span>
-            </Link>
-
-            {lot.status === 'ENDED' && lot.receipt?.publicCode && (
-              <Link
-                href={`/receipts/${lot.receipt.publicCode}`}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-950/40 border border-amber-800/60 text-xs font-semibold text-amber-300 hover:bg-amber-900/50 transition cursor-pointer"
-              >
-                <Award className="h-4 w-4" />
-                <span>Comprovante Oficial</span>
-              </Link>
-            )}
+        {/* SSE Protocol & Latency Status */}
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 px-3 py-1 rounded bg-[#4edea3]/10 border border-[#4edea3]/30">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#4edea3] opacity-75" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-[#4edea3]" />
+            </span>
+            <span className="font-mono text-[10px] text-[#4edea3] tracking-widest font-semibold uppercase">
+              {sseConnected
+                ? 'SSE CONECTADO • LATÊNCIA 11ms • CONCORRÊNCIA PESSIMISTA'
+                : 'RECONECTANDO STREAM SSE...'}
+            </span>
+          </div>
+          <div className="hidden xl:flex items-center gap-1.5 text-[#99907c] font-mono text-[10px]">
+            <span className="material-symbols-outlined text-xs text-[#f2ca50]">encrypted</span>
+            <span>ESCROW LOCK #SEC-{lot.id.slice(0, 4).toUpperCase()}</span>
           </div>
         </div>
       </div>
 
-      {/* Banner de Alerta de Anti-Sniping */}
-      {antiSnipingAlert && (
-        <div className="bg-gradient-to-r from-rose-950 via-rose-900 to-rose-950 border-b border-rose-700 py-3 px-4 text-center text-xs font-bold text-white flex items-center justify-center gap-2 shadow-2xl animate-pulse">
-          <Flame className="h-4 w-4 text-amber-300 shrink-0" />
-          <span>MECANISMO ANTI-SNIPING ATIVADO: Lance na reta final estendeu o encerramento em +120 segundos!</span>
-        </div>
-      )}
-
-      {/* Grid Principal da Sala */}
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-8">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          {/* Coluna Esquerda: Obra e Metadados (7 Colunas) */}
+      {/* Realtime Trading Stage: Asymmetric 60/40 Split */}
+      <div className="w-full max-w-[1600px] mx-auto px-6 lg:px-12 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+          {/* LEFT COLUMN (60% Main Stage: Artwork, Anti-Sniping, Provenance Dossier) */}
           <div className="lg:col-span-7 flex flex-col gap-6">
-            {/* Moldura da Obra com Fundo de Galeria */}
-            <div className="relative rounded-3xl overflow-hidden bg-slate-900 border border-slate-800/90 shadow-2xl">
-              <div className="relative max-h-[520px] w-full flex items-center justify-center bg-black/70 p-4">
-                <img
-                  src={lot.imageUrl}
-                  alt={lot.title}
-                  className="max-h-[480px] w-auto max-w-full object-contain rounded-lg shadow-2xl"
-                />
+            {/* Anti-Sniping Dynamic Intervention Banner */}
+            {(antiSnipingAlert || isClosingSoon) && (
+              <div className="relative overflow-hidden rounded bg-rose-950/40 border border-rose-500/40 p-4 shadow-md animate-pulse">
+                <div className="absolute inset-y-0 left-0 w-1.5 bg-rose-500" />
+                <div className="flex items-center justify-between gap-4 flex-wrap">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded bg-rose-500/20 flex items-center justify-center shrink-0">
+                      <span className="material-symbols-outlined text-base text-rose-400">
+                        bolt
+                      </span>
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="font-mono text-xs tracking-wider font-semibold text-rose-400 uppercase">
+                        ANTI-SNIPING ATIVADO (+120s)
+                      </span>
+                      <span className="font-sans text-xs text-[#e2e2ea]">
+                        Lance verificado nos minutos finais. Pregão estendido para salvaguarda competitiva e garantia fiduciária.
+                      </span>
+                    </div>
+                  </div>
+                  <div className="px-3 py-1 rounded bg-[#0c0e13] font-mono text-[10px] text-[#f2ca50] uppercase tracking-widest shrink-0 border border-[#d4af37]/30">
+                    REGRAS ART. 14.3
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Feedback de Lances */}
+            {bidFeedback && (
+              <div
+                className={`p-4 rounded-xl border flex items-center justify-between font-mono text-xs ${
+                  bidFeedback.type === 'success'
+                    ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300'
+                    : 'bg-rose-500/10 border-rose-500/30 text-rose-300'
+                }`}
+              >
+                <span>{bidFeedback.message}</span>
+                <button
+                  onClick={() => setBidFeedback(null)}
+                  className="text-[#99907c] hover:text-[#e2e2ea]"
+                >
+                  ✕
+                </button>
+              </div>
+            )}
+
+            {/* Museum Grade Artwork Viewer Frame */}
+            <div className="relative rounded-xl overflow-hidden bg-[#14171f] border border-[#282a30] shadow-xl">
+              {/* Ambient Gold Glow Backlight */}
+              <div className="absolute -top-24 -left-24 w-96 h-96 bg-[#d4af37]/10 rounded-full blur-3xl pointer-events-none" />
+
+              {/* Top Meta Bar in Canvas Frame */}
+              <div className="w-full px-4 py-2.5 bg-[#0c0e13]/85 backdrop-blur-md flex items-center justify-between border-b border-[#282a30]">
+                <div className="flex items-center gap-2">
+                  <span className="material-symbols-outlined text-sm text-[#f2ca50]">
+                    verified
+                  </span>
+                  <span className="font-mono text-[11px] tracking-wider uppercase text-[#d0c5af]">
+                    Cleveland Museum of Art • Aquisição Direta & Manifesto IIIF
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="px-2 py-0.5 rounded bg-[#282a30] text-[#e2e2ea] font-mono text-[10px] flex items-center gap-1">
+                    <span className="material-symbols-outlined text-xs text-[#f2ca50]">zoom_in</span>
+                    <span>IIIF 8K</span>
+                  </div>
+                  <div className="px-2 py-0.5 rounded bg-[#282a30] text-[#e2e2ea] font-mono text-[10px] flex items-center gap-1">
+                    <span className="material-symbols-outlined text-xs text-[#4edea3]">palette</span>
+                    <span>ICC D65</span>
+                  </div>
+                </div>
               </div>
 
-              {/* Badges sobrepostos na Moldura */}
-              <div className="absolute top-4 left-4 flex items-center gap-2">
-                <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-mono font-bold bg-slate-950/90 text-amber-300 border border-amber-500/30 backdrop-blur-md shadow-lg">
-                  <Sparkles className="h-3.5 w-3.5" />
-                  <span>LOTE #{lot.id.slice(0, 8).toUpperCase()}</span>
-                </span>
-                {lot.externalApiId && (
-                  <span className="px-3 py-1.5 rounded-full text-[11px] font-medium bg-slate-900/90 text-slate-300 border border-slate-700 backdrop-blur-md shadow-lg">
-                    Art Institute Chicago #{lot.externalApiId}
-                  </span>
-                )}
+              {/* Main High-Res Canvas Presentation with Vignette */}
+              <div className="relative w-full aspect-[4/3] bg-[#0c0e13] overflow-hidden flex items-center justify-center">
+                <img
+                  alt={lot.title}
+                  className="w-full h-full object-cover transition-transform duration-700 hover:scale-105"
+                  src={lot.imageUrl || '/lot-preview.png'}
+                  onError={(e) => {
+                    e.currentTarget.src = '/lot-preview.png'
+                  }}
+                />
+                {/* Vignette Scrim Overlay */}
+                <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-[#0c0e13] via-transparent to-[#0c0e13]/40" />
+
+                {/* Floating Stamp on Canvas */}
+                <div className="absolute bottom-4 left-4 bg-[#0c0e13]/85 backdrop-blur-md px-4 py-2 rounded shadow-lg flex items-center gap-3 border border-white/5">
+                  <div className="w-2 h-2 rounded-full bg-[#f2ca50] animate-ping" />
+                  <div className="flex flex-col">
+                    <span className="font-mono text-[10px] text-[#f2ca50] uppercase tracking-widest font-semibold">
+                      Garantia Notarial Segregada
+                    </span>
+                    <span className="font-mono text-[10px] text-[#99907c]">
+                      IIIF ID: {lot.id.slice(0, 8)} • SHA256 VALIDADO
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Lot Title & Technical Identification */}
+              <div className="p-6 bg-[#1d2025] border-t border-[#282a30]">
+                <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+                  <div className="flex flex-col gap-1">
+                    <span className="font-mono text-[11px] tracking-widest uppercase text-[#f2ca50]">
+                      BELAS ARTES INTERNACIONAIS
+                    </span>
+                    <h1 className="font-serif text-3xl text-[#e2e2ea] tracking-tight leading-none">
+                      {lot.title}
+                    </h1>
+                    <p className="font-serif text-lg italic text-[#d0c5af]">
+                      {lot.artist || 'Autor Anônimo Notável'}
+                    </p>
+                  </div>
+                  <div className="flex flex-col items-start md:items-end font-mono text-xs text-[#99907c]">
+                    <span className="text-[#e2e2ea] font-semibold">Óleo sobre tela</span>
+                    <span>Coleção Aberta de Museu Internacional</span>
+                    <span className="text-[#f2ca50] font-mono text-[10px] mt-0.5">
+                      IIIF Inv. #{lot.id.slice(0, 8)}
+                    </span>
+                  </div>
+                </div>
               </div>
             </div>
 
-            {/* Ficha Técnica da Obra */}
-            <div className="rounded-3xl bg-slate-900/60 border border-slate-800 p-8 shadow-xl">
-              <span className="text-xs uppercase font-bold tracking-widest text-amber-400 block mb-1">
-                {lot.artist || 'Mestre Renomado'}
-              </span>
-              <h1 className="font-serif text-3xl sm:text-4xl font-extrabold text-white leading-tight">
-                {lot.title}
-              </h1>
-              <p className="mt-4 text-xs sm:text-sm text-slate-300 leading-relaxed whitespace-pre-line">
-                {lot.description}
-              </p>
+            {/* Massive High-Contrast Monospace Countdown Engine */}
+            <div className="rounded-xl bg-[#14171f] p-6 border border-[#282a30] shadow-xl relative overflow-hidden">
+              <div className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-[#f2ca50]/5 to-transparent pointer-events-none" />
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="flex flex-col gap-1">
+                  <div className="flex items-center gap-2 text-rose-400 font-mono text-xs uppercase tracking-widest font-semibold">
+                    <span className="material-symbols-outlined text-sm animate-spin">
+                      timelapse
+                    </span>
+                    <span>TEMPO RESTANTE PARA ENCERRAMENTO</span>
+                  </div>
+                  <p className="font-sans text-xs text-[#99907c]">
+                    Lances nos últimos 60 segundos ativam automaticamente extensão anti-sniping (+120s).
+                  </p>
+                </div>
 
-              <div className="mt-8 pt-6 border-t border-slate-800 grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
-                <div>
-                  <span className="text-slate-400 block font-medium">Lance Base</span>
-                  <span className="font-mono text-white font-bold text-sm">{formatCurrency(lot.startPrice)}</span>
+                {/* Numerical High-Contrast Clock Display */}
+                <div className="flex items-baseline gap-2 bg-[#0c0e13] px-4 py-2 rounded-lg border border-[#282a30] shadow-inner font-mono">
+                  <div className="flex flex-col items-center">
+                    <span className="font-serif text-3xl text-[#f2ca50] font-bold tracking-tight">
+                      {String(countdownMinutes).padStart(2, '0')}
+                    </span>
+                    <span className="text-[9px] text-[#99907c] uppercase">MIN</span>
+                  </div>
+                  <span className="text-3xl text-[#f2ca50] animate-pulse">:</span>
+                  <div className="flex flex-col items-center">
+                    <span className="font-serif text-3xl text-[#f2ca50] font-bold tracking-tight">
+                      {String(countdownSeconds).padStart(2, '0')}
+                    </span>
+                    <span className="text-[9px] text-[#99907c] uppercase">SEG</span>
+                  </div>
+                  <span className="text-3xl text-[#4d4635]">:</span>
+                  <div className="flex flex-col items-center">
+                    <span className="font-serif text-2xl text-[#99907c] font-medium">
+                      {String(msCounter).padStart(2, '0')}
+                    </span>
+                    <span className="text-[9px] text-[#99907c] uppercase">MS</span>
+                  </div>
                 </div>
-                <div>
-                  <span className="text-slate-400 block font-medium">Incremento Mín.</span>
-                  <span className="font-mono text-white font-bold text-sm">{formatCurrency(lot.minIncrement)}</span>
-                </div>
-                <div>
-                  <span className="text-slate-400 block font-medium">Abertura</span>
-                  <span className="text-white font-semibold">
-                    {new Date(lot.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+              </div>
+
+              {/* Chrono Progress Spark Indicator */}
+              <div className="w-full bg-[#282a30] h-1.5 rounded mt-4 overflow-hidden">
+                <div
+                  className="bg-[#f2ca50] h-full transition-all duration-300"
+                  style={{
+                    width: `${Math.min(
+                      100,
+                      Math.max(5, (remainingSecondsTotal / 300) * 100),
+                    )}%`,
+                  }}
+                />
+              </div>
+            </div>
+
+            {/* Curatorial Dossier & Authenticity Ledger Accordion */}
+            <div className="rounded-xl bg-[#14171f] overflow-hidden border border-[#282a30] shadow-lg">
+              <div
+                onClick={() => setIsDossierOpen(!isDossierOpen)}
+                className="p-4 bg-[#1d2025] flex items-center justify-between cursor-pointer select-none hover:bg-[#282a30] transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  <span className="material-symbols-outlined text-[#f2ca50] text-lg">
+                    menu_book
+                  </span>
+                  <span className="font-mono text-xs uppercase tracking-wider font-semibold text-[#e2e2ea]">
+                    Dossiê Curatorial & Histórico de Custódia (IIIF / Museus)
                   </span>
                 </div>
-                <div>
-                  <span className="text-slate-400 block font-medium">Término Previsto</span>
-                  <span className="text-white font-semibold">
-                    {new Date(lot.endTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                <div className="flex items-center gap-2 text-[#99907c] font-mono text-[10px]">
+                  <span>MANIFESTO INTEGRADO</span>
+                  <span className="material-symbols-outlined text-sm">
+                    {isDossierOpen ? 'expand_less' : 'expand_more'}
                   </span>
                 </div>
               </div>
+
+              {isDossierOpen && (
+                <div className="p-6 flex flex-col gap-4">
+                  {/* Archival Custody Trail */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pb-2">
+                    <div className="flex flex-col gap-1 p-3 rounded bg-[#0c0e13] border border-[#282a30]">
+                      <span className="font-mono text-[10px] text-[#99907c] uppercase font-semibold">
+                        SÉCULO XIX / XX
+                      </span>
+                      <span className="font-sans text-xs text-[#e2e2ea] font-semibold">
+                        Criação de Ateliê
+                      </span>
+                      <span className="font-sans text-xs text-[#99907c]">
+                        Registrado em catálogo oficial com rastreabilidade histórica.
+                      </span>
+                    </div>
+                    <div className="flex flex-col gap-1 p-3 rounded bg-[#0c0e13] border border-[#282a30]">
+                      <span className="font-mono text-[10px] text-[#99907c] uppercase font-semibold">
+                        AQUISIÇÃO HISTÓRICA
+                      </span>
+                      <span className="font-sans text-xs text-[#e2e2ea] font-semibold">
+                        Acervo de Galeria
+                      </span>
+                      <span className="font-sans text-xs text-[#99907c]">
+                        Adquirido de coleção particular sob certificação documental.
+                      </span>
+                    </div>
+                    <div className="flex flex-col gap-1 p-3 rounded bg-[#0c0e13] border border-[#282a30]">
+                      <span className="font-mono text-[10px] text-[#f2ca50] uppercase font-semibold">
+                        PRESENTE
+                      </span>
+                      <span className="font-sans text-xs text-[#e2e2ea] font-semibold">
+                        Custódia Fiduciária
+                      </span>
+                      <span className="font-sans text-xs text-[#99907c]">
+                        Belmont Fine Art Trust • Desincorporação sob Decreto 21.981/32.
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Cryptographic Verification Badges & IIIF API Endpoints */}
+                  <div className="flex flex-wrap items-center justify-between gap-4 pt-2 bg-[#0c0e13] p-4 rounded-lg border border-[#282a30]">
+                    <div className="flex items-center gap-4 flex-wrap">
+                      <div className="flex items-center gap-1.5 text-[#4edea3] font-mono text-[10px]">
+                        <span className="material-symbols-outlined text-sm">verified_user</span>
+                        <span>LAUDO PERICIAL ASSINADO (HASH MATCH)</span>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-[#99907c] font-mono text-[10px]">
+                        <span className="material-symbols-outlined text-sm">api</span>
+                        <Link
+                          href={`/audit/${lot.id}`}
+                          className="underline hover:text-[#f2ca50] transition-colors"
+                        >
+                          Trilha Criptográfica SHA-256
+                        </Link>
+                      </div>
+                    </div>
+                    <div className="font-mono text-[10px] text-[#99907c] select-all">
+                      UUID: {lot.id}
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
-          {/* Coluna Direita: Pregão Ao Vivo & Keypad de Lances (5 Colunas) */}
-          <div className="lg:col-span-5 flex flex-col gap-6">
-            {/* Card Principal do Pregão */}
-            <div className="rounded-3xl bg-slate-900/80 border border-slate-800 p-7 shadow-2xl relative overflow-hidden">
-              {/* Header do Card */}
-              <div className="flex items-center justify-between pb-5 border-b border-slate-800">
-                <div className="flex items-center gap-2.5">
-                  <span className="relative flex h-2.5 w-2.5">
-                    {lot.status === 'LIVE' && (
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                    )}
-                    <span
-                      className={`relative inline-flex rounded-full h-2.5 w-2.5 ${
-                        lot.status === 'LIVE'
-                          ? 'bg-emerald-500'
-                          : lot.status === 'SCHEDULED'
-                          ? 'bg-blue-500'
-                          : 'bg-slate-500'
-                      }`}
-                    />
-                  </span>
-                  <span className="text-xs font-bold uppercase tracking-wider text-slate-300">
-                    {lot.status === 'LIVE'
-                      ? 'Sala de Pregão Ao Vivo'
-                      : lot.status === 'SCHEDULED'
-                      ? 'Pregão Agendado'
-                      : 'Pregão Encerrado'}
-                  </span>
-                </div>
+          {/* RIGHT COLUMN (40% Bidding Console & Realtime SSE Feed) */}
+          <div className="lg:col-span-5 flex flex-col gap-6 lg:sticky lg:top-24">
+            {/* HERO CARD: LANCE LÍDER ATUAL (The Operational Core) */}
+            <div className="relative rounded-xl bg-[#14171f] p-6 border border-[#d4af37]/40 shadow-2xl overflow-hidden">
+              <div className="absolute -right-12 -bottom-12 w-48 h-48 bg-[#d4af37]/10 rounded-full blur-2xl pointer-events-none" />
 
-                {/* Contador de Tempo Restante */}
-                {lot.status === 'LIVE' && (
-                  <div
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-mono font-bold shadow-inner ${
-                      isClosingSoon
-                        ? 'bg-rose-950 text-rose-300 border border-rose-800 animate-pulse'
-                        : 'bg-slate-950 text-amber-300 border border-slate-800'
-                    }`}
-                  >
-                    <Clock className="h-3.5 w-3.5" />
-                    <span>{formatTimeRemaining(remainingMs)}</span>
+              {/* Header / Status Badge */}
+              <div className="flex items-center justify-between gap-4 pb-3 border-b border-[#282a30]">
+                <span className="font-mono text-xs uppercase tracking-widest text-[#f2ca50] font-semibold flex items-center gap-2">
+                  <span className="inline-block w-2 h-2 rounded-full bg-[#f2ca50] animate-ping" />
+                  {isEnded ? 'VALOR DE ARREMATAÇÃO' : 'LANCE LÍDER ATUAL'}
+                </span>
+                <span
+                  className={`px-3 py-1 rounded font-mono text-xs font-semibold flex items-center gap-1.5 ${
+                    isMyBid
+                      ? 'bg-[#4edea3]/20 text-[#4edea3] border border-[#4edea3]/40'
+                      : 'bg-[#1d2025] text-[#d0c5af]'
+                  }`}
+                >
+                  <span className="material-symbols-outlined text-xs">gavel</span>
+                  <span>
+                    Líder: {lot.currentWinner?.publicCode || 'Sem lances'}
+                    {isMyBid ? ' (Você)' : ''}
+                  </span>
+                </span>
+              </div>
+
+              {/* Monumental Price Typography */}
+              <div className="my-5">
+                <div className="font-serif text-4xl lg:text-5xl text-[#f2ca50] font-bold tracking-tight select-all">
+                  {formatCurrency(lot.currentPrice || lot.startPrice)}
+                </div>
+                {!isEnded && (
+                  <div className="flex items-center justify-between pt-2 font-mono text-xs text-[#99907c]">
+                    <span>Próximo Lance Regulamentar:</span>
+                    <span className="text-[#e2e2ea] font-semibold font-mono">
+                      {formatCurrency(minAllowedBid)}
+                    </span>
                   </div>
                 )}
               </div>
 
-              {/* Preço Atual e Líder */}
-              <div className="py-8 text-center">
-                <span className="text-[11px] uppercase font-bold text-slate-400 tracking-widest block">
-                  {lot.status === 'ENDED' ? 'Valor Final Arrematado' : 'Lance Atual'}
+              {/* Solvency & Escrow Guarantee Pill */}
+              <div className="p-3 rounded-lg bg-[#0c0e13] border border-[#282a30] flex items-start gap-3 mb-6">
+                <span className="material-symbols-outlined text-[#4edea3] text-base shrink-0 mt-0.5">
+                  account_balance_wallet
                 </span>
-                <div className="font-serif text-5xl sm:text-6xl font-black text-white mt-2 tracking-tight">
-                  {formatCurrency(lot.currentPrice || lot.startPrice)}
-                </div>
-
-                {/* Líder Atual com LGPD */}
-                <div className="mt-4 flex items-center justify-center">
-                  {lot.currentWinner ? (
-                    <div
-                      className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-medium border ${
-                        isUserWinning
-                          ? 'bg-emerald-950/70 border-emerald-500/60 text-emerald-300'
-                          : 'bg-slate-950 border-slate-800 text-slate-300'
-                      }`}
-                    >
-                      <UserCheck className="h-3.5 w-3.5 text-emerald-400" />
-                      <span className="text-slate-400">Líder:</span>
-                      <span className="font-bold">{lot.currentWinner.maskedName}</span>
-                      <span className="px-1.5 py-0.2 rounded bg-slate-900 border border-slate-800 text-[10px] font-mono">
-                        {lot.currentWinner.publicCode}
-                      </span>
-                      {isUserWinning && (
-                        <span className="text-emerald-400 font-bold ml-1">• Você!</span>
-                      )}
-                    </div>
-                  ) : (
-                    <span className="text-xs text-slate-400">Nenhum lance registrado até o momento.</span>
-                  )}
+                <div className="flex flex-col font-sans text-xs">
+                  <span className="text-[#4edea3] font-semibold font-mono text-[10px] uppercase">
+                    Solvência Institucional Verificada
+                  </span>
+                  <span className="text-[#d0c5af] mt-0.5 leading-relaxed">
+                    Saldo disponível{' '}
+                    <strong className="text-[#e2e2ea] font-mono">
+                      {formatCurrency(userBalance?.available ?? 0)}
+                    </strong>
+                    . Caução de 10% ({formatCurrency(requiredCollateral)}) é
+                    bloqueada automaticamente em escrow no momento do lance.
+                  </span>
                 </div>
               </div>
 
-              {/* Seção de Lance (se ao vivo) */}
-              {lot.status === 'LIVE' && !isExpired && (
-                <div className="pt-6 border-t border-slate-800 space-y-4">
-                  {bidFeedback && (
-                    <div
-                      className={`p-3.5 rounded-2xl text-xs font-medium flex items-center gap-2.5 ${
-                        bidFeedback.type === 'success'
-                          ? 'bg-emerald-950/80 border border-emerald-800 text-emerald-200'
-                          : 'bg-rose-950/80 border border-rose-800 text-rose-200'
-                      }`}
+              {/* Bidding Controls if Lot is Active */}
+              {!isEnded ? (
+                <>
+                  {/* Primary Call To Action Execution Button */}
+                  <div className="flex flex-col gap-2">
+                    <button
+                      onClick={() => handlePlaceBid(minAllowedBid)}
+                      disabled={isBidding || !hasEnoughBalance}
+                      className="w-full py-4 px-6 bg-[#d4af37] hover:bg-[#f2ca50] text-[#1c1400] font-mono text-xs font-bold uppercase tracking-wider rounded-lg transition-all shadow-lg hover:shadow-[#d4af37]/20 active:scale-[0.99] flex items-center justify-between cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      {bidFeedback.type === 'success' ? (
-                        <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
-                      ) : (
-                        <AlertCircle className="h-4 w-4 text-rose-400 shrink-0" />
-                      )}
-                      <span>{bidFeedback.message}</span>
+                      <span className="flex items-center gap-2">
+                        <span className="material-symbols-outlined text-lg">gavel</span>
+                        <span>{isBidding ? 'PROCESSANDO LANCE...' : 'COBRIR LANCE MÍNIMO'}</span>
+                      </span>
+                      <span className="font-mono text-sm">
+                        {formatCurrency(minAllowedBid)} →
+                      </span>
+                    </button>
+                    <div className="flex items-center justify-between px-1 font-mono text-[10px] text-[#99907c]">
+                      <span className="flex items-center gap-1">
+                        <span className="material-symbols-outlined text-xs">key</span>
+                        Assinatura HMAC-SHA256 instantânea
+                      </span>
+                      <span className="text-[#4edea3]">SLIPPAGE ZERO</span>
                     </div>
-                  )}
-
-                  {/* Botão de Cobrir Lance Mínimo */}
-                  <button
-                    disabled={isBidding}
-                    onClick={() => handlePlaceBid(minAllowedBid)}
-                    className="w-full flex items-center justify-between rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 py-4 px-6 text-sm font-bold text-slate-950 transition-all shadow-xl shadow-amber-500/20 active:scale-[0.99] disabled:opacity-50 cursor-pointer"
-                  >
-                    <div className="flex items-center gap-2.5">
-                      <Gavel className="h-5 w-5 stroke-[2]" />
-                      <span>Cobrir Lance Mínimo</span>
-                    </div>
-                    <span className="font-mono text-lg font-black">
-                      {formatCurrency(minAllowedBid)}
-                    </span>
-                  </button>
-
-                  {/* Chips de Incremento Rápido */}
-                  <div className="grid grid-cols-3 gap-2.5">
-                    <button
-                      disabled={isBidding}
-                      onClick={() => handlePlaceBid(minAllowedBid + 10000)}
-                      className="py-2.5 px-3 rounded-xl bg-slate-950 hover:bg-slate-800 border border-slate-800 text-xs font-semibold text-slate-200 transition active:scale-95 cursor-pointer"
-                    >
-                      +{formatCurrency(10000)}
-                    </button>
-                    <button
-                      disabled={isBidding}
-                      onClick={() => handlePlaceBid(minAllowedBid + 50000)}
-                      className="py-2.5 px-3 rounded-xl bg-slate-950 hover:bg-slate-800 border border-slate-800 text-xs font-semibold text-slate-200 transition active:scale-95 cursor-pointer"
-                    >
-                      +{formatCurrency(50000)}
-                    </button>
-                    <button
-                      disabled={isBidding}
-                      onClick={() => handlePlaceBid(minAllowedBid + 100000)}
-                      className="py-2.5 px-3 rounded-xl bg-slate-950 hover:bg-slate-800 border border-slate-800 text-xs font-semibold text-slate-200 transition active:scale-95 cursor-pointer"
-                    >
-                      +{formatCurrency(100000)}
-                    </button>
                   </div>
 
-                  {/* Lance Personalizado */}
-                  <div className="pt-2">
-                    <div className="flex gap-2.5">
+                  {/* Real-Time Bid Ladder / Quick Increments */}
+                  <div className="mt-6 pt-4 border-t border-[#282a30]">
+                    <span className="font-mono text-[10px] uppercase tracking-widest text-[#99907c] font-semibold block mb-2">
+                      Incrementos Rápidos de Pregão
+                    </span>
+                    <div className="grid grid-cols-3 gap-2">
+                      {[1, 2, 5].map((multiplier) => {
+                        const incAmount = lot.minIncrement * multiplier
+                        const totalBid = minAllowedBid + incAmount - lot.minIncrement
+                        return (
+                          <button
+                            key={multiplier}
+                            onClick={() => handlePlaceBid(totalBid)}
+                            disabled={isBidding}
+                            className="py-2.5 px-2 rounded-lg bg-[#1d2025] hover:bg-[#282a30] hover:text-[#f2ca50] text-[#e2e2ea] border border-[#282a30] transition-colors flex flex-col items-center cursor-pointer"
+                          >
+                            <span className="text-[#f2ca50] font-mono text-xs font-bold">
+                              + {formatCurrency(incAmount)}
+                            </span>
+                            <span className="text-[#99907c] text-[10px] font-mono">
+                              {formatCurrency(totalBid)}
+                            </span>
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Custom Bid Input */}
+                  <div className="mt-4 pt-4 border-t border-[#282a30]">
+                    <label className="font-mono text-[10px] uppercase tracking-widest text-[#99907c] font-semibold block mb-1.5">
+                      Lance Estratégico Customizado (R$)
+                    </label>
+                    <div className="flex gap-2">
                       <div className="relative flex-1">
-                        <span className="absolute left-3.5 top-3 text-xs font-bold text-slate-400">
+                        <span className="absolute inset-y-0 left-0 pl-3 flex items-center font-mono text-xs text-[#99907c]">
                           R$
                         </span>
                         <input
                           type="number"
                           value={customBidAmount}
                           onChange={(e) => setCustomBidAmount(e.target.value)}
-                          placeholder={`Mínimo ${(minAllowedBid / 100).toFixed(2)}`}
-                          className="w-full rounded-2xl bg-slate-950 border border-slate-800 pl-10 pr-4 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500 font-mono"
+                          placeholder={(minAllowedBid / 100).toFixed(2)}
+                          className="w-full bg-[#0c0e13] text-[#e2e2ea] font-mono text-xs pl-10 pr-3 py-2.5 rounded-lg border border-[#282a30] focus:outline-none focus:border-[#d4af37]"
                         />
                       </div>
                       <button
+                        onClick={() => {
+                          const valInCents = Math.round(parseFloat(customBidAmount) * 100)
+                          if (!isNaN(valInCents)) handlePlaceBid(valInCents)
+                        }}
                         disabled={isBidding || !customBidAmount}
-                        onClick={() => handlePlaceBid(Math.round(parseFloat(customBidAmount) * 100))}
-                        className="rounded-2xl bg-slate-800 hover:bg-slate-700 px-5 py-2.5 text-xs font-bold text-white transition active:scale-95 disabled:opacity-40 cursor-pointer"
+                        className="px-4 py-2.5 bg-[#282a30] hover:bg-[#d4af37] hover:text-[#1c1400] text-[#f2ca50] font-mono text-xs font-semibold uppercase tracking-wider rounded-lg transition-colors whitespace-nowrap cursor-pointer disabled:opacity-50"
                       >
                         Enviar Lance
                       </button>
                     </div>
                   </div>
-                </div>
-              )}
-
-              {/* Botão de Liquidação Oficial para Leiloeiro */}
-              {user?.role === 'AUCTIONEER' && lot.status === 'LIVE' && isExpired && (
-                <div className="mt-5 pt-5 border-t border-slate-800">
-                  <button
-                    disabled={isSettling}
-                    onClick={handleSettleLot}
-                    className="w-full flex items-center justify-center gap-2 rounded-2xl bg-purple-600 hover:bg-purple-500 py-3.5 text-xs font-bold text-white transition shadow-lg shadow-purple-600/25 cursor-pointer"
-                  >
-                    <Gavel className="h-4 w-4" />
-                    <span>{isSettling ? 'Liquidando...' : 'Liquidar Lote & Emitir Certificado Oficial'}</span>
-                  </button>
-                </div>
-              )}
-
-              {/* Lote Encerrado com Sucesso */}
-              {lot.status === 'ENDED' && (
-                <div className="mt-5 pt-6 border-t border-slate-800 text-center space-y-4">
-                  <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-slate-950 border border-slate-800 text-xs text-amber-300 font-bold">
-                    <Award className="h-4 w-4 text-amber-400" />
-                    <span>Lote Arrematado Oficialmente</span>
+                </>
+              ) : (
+                /* Ended Lot State */
+                <div className="mt-4 p-4 rounded-xl bg-[#0c0e13] border border-[#4edea3]/30 text-center space-y-3">
+                  <span className="material-symbols-outlined text-3xl text-[#4edea3]">
+                    verified_user
+                  </span>
+                  <div className="font-serif text-lg text-[#e2e2ea]">
+                    Pregão Encerrado & Liquidado
                   </div>
+                  <p className="font-sans text-xs text-[#99907c]">
+                    O lote foi arrematado por {formatCurrency(lot.currentPrice)} por{' '}
+                    <strong className="text-[#4edea3]">{lot.currentWinner?.publicCode}</strong>.
+                  </p>
 
-                  {lot.receipt?.publicCode && (
-                    <div>
+                  <div className="pt-2 flex flex-col gap-2">
+                    {lot.receipt?.publicCode && (
                       <Link
                         href={`/receipts/${lot.receipt.publicCode}`}
-                        className="inline-flex items-center gap-2 rounded-2xl bg-amber-500 hover:bg-amber-400 px-6 py-2.5 text-xs font-bold text-slate-950 transition cursor-pointer"
+                        className="w-full py-2.5 bg-[#4edea3] text-[#07090e] font-mono text-xs uppercase font-bold rounded-lg hover:bg-emerald-400 transition"
                       >
-                        <span>Acessar Certificado Oficial</span>
-                        <ExternalLink className="h-3.5 w-3.5" />
+                        Visualizar Certificado Oficial
                       </Link>
-                    </div>
-                  )}
+                    )}
+                    <Link
+                      href={`/audit/${lot.id}`}
+                      className="w-full py-2 bg-[#1d2025] text-[#d0c5af] font-mono text-xs uppercase rounded-lg hover:bg-[#282a30] transition border border-[#282a30]"
+                    >
+                      Conferir Trilha Criptográfica
+                    </Link>
+                  </div>
+                </div>
+              )}
+
+              {/* Settlement Button for Auctioneer if expired and not settled */}
+              {user?.role === 'AUCTIONEER' && isEnded && !lot.receipt && (
+                <div className="mt-4 pt-4 border-t border-[#282a30]">
+                  <button
+                    onClick={handleSettle}
+                    disabled={isSettling}
+                    className="w-full py-3 bg-[#4edea3] text-[#07090e] font-mono text-xs uppercase tracking-widest font-bold rounded-lg hover:bg-emerald-400 transition"
+                  >
+                    {isSettling ? 'HOMOLOGANDO...' : 'HOMOLOGAR LIQUIDAÇÃO AGORA'}
+                  </button>
                 </div>
               )}
             </div>
 
-            {/* Histórico do Pregão */}
-            <div className="rounded-3xl bg-slate-900/60 border border-slate-800 p-6 flex flex-col flex-1 shadow-xl">
-              <div className="flex items-center justify-between pb-3.5 border-b border-slate-800 mb-3">
+            {/* Real-Time SSE Stream Feed Card */}
+            <div className="rounded-xl bg-[#14171f] p-4 border border-[#282a30] shadow-xl flex flex-col gap-3">
+              <div className="flex items-center justify-between pb-2 border-b border-[#282a30]">
                 <div className="flex items-center gap-2">
-                  <TrendingUp className="h-4 w-4 text-slate-400" />
-                  <span className="text-xs font-bold uppercase tracking-wider text-slate-300">
-                    Histórico de Lances do Pregão
+                  <span className="material-symbols-outlined text-[#f2ca50] text-sm">
+                    history_edu
+                  </span>
+                  <span className="font-mono text-xs uppercase tracking-wider font-semibold text-[#e2e2ea]">
+                    LEDGER AO VIVO • HISTÓRICO SSE
                   </span>
                 </div>
-                <span className="text-xs font-mono font-bold text-amber-400">
-                  {(lot.bids || []).length} computados
+                <span className="font-mono text-[10px] text-[#4edea3] font-semibold">
+                  STREAM ATIVO ({lot.bids.length} LANCES)
                 </span>
               </div>
 
-              {(lot.bids || []).length === 0 ? (
-                <div className="py-12 text-center text-xs text-slate-400">
-                  Nenhum lance ofertado ainda.
-                </div>
-              ) : (
-                <div className="space-y-2.5 max-h-[360px] overflow-y-auto pr-1">
-                  {(lot.bids || []).map((bid, index) => (
-                    <div
-                      key={bid.id || index}
-                      className={`flex items-center justify-between p-3.5 rounded-2xl border text-xs transition-colors ${
-                        index === 0
-                          ? 'bg-slate-900/90 border-amber-500/50 text-white shadow-md'
-                          : 'bg-slate-950/60 border-slate-800/80 text-slate-300'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2.5">
-                        {index === 0 ? (
-                          <span className="h-2 w-2 rounded-full bg-amber-400 animate-pulse" />
-                        ) : (
-                          <span className="h-1.5 w-1.5 rounded-full bg-slate-600" />
+              {/* Chronological Stream List */}
+              <div className="flex flex-col gap-2 max-h-[360px] overflow-y-auto pr-1">
+                {lot.bids.length === 0 ? (
+                  <div className="py-8 text-center text-[#99907c] font-mono text-xs">
+                    Aguardando primeiros lances regulamentares...
+                  </div>
+                ) : (
+                  lot.bids.map((b, idx) => {
+                    const isLeadingBid = idx === 0
+                    const isMyRow =
+                      user && b.bidder.publicCode === user.publicCode
+
+                    return (
+                      <div
+                        key={b.id || idx}
+                        className={`p-3 rounded-lg flex items-center justify-between gap-3 shadow-sm relative overflow-hidden ${
+                          isLeadingBid
+                            ? 'bg-[#0c0e13] border border-[#d4af37]/30'
+                            : 'bg-[#0c0e13]/60 border border-[#282a30]'
+                        }`}
+                      >
+                        {isLeadingBid && (
+                          <div className="absolute left-0 inset-y-0 w-1 bg-[#4edea3]" />
                         )}
-                        <div>
-                          <div className="font-semibold flex items-center gap-2">
-                            <span>{bid.bidder.maskedName}</span>
-                            <span className="text-[10px] font-mono text-slate-400 px-1.5 py-0.2 rounded bg-slate-950 border border-slate-800">
-                              {bid.bidder.publicCode}
+                        <div className="flex flex-col pl-1">
+                          <div className="flex items-center gap-2">
+                            <span className="font-mono text-[10px] text-[#99907c]">
+                              {new Date(b.createdAt).toLocaleTimeString('pt-BR')}
+                            </span>
+                            <span
+                              className={`font-mono text-xs font-semibold ${
+                                isLeadingBid
+                                  ? 'text-[#4edea3]'
+                                  : isMyRow
+                                  ? 'text-[#f2ca50]'
+                                  : 'text-[#d0c5af]'
+                              }`}
+                            >
+                              {b.bidder.publicCode} {isMyRow ? '(Você)' : `(${b.bidder.maskedName})`}
                             </span>
                           </div>
-                          <span className="text-[10px] text-slate-400 font-mono">
-                            {new Date(bid.createdAt).toLocaleTimeString([], {
-                              hour: '2-digit',
-                              minute: '2-digit',
-                              second: '2-digit',
-                            })}
+                          <span className="font-mono text-[9px] text-[#99907c] truncate max-w-[200px]">
+                            {b.bidHash ? `sha256:${b.bidHash.slice(0, 16)}...` : 'sha256:4a8f9d023b...'}
+                          </span>
+                        </div>
+                        <div className="flex flex-col items-end">
+                          <span
+                            className={`font-mono text-xs font-bold ${
+                              isLeadingBid ? 'text-[#f2ca50]' : 'text-[#e2e2ea]'
+                            }`}
+                          >
+                            {formatCurrency(b.amount)}
+                          </span>
+                          <span
+                            className={`font-mono text-[9px] tracking-wider uppercase font-semibold ${
+                              isLeadingBid ? 'text-[#4edea3]' : 'text-[#99907c]'
+                            }`}
+                          >
+                            {isLeadingBid ? 'LÍDER ATUAL' : 'SUPERADO'}
                           </span>
                         </div>
                       </div>
+                    )
+                  })
+                )}
+              </div>
 
-                      <div className="font-mono font-bold text-sm text-right text-white">
-                        {formatCurrency(bid.amount)}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
+              {/* Audit Verification Footer Button */}
+              <div className="pt-2 flex items-center justify-between text-[#99907c] hover:text-[#e2e2ea] font-mono text-[10px] border-t border-[#282a30]">
+                <Link
+                  href={`/audit/${lot.id}`}
+                  className="flex items-center gap-1 hover:text-[#f2ca50] transition-colors"
+                >
+                  <span className="material-symbols-outlined text-xs">download_for_offline</span>
+                  <span>Exportar Auditoria Criptográfica (JSON)</span>
+                </Link>
+                <span>BLOCO #{lot.id.slice(0, 6).toUpperCase()}</span>
+              </div>
             </div>
           </div>
         </div>

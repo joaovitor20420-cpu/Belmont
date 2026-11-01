@@ -18,6 +18,9 @@ import { verifyLotAuditTrailController } from './controllers/verifyLotAuditTrail
 import { settleLotController } from './controllers/settleLot.js'
 import { getReceiptByCodeController } from './controllers/getReceiptByCode.js'
 import { liveAuctionStreamController } from './controllers/liveAuctionStream.js'
+import { cancelLotController } from './controllers/cancelLot.js'
+import { settleExpiredLotsController } from './controllers/settleExpiredLots.js'
+import { getMyBidsController } from './controllers/getMyBids.js'
 
 export async function appRoutes(app: FastifyInstance) {
   app.post(
@@ -327,5 +330,49 @@ export async function appRoutes(app: FastifyInstance) {
       },
     },
     liveAuctionStreamController,
+  )
+
+  app.post(
+    '/lots/:id/cancel',
+    {
+      onRequest: [verifyJwt, verifyUserRole('AUCTIONEER')],
+      schema: {
+        tags: ['Lotes'],
+        summary: 'Cancelar lote sem lances',
+        description:
+          'Cancela um lote agendado ou ao vivo que ainda não tenha recebido nenhum lance.',
+        params: z.object({
+          id: z.string().uuid('ID do lote inválido'),
+        }),
+      },
+    },
+    cancelLotController,
+  )
+
+  app.post(
+    '/lots/settle-expired',
+    {
+      schema: {
+        tags: ['Liquidação'],
+        summary: 'Liquidar todos os lotes expirados',
+        description:
+          'Executa a rotina de auto-liquidação em lote de todos os pregões com horário expirado.',
+      },
+    },
+    settleExpiredLotsController,
+  )
+
+  app.get(
+    '/me/bids',
+    {
+      onRequest: [verifyJwt],
+      schema: {
+        tags: ['Lances'],
+        summary: 'Meus arremates e participações em lances',
+        description:
+          'Retorna os lotes ativos em que o usuário está participando e os lotes arrematados com comprovante.',
+      },
+    },
+    getMyBidsController,
   )
 }

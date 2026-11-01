@@ -1,6 +1,7 @@
 import type { LoteStatus } from '@prisma/client'
 import type { LotsRepository } from '../repositories/lotsRepository.js'
 import { formatLotToDTO, type LotDTO } from './createLot.js'
+import { makeSettleExpiredLotsUseCase } from './factories/makeSettleExpiredLotsUseCase.js'
 
 interface ListLotsRequest {
   status?: LoteStatus
@@ -20,6 +21,12 @@ export class ListLotsUseCase {
     page = 1,
     limit = 20,
   }: ListLotsRequest): Promise<ListLotsResponse> {
+    // Liquidação preguiçosa (lazy settlement) de lotes que já atingiram o prazo final
+    try {
+      const settleExpiredLotsUseCase = makeSettleExpiredLotsUseCase()
+      await settleExpiredLotsUseCase.execute()
+    } catch {}
+
     const rawLots = await this.lotsRepository.findMany({
       status,
       page,

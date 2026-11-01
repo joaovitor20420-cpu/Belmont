@@ -34,7 +34,7 @@ export class PrismaLotsRepository implements LotsRepository {
     limit?: number
   }): Promise<LotWithWinner[]> {
     return prisma.lot.findMany({
-      where: status ? { status } : undefined,
+      where: status ? { status } : { status: { not: 'CANCELLED' } },
       include: {
         currentWinner: {
           select: {

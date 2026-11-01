@@ -16,12 +16,20 @@ export async function settleLotController(
   try {
     const settleLotUseCase = makeSettleLotUseCase()
 
-    const result = await settleLotUseCase.execute({ lotId: id })
+    const result = await settleLotUseCase.execute({
+      lotId: id,
+      requestedByUserId: request.user?.sub,
+      requestedByUserRole: request.user?.role,
+    })
 
     return reply.status(200).send(result)
   } catch (err) {
     if (err instanceof ResourceNotFoundError) {
       return reply.status(404).send({ message: 'Lote não encontrado.' })
+    }
+
+    if (err instanceof Error) {
+      return reply.status(400).send({ message: err.message })
     }
 
     throw err

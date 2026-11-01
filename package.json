@@ -5,7 +5,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "tsx scripts/test-business-rules.ts",
     "dev": "concurrently -n \"API,WEB\" -c \"cyan,magenta\" \"npm run dev:server\" \"npm run dev:web\"",
     "dev:server": "tsx watch src/index.ts",
     "dev:web": "npm --prefix web run dev",

@@ -13,7 +13,12 @@ export function formatCurrency(amountInCents: number | bigint | string): string 
   }).format(num / 100)
 }
 
-export function formatTimeRemaining(ms: number): string {
+export function formatTimeRemaining(msOrDate: number | string | Date): string {
+  const ms =
+    typeof msOrDate === 'number'
+      ? msOrDate
+      : new Date(msOrDate).getTime() - Date.now()
+
   if (ms <= 0) return 'Encerrado'
   const seconds = Math.floor((ms / 1000) % 60)
   const minutes = Math.floor((ms / (1000 * 60)) % 60)

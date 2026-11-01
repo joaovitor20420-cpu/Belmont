@@ -7,6 +7,8 @@ import { ResourceNotFoundError } from './errors/resource-not-found-error.js'
 
 interface SettleLotRequest {
   lotId: string
+  requestedByUserId?: string
+  requestedByUserRole?: string
 }
 
 export interface SettledReceiptDTO {
@@ -34,7 +36,11 @@ export interface SettleLotResponse {
 }
 
 export class SettleLotUseCase {
-  async execute({ lotId }: SettleLotRequest): Promise<SettleLotResponse> {
+  async execute({
+    lotId,
+    requestedByUserId,
+    requestedByUserRole,
+  }: SettleLotRequest): Promise<SettleLotResponse> {
     const result = await prisma.$transaction(async (tx) => {
       // 1. Lock pessimista no Lote para garantir que nenhuma ação concorrente ocorra
       const lotRaw = await tx.$queryRaw<Lot[]>`
@@ -44,6 +50,23 @@ export class SettleLotUseCase {
 
       if (!lot) {
         throw new ResourceNotFoundError()
+      }
+
+      // Validação de Lotes Cancelados ou Agendados
+      if (lot.status === 'CANCELLED') {
+        throw new Error('Lotes cancelados não podem ser liquidados.')
+      }
+
+      if (lot.status === 'SCHEDULED') {
+        throw new Error('Lotes agendados não podem ser liquidados antes de seu início.')
+      }
+
+      // Validação de encerramento antecipado (martelo): apenas o Leiloeiro pode forçar antes de endTime
+      const now = new Date()
+      if (now < lot.endTime && requestedByUserRole && requestedByUserRole !== 'AUCTIONEER') {
+        throw new Error(
+          'Apenas o Leiloeiro Oficial pode bater o martelo e encerrar o pregão antes do prazo regulamentar.',
+        )
       }
 
       // 2. Checagem de Idempotência Estrita
@@ -89,7 +112,7 @@ export class SettleLotUseCase {
           throw new ResourceNotFoundError()
         }
 
-        // Converte saldo temporariamente comprometido em débito definitivo
+        // Converte saldo temporariamente comprometido em débito definitivo do vencedor
         const newTotal = winner.balanceTotal - lot.currentPrice
         const newCommitted = winner.balanceCommitted - lot.currentPrice
 
@@ -112,6 +135,35 @@ export class SettleLotUseCase {
             description: `Liquidação definitiva de arremate do lote "${lot.title}"`,
           },
         })
+
+        // Credita o valor da arrematação na conta do Leiloeiro criador (SETTLEMENT_CREDIT)
+        if (lot.userId) {
+          const auctioneer = await tx.user.findUnique({
+            where: { id: lot.userId },
+          })
+
+          if (auctioneer) {
+            const newAuctioneerTotal = auctioneer.balanceTotal + lot.currentPrice
+
+            await tx.user.update({
+              where: { id: auctioneer.id },
+              data: {
+                balanceTotal: newAuctioneerTotal,
+              },
+            })
+
+            await tx.walletTransaction.create({
+              data: {
+                userId: auctioneer.id,
+                lotId: lot.id,
+                type: 'SETTLEMENT_CREDIT',
+                amount: lot.currentPrice,
+                balanceAfter: newAuctioneerTotal - auctioneer.balanceCommitted,
+                description: `Crédito de arrematação recebido pelo lote "${lot.title}"`,
+              },
+            })
+          }
+        }
 
         // 4. Busca o último lance para cálculo do Selo Criptográfico Raiz (lotSealHash)
         const lastBid = await tx.bid.findFirst({

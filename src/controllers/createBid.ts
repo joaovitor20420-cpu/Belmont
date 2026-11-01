@@ -6,6 +6,7 @@ import { AuctionNotActiveError } from '../use-cases/errors/auction-not-active-er
 import { SelfOutbidError } from '../use-cases/errors/self-outbid-error.js'
 import { InvalidBidAmountError } from '../use-cases/errors/invalid-bid-amount-error.js'
 import { InsufficientFundsError } from '../use-cases/errors/insufficient-funds-error.js'
+import { AuctioneerCannotBidError } from '../use-cases/errors/auctioneer-cannot-bid-error.js'
 
 export async function createBidController(
   request: FastifyRequest,
@@ -15,15 +16,18 @@ export async function createBidController(
     id: z.string().uuid('ID do lote inválido'),
   })
 
-  const createBidBodySchema = z.object({
-    amountInCents: z
-      .number()
-      .int()
-      .positive('O valor do lance em centavos deve ser positivo'),
-  })
+  const createBidBodySchema = z
+    .object({
+      amountInCents: z.number().int().positive().optional(),
+      amount: z.number().int().positive().optional(),
+    })
+    .refine((data) => data.amountInCents !== undefined || data.amount !== undefined, {
+      message: 'O valor do lance em centavos deve ser informado.',
+    })
 
   const { id: lotId } = createBidParamsSchema.parse(request.params)
-  const { amountInCents } = createBidBodySchema.parse(request.body)
+  const body = createBidBodySchema.parse(request.body)
+  const amountInCents = body.amountInCents ?? body.amount!
 
   try {
     const createBidUseCase = makeCreateBidUseCase()
@@ -38,6 +42,10 @@ export async function createBidController(
   } catch (err) {
     if (err instanceof ResourceNotFoundError) {
       return reply.status(404).send({ message: err.message })
+    }
+
+    if (err instanceof AuctioneerCannotBidError) {
+      return reply.status(403).send({ message: err.message })
     }
 
     if (

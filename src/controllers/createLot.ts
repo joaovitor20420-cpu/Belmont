@@ -14,14 +14,10 @@ export async function createLotController(
     imageUrl: z.string().url('URL da imagem inválida'),
     artist: z.string().nullable().optional(),
     externalApiId: z.string().nullable().optional(),
-    startPriceInCents: z
-      .number()
-      .int()
-      .positive('O preço inicial deve ser positivo e em centavos'),
-    minIncrementInCents: z
-      .number()
-      .int()
-      .positive('O incremento mínimo deve ser positivo e em centavos'),
+    startPriceInCents: z.number().int().positive().optional(),
+    startPrice: z.number().int().positive().optional(),
+    minIncrementInCents: z.number().int().positive().optional(),
+    minIncrement: z.number().int().positive().optional(),
     startTime: z
       .string()
       .datetime({ message: 'Data de início em formato ISO 8601 inválida' }),
@@ -31,6 +27,15 @@ export async function createLotController(
   })
 
   const body = createLotBodySchema.parse(request.body)
+  const startPriceInCents = body.startPriceInCents ?? body.startPrice
+  const minIncrementInCents = body.minIncrementInCents ?? body.minIncrement
+
+  if (!startPriceInCents) {
+    return reply.status(400).send({ message: 'O preço inicial deve ser informado.' })
+  }
+  if (!minIncrementInCents) {
+    return reply.status(400).send({ message: 'O incremento mínimo deve ser informado.' })
+  }
 
   try {
     const createLotUseCase = makeCreateLotUseCase()
@@ -42,8 +47,8 @@ export async function createLotController(
       imageUrl: body.imageUrl,
       artist: body.artist,
       externalApiId: body.externalApiId,
-      startPriceInCents: body.startPriceInCents,
-      minIncrementInCents: body.minIncrementInCents,
+      startPriceInCents,
+      minIncrementInCents,
       startTime: body.startTime,
       endTime: body.endTime,
     })
