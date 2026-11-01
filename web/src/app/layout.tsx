@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Playfair_Display, Inter, JetBrains_Mono } from 'next/font/google'
 import './globals.css'
 import { AuthProvider } from '@/contexts/AuthContext'
+import { ThemeProvider } from '@/contexts/ThemeContext'
 import { Navbar } from '@/components/Navbar'
 import { SmoothScroll } from '@/components/SmoothScroll'
 
@@ -37,42 +38,59 @@ export default function RootLayout({
   return (
     <html
       lang="pt-BR"
+      suppressHydrationWarning
       className={`${inter.variable} ${playfair.variable} ${jetbrainsMono.variable} dark antialiased`}
     >
       <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              try {
+                var savedTheme = localStorage.getItem('belmont_theme');
+                if (savedTheme === 'light') {
+                  document.documentElement.classList.remove('dark');
+                  document.documentElement.classList.add('light');
+                  document.documentElement.setAttribute('data-theme', 'light');
+                }
+              } catch (e) {}
+            `,
+          }}
+        />
         <link
           rel="stylesheet"
           href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
         />
       </head>
-      <body className="bg-[#07090E] text-[#e2e2ea] font-sans min-h-screen flex flex-col selection:bg-[#d4af37] selection:text-[#07090e]">
+      <body className="bg-[#07090E] text-[#e2e2ea] font-sans min-h-screen flex flex-col selection:bg-[#d4af37] selection:text-[#07090e] transition-colors duration-200">
         <SmoothScroll>
-          <AuthProvider>
-            <Navbar />
-            <main className="flex-1 w-full">{children}</main>
-            <footer className="w-full bg-[#0c0e13] border-t border-[#d4af37]/20 mt-12 py-8">
-              <div className="max-w-[1600px] mx-auto px-6 lg:px-12 flex flex-col md:flex-row items-center justify-between gap-6">
-                <div className="flex flex-col gap-1 text-left">
-                  <div className="font-serif text-lg tracking-wide text-[#e2e2ea]">
-                    BELMONT AUCTIONS
+          <ThemeProvider>
+            <AuthProvider>
+              <Navbar />
+              <main className="flex-1 w-full">{children}</main>
+              <footer className="w-full bg-[#0c0e13] border-t border-[#d4af37]/20 mt-12 py-8">
+                <div className="max-w-[1600px] mx-auto px-6 lg:px-12 flex flex-col md:flex-row items-center justify-between gap-6">
+                  <div className="flex flex-col gap-1 text-left">
+                    <div className="font-serif text-lg tracking-wide text-[#e2e2ea]">
+                      BELMONT AUCTIONS
+                    </div>
+                    <div className="text-xs text-[#99907c]">
+                      © 1894–2026 Belmont Fine Art Institutional Trust. Todos os direitos reservados.
+                    </div>
                   </div>
-                  <div className="text-xs text-[#99907c]">
-                    © 1894–2026 Belmont Fine Art Institutional Trust. Todos os direitos reservados.
+                  <div className="flex items-center gap-2 text-xs text-[#d0c5af] border border-[#4d4635]/40 px-3 py-1.5 rounded bg-[#14171f]">
+                    <span className="material-symbols-outlined text-sm text-[#f2ca50]">museum</span>
+                    <span>Cleveland Museum of Art & IIIF Standard v3.0</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-xs text-[#99907c]">
+                    <span className="material-symbols-outlined text-sm text-[#4edea3]">lock</span>
+                    <span className="text-[#d0c5af] font-mono">
+                      Protocolo HMAC-SHA256 • Decreto Federal nº 21.981/32
+                    </span>
                   </div>
                 </div>
-                <div className="flex items-center gap-2 text-xs text-[#d0c5af] border border-[#4d4635]/40 px-3 py-1.5 rounded bg-[#14171f]">
-                  <span className="material-symbols-outlined text-sm text-[#f2ca50]">museum</span>
-                  <span>Cleveland Museum of Art & IIIF Standard v3.0</span>
-                </div>
-                <div className="flex items-center gap-2 text-xs text-[#99907c]">
-                  <span className="material-symbols-outlined text-sm text-[#4edea3]">lock</span>
-                  <span className="text-[#d0c5af] font-mono">
-                    Protocolo HMAC-SHA256 • Decreto Federal nº 21.981/32
-                  </span>
-                </div>
-              </div>
-            </footer>
-          </AuthProvider>
+              </footer>
+            </AuthProvider>
+          </ThemeProvider>
         </SmoothScroll>
       </body>
     </html>

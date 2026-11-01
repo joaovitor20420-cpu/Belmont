@@ -193,7 +193,7 @@ export default function MyBidsPage() {
             onClick={() => setActiveTab('ALL')}
             className={`px-4 py-2 rounded-lg text-xs font-mono tracking-wider uppercase transition flex items-center gap-2 shrink-0 ${
               activeTab === 'ALL'
-                ? 'bg-[#e2e2ea] text-[#07090E] font-bold'
+                ? 'bg-[#d4af37] text-[#1c1400] font-bold shadow-lg shadow-[#d4af37]/10'
                 : 'bg-[#14161b] text-[#99907c] hover:text-[#e2e2ea] border border-[#282a30]'
             }`}
           >
@@ -271,7 +271,7 @@ export default function MyBidsPage() {
 
                       <Badge
                         variant="outline"
-                        className="px-2.5 py-1 bg-black/60 border-white/10 text-[#e2e2ea] tabular-nums"
+                        className="px-2.5 py-1 bg-[#0c0e13]/85 border-[#282a30] text-[#e2e2ea] tabular-nums"
                       >
                         {item.status === 'LIVE'
                           ? `AO VIVO • ${formatTimeRemaining(item.endTime)}`

@@ -64,6 +64,39 @@
     --error: #ffb4ab;
     --error-container: #93000a;
   }
+
+  html.light {
+    --background: #faf7f2;
+    --foreground: #181510;
+    --card: #f4efe6;
+    --card-foreground: #181510;
+    --popover: #ffffff;
+    --popover-foreground: #181510;
+    --primary: #b8860b;
+    --primary-foreground: #1c1400;
+    --primary-container: #d4af37;
+    --secondary: #06744e;
+    --secondary-foreground: #ffffff;
+    --secondary-container: #10b981;
+    --muted: #ebe4d8;
+    --muted-foreground: #685e4e;
+    --accent: #e2dacb;
+    --accent-foreground: #8a6206;
+    --destructive: #e11d48;
+    --border: #dcd3c2;
+    --input: #dcd3c2;
+    --ring: #b8860b;
+    --surface: #f4efe6;
+    --surface-lowest: #ffffff;
+    --surface-low: #f4efe6;
+    --surface-container: #ebe4d8;
+    --surface-high: #e2dacb;
+    --surface-highest: #d5cbb8;
+    --outline: #685e4e;
+    --outline-variant: #c4b79c;
+    --on-surface: #181510;
+    --on-surface-variant: #3d362b;
+  }
 }
 
 body {
@@ -73,6 +106,163 @@ body {
   min-height: 100vh;
 }
 
+/* ============================================================================
+   EDITORIAL IVORY & WARM GOLD LIGHT MODE OVERRIDES (html.light)
+   ============================================================================ */
+html.light body,
+html.light .bg-\[\#07090e\],
+html.light .bg-\[\#07090E\] {
+  background-color: #faf7f2 !important;
+}
+
+html.light .bg-\[\#07090E\]\/90 {
+  background-color: rgba(250, 247, 242, 0.92) !important;
+}
+
+html.light .bg-\[\#0c0e13\],
+html.light .bg-\[\#0e1015\] {
+  background-color: #ffffff !important;
+}
+
+html.light .bg-\[\#0c0e13\]\/50,
+html.light .bg-\[\#0c0e13\]\/60,
+html.light .bg-\[\#0c0e13\]\/80,
+html.light .bg-\[\#0c0e13\]\/85 {
+  background-color: rgba(255, 255, 255, 0.9) !important;
+}
+
+html.light .bg-\[\#14171f\],
+html.light .bg-\[\#14161b\],
+html.light .bg-\[\#111319\] {
+  background-color: #f4efe6 !important;
+}
+
+html.light .bg-\[\#14171f\]\/80,
+html.light .bg-\[\#14171f\]\/90 {
+  background-color: rgba(244, 239, 230, 0.92) !important;
+}
+
+html.light .bg-\[\#1d2025\] {
+  background-color: #ebe4d8 !important;
+}
+
+html.light .bg-\[\#1d2025\]\/60,
+html.light .hover\:bg-\[\#1d2025\]\/60:hover {
+  background-color: rgba(235, 228, 216, 0.7) !important;
+}
+
+html.light .bg-\[\#282a30\] {
+  background-color: #e2dacb !important;
+}
+
+html.light .bg-\[\#282a30\]\/60,
+html.light .hover\:bg-\[\#282a30\]\/60:hover,
+html.light .hover\:bg-\[\#282a30\]:hover {
+  background-color: #dfd6c5 !important;
+}
+
+html.light .bg-\[\#343740\],
+html.light .hover\:bg-\[\#343740\]:hover {
+  background-color: #d5cbb8 !important;
+}
+
+/* Gradients in Light Mode */
+html.light .from-\[\#0c0e13\],
+html.light .from-\[\#0e1015\] {
+  --tw-gradient-from: #ffffff !important;
+}
+
+html.light .from-\[\#14171f\] {
+  --tw-gradient-from: #f4efe6 !important;
+}
+
+html.light .via-\[\#14171f\]\/40 {
+  --tw-gradient-via: rgba(244, 239, 230, 0.7) !important;
+}
+
+html.light .to-\[\#0c0e13\]\/40 {
+  --tw-gradient-to: rgba(255, 255, 255, 0.7) !important;
+}
+
+/* Text & Typography Contrast in Light Mode */
+html.light .text-\[\#e2e2ea\],
+html.light .hover\:text-\[\#e2e2ea\]:hover {
+  color: #181510 !important;
+}
+
+html.light .text-\[\#d0c5af\] {
+  color: #3d362b !important;
+}
+
+html.light .text-\[\#99907c\] {
+  color: #685e4e !important;
+}
+
+html.light .text-\[\#f2ca50\] {
+  color: #8a6206 !important;
+}
+
+html.light .text-\[\#d4af37\] {
+  color: #946b0a !important;
+}
+
+html.light .text-\[\#4edea3\] {
+  color: #06744e !important;
+}
+
+html.light .text-emerald-300 {
+  color: #065f46 !important;
+}
+
+html.light .text-rose-200,
+html.light .text-rose-300,
+html.light .text-rose-400 {
+  color: #be123c !important;
+}
+
+html.light .text-\[\#ffdad6\] {
+  color: #9f1239 !important;
+}
+
+/* Preserve dark text on Gold / Emerald CTAs */
+html.light .hover\:bg-\[\#d4af37\]:hover {
+  background-color: #d4af37 !important;
+}
+
+html.light .hover\:text-\[\#1c1400\]:hover {
+  color: #1c1400 !important;
+}
+
+/* Borders & Dividers in Light Mode */
+html.light .border-\[\#282a30\],
+html.light .border-\[\#1d2025\],
+html.light .border-\[\#3c3f47\],
+html.light .border-white\/5,
+html.light .border-white\/10 {
+  border-color: #dcd3c2 !important;
+}
+
+html.light .divide-\[\#282a30\] > :not(:last-child) {
+  border-color: #dcd3c2 !important;
+}
+
+html.light .border-\[\#4d4635\]\/40,
+html.light .border-\[\#4d4635\]\/60 {
+  border-color: rgba(168, 142, 92, 0.4) !important;
+}
+
+html.light .border-\[\#d4af37\]\/20,
+html.light .border-\[\#d4af37\]\/30,
+html.light .border-\[\#d4af37\]\/40,
+html.light .border-\[\#d4af37\]\/50 {
+  border-color: rgba(180, 138, 30, 0.4) !important;
+}
+
+html.light .bg-rose-950\/30,
+html.light .bg-rose-950\/40 {
+  background-color: rgba(255, 228, 230, 0.75) !important;
+}
+
 /* Custom Scrollbar & Browser Surfaces */
 ::-webkit-scrollbar {
   width: 6px;
@@ -80,11 +270,11 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: #0c0e13;
+  background: var(--surface-lowest);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #282a30;
+  background: var(--surface-high);
   border-radius: 9999px;
 }
 
@@ -94,7 +284,7 @@ body {
 
 ::selection {
   background-color: rgba(212, 175, 55, 0.25);
-  color: #f2ca50;
+  color: var(--foreground);
 }
 
 :focus-visible {
@@ -120,7 +310,8 @@ body {
     display: none !important;
   }
   body {
-    background: #0c0e13 !important;
+    background: #ffffff !important;
+    color: #181510 !important;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
@@ -195,6 +386,12 @@ body {
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border: 1px solid rgba(212, 175, 55, 0.15);
+}
+
+html.light .glass-panel {
+  background: rgba(255, 255, 255, 0.88);
+  border: 1px solid rgba(180, 138, 30, 0.28);
+  box-shadow: 0 8px 30px rgba(24, 21, 16, 0.06);
 }
 
 .guilloche-border {

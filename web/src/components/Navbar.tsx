@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
+import { useTheme } from '@/contexts/ThemeContext'
 import { apiRequest } from '@/lib/api'
 import { formatCurrency } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -24,6 +25,7 @@ export function Navbar() {
   const pathname = usePathname()
   const router = useRouter()
   const { user, logout, login, register } = useAuth()
+  const { theme, toggleTheme } = useTheme()
   const [balance, setBalance] = useState<{
     available: number
     committed: number
@@ -252,7 +254,29 @@ export function Navbar() {
           </nav>
 
           {/* Área de Status, Saldo e Perfil */}
-          <div className="flex items-center gap-3 shrink-0">
+          <div className="flex items-center gap-2.5 shrink-0">
+            {/* Botão de Alternância Light / Dark Mode */}
+            <button
+              type="button"
+              onClick={toggleTheme}
+              title={
+                theme === 'dark'
+                  ? 'Mudar para Modo Claro (Light Mode)'
+                  : 'Mudar para Modo Escuro (Dark Mode)'
+              }
+              aria-label={
+                theme === 'dark' ? 'Ativar Modo Claro' : 'Ativar Modo Escuro'
+              }
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded border border-[#282a30] bg-[#14171f] hover:border-[#d4af37]/60 text-[#d0c5af] hover:text-[#e2e2ea] transition-colors cursor-pointer"
+            >
+              <span className="material-symbols-outlined text-base text-[#f2ca50]">
+                {theme === 'dark' ? 'light_mode' : 'dark_mode'}
+              </span>
+              <span className="hidden sm:inline font-mono text-[10px] uppercase tracking-wider font-semibold">
+                {theme === 'dark' ? 'Light' : 'Dark'}
+              </span>
+            </button>
+
             {/* Real Live Lot Status Badge */}
             <div
               className={`hidden xl:flex items-center gap-2 px-3 py-1.5 rounded border ${
