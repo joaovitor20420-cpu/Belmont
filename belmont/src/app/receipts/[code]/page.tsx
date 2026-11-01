@@ -176,7 +176,7 @@ export default function ShareableReceiptPage({
                 </div>
               </div>
 
-              <div className="flex flex-col items-center justify-center p-3 rounded-lg bg-[#0c0e13] text-center min-w-[170px] border border-[#282a30] font-mono">
+              <div className="flex flex-col items-center justify-center p-3 rounded-lg bg-[#0c0e13] text-center w-full sm:w-auto min-w-0 sm:min-w-[170px] border border-[#282a30] font-mono">
                 <div className="flex items-center gap-1.5 text-[#4edea3]">
                   <span className="material-symbols-outlined text-sm">verified</span>
                   <span className="text-xs font-semibold uppercase">Liquidado</span>

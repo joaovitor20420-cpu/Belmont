@@ -344,7 +344,7 @@ export default function CertificadosAuditoriaPage({
                       </div>
                     </div>
 
-                    <div className="flex flex-col items-center justify-center p-3 rounded-lg bg-[#0c0e13] text-center min-w-[190px] border border-[#282a30]">
+                    <div className="flex flex-col items-center justify-center p-3 rounded-lg bg-[#0c0e13] text-center w-full sm:w-auto min-w-0 sm:min-w-[190px] border border-[#282a30]">
                       <div className="flex items-center gap-1.5 text-[#4edea3]">
                         <span className="material-symbols-outlined text-sm">verified</span>
                         <span className="font-mono text-xs font-semibold uppercase tracking-wider">

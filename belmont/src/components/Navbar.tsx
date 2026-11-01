@@ -264,7 +264,7 @@ export function Navbar() {
               aria-label={
                 theme === 'dark' ? 'Ativar Modo Claro' : 'Ativar Modo Escuro'
               }
-              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded border border-[#282a30] bg-[#14171f] hover:border-[#d4af37]/60 text-[#d0c5af] hover:text-[#e2e2ea] transition-colors cursor-pointer"
+              className="flex items-center gap-1.5 px-3 py-2 min-h-[40px] rounded border border-[#282a30] bg-[#14171f] hover:border-[#d4af37]/60 text-[#d0c5af] hover:text-[#e2e2ea] transition-colors cursor-pointer active:scale-95"
             >
               <span className="material-symbols-outlined text-base text-[#f2ca50]">
                 {theme === 'dark' ? 'light_mode' : 'dark_mode'}
@@ -473,7 +473,7 @@ export function Navbar() {
               <Link
                 key={item.label}
                 href={item.path}
-                className={`px-3.5 py-2 font-mono text-[11px] uppercase tracking-wider transition-colors rounded shrink-0 ${
+                className={`px-4 py-2.5 min-h-[44px] flex items-center font-mono text-xs uppercase tracking-wider transition-colors rounded shrink-0 active:scale-95 ${
                   isActive
                     ? 'bg-[#d4af37] text-[#1c1400] font-bold'
                     : 'text-[#d0c5af] hover:text-[#e2e2ea]'

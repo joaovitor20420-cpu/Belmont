@@ -816,7 +816,7 @@ export default function LiveAuctionRoomPage({
 
               {/* Monumental Price Typography */}
               <div className="my-5">
-                <div className="font-serif text-4xl lg:text-5xl text-[#f2ca50] font-bold tracking-tight select-all">
+                <div className="font-serif text-3xl sm:text-4xl lg:text-5xl text-[#f2ca50] font-bold tracking-tight select-all tabular-nums">
                   {formatCurrency(lot.currentPrice || lot.startPrice)}
                 </div>
                 {!isEnded && (
@@ -1025,7 +1025,7 @@ export default function LiveAuctionRoomPage({
                       <span className="font-mono text-[10px] uppercase tracking-widest text-[#99907c] font-semibold block mb-2">
                         Incrementos Rápidos de Pregão
                       </span>
-                      <div className="grid grid-cols-3 gap-2">
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                         {[1, 2, 5].map((multiplier) => {
                           const incAmount = lot.minIncrement * multiplier
                           const totalBid = minAllowedBid + incAmount - lot.minIncrement

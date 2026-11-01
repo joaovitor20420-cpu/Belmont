@@ -180,7 +180,7 @@ export default function DigitalWalletPage() {
                 Custódia Multilateral • Lei 21.981/32
               </span>
             </div>
-            <h1 className="font-serif text-4xl lg:text-5xl text-[#e2e2ea] tracking-tight">
+            <h1 className="font-serif text-2xl sm:text-3xl md:text-4xl lg:text-5xl text-[#e2e2ea] tracking-tight">
               {isAuctioneer
                 ? 'Recebimentos & Caixa do Leiloeiro'
                 : 'Carteira Digital & Custódia Fiduciária'}

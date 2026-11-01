@@ -110,8 +110,8 @@ export default function CatalogVitrinePage() {
     <div className="w-full pt-32 md:pt-20 bg-[#07090E] min-h-[calc(100vh-80px)] text-[#e2e2ea]">
       {/* ATMOSPHERIC BACKGROUND RADIALS */}
       <div className="relative w-full overflow-hidden px-6 lg:px-12 py-10">
-        <div className="absolute -top-40 left-1/4 w-[600px] h-[600px] bg-[#d4af37]/5 rounded-full blur-[140px] pointer-events-none" />
-        <div className="absolute top-1/3 -right-40 w-[500px] h-[500px] bg-[#4edea3]/5 rounded-full blur-[160px] pointer-events-none" />
+        <div className="absolute -top-40 left-1/4 w-[320px] sm:w-[600px] h-[320px] sm:h-[600px] max-w-full bg-[#d4af37]/5 rounded-full blur-[140px] pointer-events-none" />
+        <div className="absolute top-1/3 -right-40 w-[300px] sm:w-[500px] h-[300px] sm:h-[500px] max-w-full bg-[#4edea3]/5 rounded-full blur-[160px] pointer-events-none" />
 
         {/* HERO SECTION: ASYMMETRIC INSTITUTIONAL VITRINE */}
         <section className="relative w-full max-w-[1600px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-10 items-center mb-16 lg:mb-20">
@@ -131,7 +131,7 @@ export default function CatalogVitrinePage() {
 
             {/* HERO HEADLINE */}
             <div className="space-y-2">
-              <h1 className="font-serif text-5xl lg:text-6xl text-[#e2e2ea] font-light tracking-tight leading-[1.08]">
+              <h1 className="font-serif text-3xl sm:text-4xl md:text-5xl lg:text-6xl text-[#e2e2ea] font-light tracking-tight leading-[1.12]">
                 Obras Raras.
                 <br />
                 <span className="italic font-normal text-[#f2ca50]">
