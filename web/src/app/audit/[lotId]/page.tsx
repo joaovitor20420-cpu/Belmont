@@ -3,6 +3,7 @@
 import React, { useState, useEffect, use } from 'react'
 import Link from 'next/link'
 import { apiRequest } from '@/lib/api'
+import { useAuth } from '@/contexts/AuthContext'
 import { formatCurrency } from '@/lib/utils'
 
 interface AuditChainNode {
@@ -31,8 +32,10 @@ interface AuditResponse {
     title: string
     artist: string | null
     imageUrl: string
+    startPrice: number
     currentPrice: number
     status: string
+    startTime: string
     endTime: string
     winner?: {
       publicCode: string
@@ -48,6 +51,7 @@ export default function CertificadosAuditoriaPage({
   params: Promise<{ lotId: string }>
 }) {
   const { lotId } = use(params)
+  const { user } = useAuth()
   const [data, setData] = useState<AuditResponse | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
@@ -73,16 +77,16 @@ export default function CertificadosAuditoriaPage({
       const rawLot = lotRes.lot
       const bids = rawLot.bids || []
 
-      // Monta cadeia de nós
+      // Monta cadeia de nós (somente lances reais registrados no banco)
       const nodes: AuditChainNode[] = bids.map((b: any, idx: number) => ({
         index: idx + 1,
         id: b.id,
         amount: b.amount,
         createdAt: b.createdAt,
-        bidderPublicCode: b.bidder?.publicCode || 'LIC-0001',
-        bidderMaskedName: b.bidder?.maskedName || 'Licitante Anônimo',
+        bidderPublicCode: b.bidder?.publicCode || '---',
+        bidderMaskedName: b.bidder?.maskedName || '---',
         prevHash: b.prevHash || (idx === 0 ? '0'.repeat(64) : bids[idx - 1]?.bidHash || '0'.repeat(64)),
-        bidHash: b.bidHash || `0x${(idx + 1) * 123456789}abc`,
+        bidHash: b.bidHash || '',
         status: 'VALID',
       }))
 
@@ -91,15 +95,17 @@ export default function CertificadosAuditoriaPage({
         lotTitle: rawLot.title,
         isValid: verifyRes?.isValid ?? true,
         totalBids: bids.length,
-        lotSealHash: rawLot.lotSealHash || '0x09281bf78a4c8996fb92427ae41e428f5c907b22d140e53a2ef491907aa4c291',
+        lotSealHash: rawLot.lotSealHash || null,
         receipt: rawLot.receipt,
         lot: {
           id: rawLot.id,
           title: rawLot.title,
           artist: rawLot.artist,
           imageUrl: rawLot.imageUrl,
+          startPrice: rawLot.startPrice,
           currentPrice: rawLot.currentPrice,
           status: rawLot.status,
+          startTime: rawLot.startTime,
           endTime: rawLot.endTime,
           winner: rawLot.currentWinner,
         },
@@ -142,6 +148,51 @@ export default function CertificadosAuditoriaPage({
           <span className="material-symbols-outlined text-sm">arrow_back</span>
           <span>Retornar ao Catálogo</span>
         </Link>
+      </div>
+    )
+  }
+
+  // Regra Estrita: O Certificado de Arremate e a Auditoria pertencem exclusivamente ao Vencedor que arrematou o lote (ou consulta técnica da trilha pelo Leiloeiro Oficial)
+  const isWinner = Boolean(
+    user &&
+      data.lot.status === 'ENDED' &&
+      data.lot.winner?.publicCode &&
+      user.publicCode === data.lot.winner.publicCode,
+  )
+  const isAuctioneer = user?.role === 'AUCTIONEER'
+
+  if (!isWinner && !isAuctioneer) {
+    return (
+      <div className="w-full pt-32 pb-20 px-6 max-w-xl mx-auto text-center font-mono">
+        <div className="w-16 h-16 rounded-full bg-rose-500/10 border border-rose-500/30 flex items-center justify-center mx-auto mb-4 text-rose-400">
+          <span className="material-symbols-outlined text-3xl">lock</span>
+        </div>
+        <h2 className="text-2xl font-serif text-[#e2e2ea]">
+          Certificado Exclusivo do Arrematante Vencedor
+        </h2>
+        <p className="mt-2 text-xs text-[#99907c] leading-relaxed">
+          {data.lot.status !== 'ENDED'
+            ? 'Este lote ainda não foi encerrado/liquidado. O Certificado de Arrematação só é emitido após o encerramento oficial do pregão.'
+            : 'Você não foi o arrematante vencedor desta obra. Por segurança fiduciária, o Certificado de Propriedade e a Auditoria do Arremate ficam disponíveis exclusivamente para o vencedor na aba "Meus Arremates".'}
+        </p>
+        <div className="mt-6 flex items-center justify-center gap-3">
+          {user?.role === 'BIDDER' && (
+            <Link
+              href="/my-bids"
+              className="inline-flex items-center gap-2 rounded-lg bg-[#4edea3] px-5 py-2.5 text-xs text-[#07090E] font-bold hover:bg-[#43c490] transition uppercase"
+            >
+              <span className="material-symbols-outlined text-sm">trophy</span>
+              <span>Ir para Meus Arremates</span>
+            </Link>
+          )}
+          <Link
+            href="/"
+            className="inline-flex items-center gap-2 rounded-lg bg-[#1d2025] border border-[#d4af37]/40 px-5 py-2.5 text-xs text-[#f2ca50] hover:bg-[#282a30] transition uppercase"
+          >
+            <span className="material-symbols-outlined text-sm">arrow_back</span>
+            <span>Voltar ao Catálogo</span>
+          </Link>
+        </div>
       </div>
     )
   }
@@ -362,10 +413,10 @@ export default function CertificadosAuditoriaPage({
                         <div className="bg-[#0c0e13] p-4 rounded-xl border border-[#282a30] flex flex-col gap-1 font-mono">
                           <span className="text-[10px] text-[#99907c] uppercase">Arrematante Homologado</span>
                           <span className="text-sm font-bold text-[#f2ca50]">
-                            {data.lot.winner?.publicCode || 'LIC-0001'}
+                            {data.lot.winner?.publicCode || 'Sem Arrematante'}
                           </span>
                           <span className="text-xs text-[#e2e2ea]">
-                            {data.lot.winner?.maskedName || 'Carlos Drummond de A.'}
+                            {data.lot.winner?.maskedName || 'Nenhum lance vencedor'}
                           </span>
                           <span className="text-[9px] text-[#99907c]">Mascarado sob LGPD Art. 7º</span>
                         </div>
@@ -586,15 +637,17 @@ export default function CertificadosAuditoriaPage({
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3 bg-[#0c0e13] p-3 rounded-lg text-xs">
                   <div>
                     <span className="text-[#99907c] text-[10px] uppercase block">Timestamp</span>
-                    <span className="text-[#e2e2ea] font-semibold">14/10/2026 • 19:00:00</span>
+                    <span className="text-[#e2e2ea] font-semibold">
+                      {new Date(data.lot.startTime).toLocaleDateString('pt-BR')} • {new Date(data.lot.startTime).toLocaleTimeString('pt-BR')}
+                    </span>
                   </div>
                   <div>
                     <span className="text-[#99907c] text-[10px] uppercase block">Evento</span>
-                    <span className="text-[#e2e2ea] font-semibold">Abertura de Catálogo</span>
+                    <span className="text-[#e2e2ea] font-semibold">Publicação pelo Leiloeiro Oficial</span>
                   </div>
                   <div>
-                    <span className="text-[#99907c] text-[10px] uppercase block">Lance Mínimo</span>
-                    <span className="text-[#f2ca50] font-semibold">R$ 50.000,00</span>
+                    <span className="text-[#99907c] text-[10px] uppercase block">Lance Inicial</span>
+                    <span className="text-[#f2ca50] font-semibold">{formatCurrency(data.lot.startPrice)}</span>
                   </div>
                   <div>
                     <span className="text-[#99907c] text-[10px] uppercase block">Consenso</span>

@@ -32,11 +32,46 @@ body {
   min-height: 100vh;
 }
 
-/* Custom Scrollbar */
+/* Custom Scrollbar & Browser Surfaces */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
-  display: none;
+}
+
+::-webkit-scrollbar-track {
+  background: #0c0e13;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #282a30;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #d4af37;
+}
+
+::selection {
+  background-color: rgba(212, 175, 55, 0.25);
+  color: #f2ca50;
+}
+
+:focus-visible {
+  outline: 1.5px solid #d4af37;
+  outline-offset: 2px;
+}
+
+@media print {
+  header,
+  footer,
+  .no-print {
+    display: none !important;
+  }
+  body {
+    background: #0c0e13 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
 }
 
 /* Typography Classes */
@@ -108,12 +143,6 @@ body {
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border: 1px solid rgba(212, 175, 55, 0.15);
-}
-
-.gold-gradient-text {
-  background: linear-gradient(135deg, #fffbeb 0%, #fef08a 25%, #d4af37 60%, #b45309 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
 }
 
 .guilloche-border {

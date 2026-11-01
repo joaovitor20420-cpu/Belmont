@@ -60,8 +60,10 @@ export default function LiveAuctionRoomPage({
   const [sseConnected, setSseConnected] = useState(false)
   const [isDossierOpen, setIsDossierOpen] = useState(true)
 
-  // Estado para lances
+  // Estado para lances e confirmação em 2 passos (Error Prevention)
   const [customBidAmount, setCustomBidAmount] = useState('')
+  const [pendingBidAmount, setPendingBidAmount] = useState<number | null>(null)
+  const [confirmingSettle, setConfirmingSettle] = useState(false)
   const [isBidding, setIsBidding] = useState(false)
   const [bidFeedback, setBidFeedback] = useState<{
     type: 'success' | 'error'
@@ -79,18 +81,11 @@ export default function LiveAuctionRoomPage({
     total: number
   } | null>(null)
 
-  // Relógio com atualização a cada 30ms para milissegundos
-  const [msCounter, setMsCounter] = useState(84)
-
   useEffect(() => {
-    const msTimer = setInterval(() => {
-      setMsCounter((prev) => (prev - 3 + 100) % 100)
-    }, 30)
     const secTimer = setInterval(() => {
       setNow(Date.now())
     }, 1000)
     return () => {
-      clearInterval(msTimer)
       clearInterval(secTimer)
     }
   }, [])
@@ -259,7 +254,8 @@ export default function LiveAuctionRoomPage({
   const isClosingSoon = remainingMs > 0 && remainingMs <= 120000
 
   const remainingSecondsTotal = Math.floor(remainingMs / 1000)
-  const countdownMinutes = Math.floor(remainingSecondsTotal / 60)
+  const countdownHours = Math.floor(remainingSecondsTotal / 3600)
+  const countdownMinutes = Math.floor((remainingSecondsTotal % 3600) / 60)
   const countdownSeconds = remainingSecondsTotal % 60
 
   // Cálculo de lance mínimo
@@ -435,12 +431,11 @@ export default function LiveAuctionRoomPage({
           <div className="lg:col-span-7 flex flex-col gap-6">
             {/* Anti-Sniping Dynamic Intervention Banner */}
             {(antiSnipingAlert || isClosingSoon) && (
-              <div className="relative overflow-hidden rounded bg-rose-950/40 border border-rose-500/40 p-4 shadow-md animate-pulse">
-                <div className="absolute inset-y-0 left-0 w-1.5 bg-rose-500" />
+              <div className="relative overflow-hidden rounded-xl bg-rose-950/40 border border-rose-500/40 p-4 shadow-md">
                 <div className="flex items-center justify-between gap-4 flex-wrap">
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded bg-rose-500/20 flex items-center justify-center shrink-0">
-                      <span className="material-symbols-outlined text-base text-rose-400">
+                      <span className="material-symbols-outlined text-base text-rose-400 animate-pulse">
                         bolt
                       </span>
                     </div>
@@ -574,27 +569,27 @@ export default function LiveAuctionRoomPage({
                   </p>
                 </div>
 
-                {/* Numerical High-Contrast Clock Display */}
-                <div className="flex items-baseline gap-2 bg-[#0c0e13] px-4 py-2 rounded-lg border border-[#282a30] shadow-inner font-mono">
+                {/* Numerical High-Contrast Clock Display (Real Tabular Monospace) */}
+                <div className="flex items-baseline gap-2 bg-[#0c0e13] px-4 py-2 rounded-lg border border-[#282a30] shadow-inner font-mono tabular-nums">
                   <div className="flex flex-col items-center">
-                    <span className="font-serif text-3xl text-[#f2ca50] font-bold tracking-tight">
+                    <span className="text-3xl text-[#f2ca50] font-bold tracking-tight">
+                      {String(countdownHours).padStart(2, '0')}
+                    </span>
+                    <span className="text-[10px] text-[#99907c] uppercase">HRS</span>
+                  </div>
+                  <span className="text-3xl text-[#f2ca50]">:</span>
+                  <div className="flex flex-col items-center">
+                    <span className="text-3xl text-[#f2ca50] font-bold tracking-tight">
                       {String(countdownMinutes).padStart(2, '0')}
                     </span>
-                    <span className="text-[9px] text-[#99907c] uppercase">MIN</span>
+                    <span className="text-[10px] text-[#99907c] uppercase">MIN</span>
                   </div>
-                  <span className="text-3xl text-[#f2ca50] animate-pulse">:</span>
+                  <span className="text-3xl text-[#f2ca50]">:</span>
                   <div className="flex flex-col items-center">
-                    <span className="font-serif text-3xl text-[#f2ca50] font-bold tracking-tight">
+                    <span className="text-3xl text-[#f2ca50] font-bold tracking-tight">
                       {String(countdownSeconds).padStart(2, '0')}
                     </span>
-                    <span className="text-[9px] text-[#99907c] uppercase">SEG</span>
-                  </div>
-                  <span className="text-3xl text-[#4d4635]">:</span>
-                  <div className="flex flex-col items-center">
-                    <span className="font-serif text-2xl text-[#99907c] font-medium">
-                      {String(msCounter).padStart(2, '0')}
-                    </span>
-                    <span className="text-[9px] text-[#99907c] uppercase">MS</span>
+                    <span className="text-[10px] text-[#99907c] uppercase">SEG</span>
                   </div>
                 </div>
               </div>
@@ -681,15 +676,17 @@ export default function LiveAuctionRoomPage({
                         <span className="material-symbols-outlined text-sm">verified_user</span>
                         <span>LAUDO PERICIAL ASSINADO (HASH MATCH)</span>
                       </div>
-                      <div className="flex items-center gap-1.5 text-[#99907c] font-mono text-[10px]">
-                        <span className="material-symbols-outlined text-sm">api</span>
-                        <Link
-                          href={`/audit/${lot.id}`}
-                          className="underline hover:text-[#f2ca50] transition-colors"
-                        >
-                          Trilha Criptográfica SHA-256
-                        </Link>
-                      </div>
+                      {(isMyBid && isEnded) && (
+                        <div className="flex items-center gap-1.5 text-[#99907c] font-mono text-[10px]">
+                          <span className="material-symbols-outlined text-sm">api</span>
+                          <Link
+                            href={`/audit/${lot.id}`}
+                            className="underline hover:text-[#f2ca50] transition-colors"
+                          >
+                            Certificado & Auditoria do Meu Arremate
+                          </Link>
+                        </div>
+                      )}
                     </div>
                     <div className="font-mono text-[10px] text-[#99907c] select-all">
                       UUID: {lot.id}
@@ -756,98 +753,215 @@ export default function LiveAuctionRoomPage({
                     <strong className="text-[#e2e2ea] font-mono">
                       {formatCurrency(userBalance?.available ?? 0)}
                     </strong>
-                    . Caução de 10% ({formatCurrency(requiredCollateral)}) é
-                    bloqueada automaticamente em escrow no momento do lance.
+                    . Garantia integral de 100% ({formatCurrency(requiredCollateral)}) é
+                    retida em custódia no momento do lance e liberada instantaneamente se superada.
                   </span>
                 </div>
               </div>
 
               {/* Bidding Controls if Lot is Active */}
               {!isEnded ? (
-                <>
-                  {/* Primary Call To Action Execution Button */}
-                  <div className="flex flex-col gap-2">
-                    <button
-                      onClick={() => handlePlaceBid(minAllowedBid)}
-                      disabled={isBidding || !hasEnoughBalance}
-                      className="w-full py-4 px-6 bg-[#d4af37] hover:bg-[#f2ca50] text-[#1c1400] font-mono text-xs font-bold uppercase tracking-wider rounded-lg transition-all shadow-lg hover:shadow-[#d4af37]/20 active:scale-[0.99] flex items-center justify-between cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      <span className="flex items-center gap-2">
-                        <span className="material-symbols-outlined text-lg">gavel</span>
-                        <span>{isBidding ? 'PROCESSANDO LANCE...' : 'COBRIR LANCE MÍNIMO'}</span>
-                      </span>
-                      <span className="font-mono text-sm">
-                        {formatCurrency(minAllowedBid)} →
-                      </span>
-                    </button>
-                    <div className="flex items-center justify-between px-1 font-mono text-[10px] text-[#99907c]">
-                      <span className="flex items-center gap-1">
-                        <span className="material-symbols-outlined text-xs">key</span>
-                        Assinatura HMAC-SHA256 instantânea
-                      </span>
-                      <span className="text-[#4edea3]">SLIPPAGE ZERO</span>
+                user?.role === 'AUCTIONEER' ? (
+                  <div className="mt-2 p-4 rounded-xl bg-[#0c0e13] border border-[#d4af37]/30 space-y-3 font-mono">
+                    <div className="flex items-center gap-2 text-[#f2ca50] text-xs font-bold uppercase">
+                      <span className="material-symbols-outlined text-base">gavel</span>
+                      <span>Modo Leiloeiro Oficial ({user.publicCode})</span>
                     </div>
-                  </div>
-
-                  {/* Real-Time Bid Ladder / Quick Increments */}
-                  <div className="mt-6 pt-4 border-t border-[#282a30]">
-                    <span className="font-mono text-[10px] uppercase tracking-widest text-[#99907c] font-semibold block mb-2">
-                      Incrementos Rápidos de Pregão
-                    </span>
-                    <div className="grid grid-cols-3 gap-2">
-                      {[1, 2, 5].map((multiplier) => {
-                        const incAmount = lot.minIncrement * multiplier
-                        const totalBid = minAllowedBid + incAmount - lot.minIncrement
-                        return (
-                          <button
-                            key={multiplier}
-                            onClick={() => handlePlaceBid(totalBid)}
-                            disabled={isBidding}
-                            className="py-2.5 px-2 rounded-lg bg-[#1d2025] hover:bg-[#282a30] hover:text-[#f2ca50] text-[#e2e2ea] border border-[#282a30] transition-colors flex flex-col items-center cursor-pointer"
-                          >
-                            <span className="text-[#f2ca50] font-mono text-xs font-bold">
-                              + {formatCurrency(incAmount)}
-                            </span>
-                            <span className="text-[#99907c] text-[10px] font-mono">
-                              {formatCurrency(totalBid)}
-                            </span>
-                          </button>
-                        )
-                      })}
-                    </div>
-                  </div>
-
-                  {/* Custom Bid Input */}
-                  <div className="mt-4 pt-4 border-t border-[#282a30]">
-                    <label className="font-mono text-[10px] uppercase tracking-widest text-[#99907c] font-semibold block mb-1.5">
-                      Lance Estratégico Customizado (R$)
-                    </label>
-                    <div className="flex gap-2">
-                      <div className="relative flex-1">
-                        <span className="absolute inset-y-0 left-0 pl-3 flex items-center font-mono text-xs text-[#99907c]">
-                          R$
-                        </span>
-                        <input
-                          type="number"
-                          value={customBidAmount}
-                          onChange={(e) => setCustomBidAmount(e.target.value)}
-                          placeholder={(minAllowedBid / 100).toFixed(2)}
-                          className="w-full bg-[#0c0e13] text-[#e2e2ea] font-mono text-xs pl-10 pr-3 py-2.5 rounded-lg border border-[#282a30] focus:outline-none focus:border-[#d4af37]"
-                        />
-                      </div>
-                      <button
-                        onClick={() => {
-                          const valInCents = Math.round(parseFloat(customBidAmount) * 100)
-                          if (!isNaN(valInCents)) handlePlaceBid(valInCents)
-                        }}
-                        disabled={isBidding || !customBidAmount}
-                        className="px-4 py-2.5 bg-[#282a30] hover:bg-[#d4af37] hover:text-[#1c1400] text-[#f2ca50] font-mono text-xs font-semibold uppercase tracking-wider rounded-lg transition-colors whitespace-nowrap cursor-pointer disabled:opacity-50"
+                    <p className="text-[11px] text-[#99907c] leading-relaxed">
+                      Como Leiloeiro Oficial, você acompanha os lances desta sala em tempo real e recebe os valores da liquidação, mas não submete lances.
+                    </p>
+                    <div className="flex flex-col gap-2 pt-1">
+                      {confirmingSettle ? (
+                        <div className="p-3 rounded-lg bg-[#14171f] border border-[#4edea3]/50 space-y-2">
+                          <span className="block text-xs text-[#e2e2ea] font-bold">
+                            Confirmar encerramento e liquidação definitiva deste lote?
+                          </span>
+                          <div className="grid grid-cols-2 gap-2">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setConfirmingSettle(false)
+                                handleSettle()
+                              }}
+                              disabled={isSettling}
+                              className="py-2 bg-[#4edea3] text-[#07090e] text-xs font-bold uppercase rounded hover:bg-emerald-400 transition cursor-pointer"
+                            >
+                              {isSettling ? 'Liquidando...' : 'Confirmar Martelo'}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setConfirmingSettle(false)}
+                              className="py-2 bg-[#282a30] text-[#e2e2ea] text-xs uppercase rounded hover:bg-[#343740] transition cursor-pointer"
+                            >
+                              Cancelar
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => setConfirmingSettle(true)}
+                          disabled={isSettling}
+                          className="w-full py-3 bg-[#4edea3] text-[#07090e] text-xs uppercase tracking-wider font-bold rounded-lg hover:bg-emerald-400 transition cursor-pointer disabled:opacity-50"
+                        >
+                          BATER MARTELO & ENCERRAR LOTE AGORA
+                        </button>
+                      )}
+                      <Link
+                        href="/auctioneer"
+                        className="w-full py-2.5 bg-[#1d2025] text-[#f2ca50] text-xs uppercase tracking-wider font-semibold rounded-lg hover:bg-[#282a30] transition text-center border border-[#d4af37]/30"
                       >
-                        Enviar Lance
-                      </button>
+                        Abrir Painel do Leiloeiro
+                      </Link>
                     </div>
                   </div>
-                </>
+                ) : (
+                  <>
+                    {/* Contextual Guidance for Logged-out or Low-Balance Bidders */}
+                    {!user ? (
+                      <div className="mb-4 p-3 rounded-lg bg-[#1d2025] border border-[#d4af37]/40 font-mono text-xs text-[#f2ca50] flex items-center justify-between gap-2">
+                        <span>Faça login ou crie uma conta no topo para ofertar lances.</span>
+                      </div>
+                    ) : !hasEnoughBalance ? (
+                      <div className="mb-4 p-3 rounded-lg bg-rose-950/40 border border-rose-500/40 font-mono text-xs text-rose-300 flex items-center justify-between gap-3">
+                        <span>
+                          Saldo disponível insuficiente para cobrir {formatCurrency(minAllowedBid)}.
+                        </span>
+                        <Link
+                          href="/wallet"
+                          className="px-3 py-1.5 rounded bg-[#f2ca50] text-[#1c1400] font-bold uppercase text-[10px] shrink-0 hover:bg-[#ffe088] transition"
+                        >
+                          Aportar Saldo →
+                        </Link>
+                      </div>
+                    ) : null}
+
+                    {/* 2-Step Inline Confirmation Bar for High-Stakes Bids */}
+                    {pendingBidAmount !== null && (
+                      <div className="mb-4 p-4 rounded-xl bg-[#0c0e13] border-2 border-[#d4af37] space-y-3 font-mono shadow-xl">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs uppercase text-[#f2ca50] font-bold">
+                            Confirmação de Lance Irrevogável
+                          </span>
+                          <span className="text-sm font-bold text-[#4edea3]">
+                            {formatCurrency(pendingBidAmount)}
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-[#d0c5af] font-sans leading-relaxed">
+                          Ao confirmar, o valor de <strong>{formatCurrency(pendingBidAmount)}</strong> será bloqueado em custódia fiduciária até que outro licitante supere sua oferta ou o lote seja liquidado.
+                        </p>
+                        <div className="grid grid-cols-2 gap-2">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const amountToSubmit = pendingBidAmount
+                              setPendingBidAmount(null)
+                              handlePlaceBid(amountToSubmit)
+                            }}
+                            disabled={isBidding}
+                            className="py-2.5 bg-[#4edea3] text-[#07090e] text-xs font-bold uppercase rounded-lg hover:bg-emerald-400 transition cursor-pointer"
+                          >
+                            Confirmar Lance Agora
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setPendingBidAmount(null)}
+                            className="py-2.5 bg-[#282a30] text-[#e2e2ea] text-xs uppercase rounded-lg hover:bg-[#343740] transition cursor-pointer"
+                          >
+                            Cancelar
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Primary Call To Action Execution Button */}
+                    <div className="flex flex-col gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setPendingBidAmount(minAllowedBid)}
+                        disabled={isBidding || !user || !hasEnoughBalance}
+                        className="w-full py-4 px-6 bg-[#d4af37] hover:bg-[#f2ca50] text-[#1c1400] font-mono text-xs font-bold uppercase tracking-wider rounded-lg transition-all shadow-lg hover:shadow-[#d4af37]/20 active:scale-[0.99] flex items-center justify-between cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        <span className="flex items-center gap-2">
+                          <span className="material-symbols-outlined text-lg">gavel</span>
+                          <span>{isBidding ? 'PROCESSANDO LANCE...' : 'COBRIR LANCE MÍNIMO'}</span>
+                        </span>
+                        <span className="font-mono text-sm">
+                          {formatCurrency(minAllowedBid)} →
+                        </span>
+                      </button>
+                      <div className="flex items-center justify-between px-1 font-mono text-[10px] text-[#99907c]">
+                        <span className="flex items-center gap-1">
+                          <span className="material-symbols-outlined text-xs">key</span>
+                          Assinatura HMAC-SHA256 instantânea
+                        </span>
+                        <span className="text-[#4edea3]">SLIPPAGE ZERO</span>
+                      </div>
+                    </div>
+
+                    {/* Real-Time Bid Ladder / Quick Increments */}
+                    <div className="mt-6 pt-4 border-t border-[#282a30]">
+                      <span className="font-mono text-[10px] uppercase tracking-widest text-[#99907c] font-semibold block mb-2">
+                        Incrementos Rápidos de Pregão
+                      </span>
+                      <div className="grid grid-cols-3 gap-2">
+                        {[1, 2, 5].map((multiplier) => {
+                          const incAmount = lot.minIncrement * multiplier
+                          const totalBid = minAllowedBid + incAmount - lot.minIncrement
+                          const canAfford = (userBalance?.available ?? 0) >= totalBid
+                          return (
+                            <button
+                              key={multiplier}
+                              type="button"
+                              onClick={() => setPendingBidAmount(totalBid)}
+                              disabled={isBidding || !user || !canAfford}
+                              className="py-2.5 px-2 rounded-lg bg-[#1d2025] hover:bg-[#282a30] hover:text-[#f2ca50] text-[#e2e2ea] border border-[#282a30] transition-colors flex flex-col items-center cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                            >
+                              <span className="text-[#f2ca50] font-mono text-xs font-bold">
+                                + {formatCurrency(incAmount)}
+                              </span>
+                              <span className="text-[#99907c] text-[10px] font-mono">
+                                {formatCurrency(totalBid)}
+                              </span>
+                            </button>
+                          )
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Custom Bid Input */}
+                    <div className="mt-4 pt-4 border-t border-[#282a30]">
+                      <label className="font-mono text-[10px] uppercase tracking-widest text-[#99907c] font-semibold block mb-1.5">
+                        Lance Estratégico Customizado (R$)
+                      </label>
+                      <div className="flex gap-2">
+                        <div className="relative flex-1">
+                          <span className="absolute inset-y-0 left-0 pl-3 flex items-center font-mono text-xs text-[#99907c]">
+                            R$
+                          </span>
+                          <input
+                            type="number"
+                            value={customBidAmount}
+                            onChange={(e) => setCustomBidAmount(e.target.value)}
+                            placeholder={(minAllowedBid / 100).toFixed(2)}
+                            className="w-full bg-[#0c0e13] text-[#e2e2ea] font-mono text-xs pl-10 pr-3 py-2.5 rounded-lg border border-[#282a30] focus:outline-none focus:border-[#d4af37]"
+                          />
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const valInCents = Math.round(parseFloat(customBidAmount) * 100)
+                            if (!isNaN(valInCents)) setPendingBidAmount(valInCents)
+                          }}
+                          disabled={isBidding || !customBidAmount || !user}
+                          className="px-4 py-2.5 bg-[#282a30] hover:bg-[#d4af37] hover:text-[#1c1400] text-[#f2ca50] font-mono text-xs font-semibold uppercase tracking-wider rounded-lg transition-colors whitespace-nowrap cursor-pointer disabled:opacity-50"
+                        >
+                          Revisar Lance
+                        </button>
+                      </div>
+                    </div>
+                  </>
+                )
               ) : (
                 /* Ended Lot State */
                 <div className="mt-4 p-4 rounded-xl bg-[#0c0e13] border border-[#4edea3]/30 text-center space-y-3">
@@ -858,26 +972,32 @@ export default function LiveAuctionRoomPage({
                     Pregão Encerrado & Liquidado
                   </div>
                   <p className="font-sans text-xs text-[#99907c]">
-                    O lote foi arrematado por {formatCurrency(lot.currentPrice)} por{' '}
-                    <strong className="text-[#4edea3]">{lot.currentWinner?.publicCode}</strong>.
+                    {lot.bidsCount > 0 && lot.currentWinner ? (
+                      <>
+                        O lote foi arrematado por {formatCurrency(lot.currentPrice)} por{' '}
+                        <strong className="text-[#4edea3]">{lot.currentWinner.publicCode}</strong>.
+                      </>
+                    ) : (
+                      'O pregão deste lote foi encerrado sem lances.'
+                    )}
                   </p>
 
-                  <div className="pt-2 flex flex-col gap-2">
-                    {lot.receipt?.publicCode && (
+                  {isMyBid && (
+                    <div className="pt-2 flex flex-col gap-2">
                       <Link
-                        href={`/receipts/${lot.receipt.publicCode}`}
+                        href="/my-bids"
                         className="w-full py-2.5 bg-[#4edea3] text-[#07090e] font-mono text-xs uppercase font-bold rounded-lg hover:bg-emerald-400 transition"
                       >
-                        Visualizar Certificado Oficial
+                        Ir para Meus Arremates & Ver Certificado
                       </Link>
-                    )}
-                    <Link
-                      href={`/audit/${lot.id}`}
-                      className="w-full py-2 bg-[#1d2025] text-[#d0c5af] font-mono text-xs uppercase rounded-lg hover:bg-[#282a30] transition border border-[#282a30]"
-                    >
-                      Conferir Trilha Criptográfica
-                    </Link>
-                  </div>
+                      <Link
+                        href={`/audit/${lot.id}`}
+                        className="w-full py-2 bg-[#1d2025] text-[#d0c5af] font-mono text-xs uppercase rounded-lg hover:bg-[#282a30] transition border border-[#282a30]"
+                      >
+                        Acessar Certificado & Auditoria Criptográfica
+                      </Link>
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -928,13 +1048,10 @@ export default function LiveAuctionRoomPage({
                         key={b.id || idx}
                         className={`p-3 rounded-lg flex items-center justify-between gap-3 shadow-sm relative overflow-hidden ${
                           isLeadingBid
-                            ? 'bg-[#0c0e13] border border-[#d4af37]/30'
+                            ? 'bg-[#0c0e13] border border-[#4edea3]/40'
                             : 'bg-[#0c0e13]/60 border border-[#282a30]'
                         }`}
                       >
-                        {isLeadingBid && (
-                          <div className="absolute left-0 inset-y-0 w-1 bg-[#4edea3]" />
-                        )}
                         <div className="flex flex-col pl-1">
                           <div className="flex items-center gap-2">
                             <span className="font-mono text-[10px] text-[#99907c]">
@@ -978,15 +1095,9 @@ export default function LiveAuctionRoomPage({
                 )}
               </div>
 
-              {/* Audit Verification Footer Button */}
-              <div className="pt-2 flex items-center justify-between text-[#99907c] hover:text-[#e2e2ea] font-mono text-[10px] border-t border-[#282a30]">
-                <Link
-                  href={`/audit/${lot.id}`}
-                  className="flex items-center gap-1 hover:text-[#f2ca50] transition-colors"
-                >
-                  <span className="material-symbols-outlined text-xs">download_for_offline</span>
-                  <span>Exportar Auditoria Criptográfica (JSON)</span>
-                </Link>
+              {/* Audit Verification Footer Strip */}
+              <div className="pt-2 flex items-center justify-between text-[#99907c] font-mono text-[10px] border-t border-[#282a30]">
+                <span>REGISTRO IMUTÁVEL SHA-256</span>
                 <span>BLOCO #{lot.id.slice(0, 6).toUpperCase()}</span>
               </div>
             </div>

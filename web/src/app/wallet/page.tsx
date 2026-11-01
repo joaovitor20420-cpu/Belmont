@@ -9,7 +9,7 @@ import { formatCurrency } from '@/lib/utils'
 interface TransactionItem {
   id: string
   amount: number
-  type: 'DEPOSIT' | 'BID_LOCK' | 'BID_RELEASE' | 'SETTLEMENT'
+  type: 'DEPOSIT' | 'BID_LOCK' | 'BID_RELEASE' | 'SETTLEMENT' | 'SETTLEMENT_CREDIT'
   description: string | null
   createdAt: string
   lotId?: string | null
@@ -133,7 +133,8 @@ export default function DigitalWalletPage() {
     if (filterCategory === 'all') return true
     if (filterCategory === 'lock')
       return tx.type === 'BID_LOCK' || tx.type === 'BID_RELEASE'
-    if (filterCategory === 'settlement') return tx.type === 'SETTLEMENT'
+    if (filterCategory === 'settlement')
+      return tx.type === 'SETTLEMENT' || tx.type === 'SETTLEMENT_CREDIT'
     if (filterCategory === 'deposit') return tx.type === 'DEPOSIT'
     return true
   })
@@ -212,22 +213,19 @@ export default function DigitalWalletPage() {
               </div>
             </div>
           ) : (
-            <button
-              onClick={() => login('carlos@artinvest.com', 'password123')}
-              className="p-4 rounded-xl bg-[#14171f] border border-[#d4af37]/40 hover:bg-[#1d2025] transition-colors flex items-center gap-3 text-left cursor-pointer"
-            >
+            <div className="p-4 rounded-xl bg-[#14171f] border border-[#282a30] flex items-center gap-3 text-left">
               <span className="material-symbols-outlined text-[#f2ca50] text-2xl">
-                login
+                account_balance_wallet
               </span>
               <div>
-                <div className="font-mono text-xs text-[#f2ca50] font-bold">
-                  Identificar-se como Carlos D. (LIC-0001)
+                <div className="font-mono text-xs text-[#e2e2ea] font-bold">
+                  Sessão Não Autenticada
                 </div>
                 <div className="font-sans text-xs text-[#99907c]">
-                  Clique para carregar carteira de teste
+                  Use o botão &ldquo;Entrar / Criar Conta&rdquo; no topo para acessar sua carteira
                 </div>
               </div>
-            </button>
+            </div>
           )}
         </div>
       </div>
@@ -290,7 +288,7 @@ export default function DigitalWalletPage() {
                 <span className="material-symbols-outlined text-sm text-[#f2ca50]">
                   priority_high
                 </span>
-                Caução de 10% retida em lotes com lance líder ativo
+                Garantia integral de 100% retida em lotes com lance líder ativo
               </div>
             </div>
             <div className="pt-2 bg-[#0c0e13]/80 -mx-6 -mb-6 px-6 py-2 flex items-center justify-between border-t border-[#282a30] font-mono text-[10px]">
@@ -507,17 +505,18 @@ export default function DigitalWalletPage() {
                     </span>
                     <span className="text-[#99907c]">Expira em 14:59</span>
                   </div>
-                  <div
+                  <button
+                    type="button"
                     onClick={() => {
                       navigator.clipboard?.writeText(
                         '00020126580014br.gov.bcb.pix0136belmont-trust-custodia-fiduciaria-2026-sec-0001520400005303986',
                       )
                       showToast('Chave Copiada', 'Código Pix copiado para a área de transferência.')
                     }}
-                    className="font-mono text-[10px] bg-[#1d2025] p-2.5 rounded text-[#99907c] truncate select-all cursor-pointer hover:text-[#f2ca50] transition-colors border border-[#282a30]"
+                    className="w-full text-left font-mono text-[10px] bg-[#1d2025] p-2.5 rounded text-[#d0c5af] truncate select-all cursor-pointer hover:text-[#f2ca50] transition-colors border border-[#282a30]"
                   >
                     00020126580014br.gov.bcb.pix0136belmont-trust-custodia-fiduciaria-2026-sec-0001520400005303986
-                  </div>
+                  </button>
                   <span className="text-[10px] text-[#99907c] text-right font-mono">
                     Clique para copiar a chave hash
                   </span>
@@ -571,13 +570,15 @@ export default function DigitalWalletPage() {
                 </div>
                 <button
                   type="button"
-                  onClick={() => showToast('Livro Razão Exportado', 'Relatório contábil gerado com sucesso.')}
-                  className="px-3.5 py-1.5 rounded-lg bg-[#1d2025] text-[#e2e2ea] border border-[#282a30] font-mono text-xs flex items-center gap-1.5 hover:bg-[#282a30] transition-colors cursor-pointer"
+                  onClick={() => {
+                    window.print()
+                  }}
+                  className="no-print px-3.5 py-1.5 rounded-lg bg-[#1d2025] text-[#e2e2ea] border border-[#282a30] font-mono text-xs flex items-center gap-1.5 hover:bg-[#282a30] transition-colors cursor-pointer"
                 >
                   <span className="material-symbols-outlined text-base text-[#f2ca50]">
-                    download
+                    print
                   </span>
-                  <span>Baixar Livro Razão (PDF)</span>
+                  <span>Imprimir / Exportar Extrato (PDF)</span>
                 </button>
               </div>
 
@@ -660,6 +661,7 @@ export default function DigitalWalletPage() {
                         const isLock = tx.type === 'BID_LOCK'
                         const isRelease = tx.type === 'BID_RELEASE'
                         const isSettlement = tx.type === 'SETTLEMENT'
+                        const isSettlementCredit = tx.type === 'SETTLEMENT_CREDIT'
                         const isDeposit = tx.type === 'DEPOSIT'
 
                         return (
@@ -667,10 +669,10 @@ export default function DigitalWalletPage() {
                             key={tx.id}
                             className="hover:bg-[#1d2025]/60 transition-colors"
                           >
-                            <td className="py-3 px-4 font-mono text-[10px] text-[#99907c]">
+                            <td className="py-3 px-4 font-mono text-[11px] text-[#d0c5af] tabular-nums">
                               {new Date(tx.createdAt).toLocaleDateString('pt-BR')}{' '}
                               <br />
-                              <span className="text-[#4d4635]">
+                              <span className="text-[#99907c]">
                                 {new Date(tx.createdAt).toLocaleTimeString('pt-BR')}
                               </span>
                             </td>
@@ -680,7 +682,7 @@ export default function DigitalWalletPage() {
                                 className={`flex items-center gap-1.5 font-mono text-[11px] font-bold ${
                                   isLock
                                     ? 'text-[#f2ca50]'
-                                    : isRelease
+                                    : isRelease || isSettlementCredit
                                     ? 'text-[#4edea3]'
                                     : isSettlement
                                     ? 'text-[#e2e2ea]'
@@ -692,7 +694,7 @@ export default function DigitalWalletPage() {
                                     ? 'lock'
                                     : isRelease
                                     ? 'lock_open'
-                                    : isSettlement
+                                    : isSettlement || isSettlementCredit
                                     ? 'verified'
                                     : 'input'}
                                 </span>
@@ -703,6 +705,8 @@ export default function DigitalWalletPage() {
                                   ? 'Garantia Preventiva'
                                   : isRelease
                                   ? 'Desbloqueio Superado'
+                                  : isSettlementCredit
+                                  ? 'Recebimento de Liquidação (Leiloeiro)'
                                   : isSettlement
                                   ? 'Arrematação Definitiva'
                                   : 'Aporte de Garantia'}
@@ -747,6 +751,8 @@ export default function DigitalWalletPage() {
                                   ? 'RETIDO EM PREGÃO'
                                   : isRelease
                                   ? 'LIBERADO AUTOMÁTICO'
+                                  : isSettlementCredit
+                                  ? 'RECEITA CREDITADA AO LEILOEIRO'
                                   : isSettlement
                                   ? 'TITULARIDADE TRANSMITIDA'
                                   : 'ENTRADA ESCROW'}

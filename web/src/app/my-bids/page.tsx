@@ -88,6 +88,31 @@ export default function MyBidsPage() {
     )
   }
 
+  if (user.role === 'AUCTIONEER') {
+    return (
+      <div className="w-full pt-32 pb-20 px-6 max-w-xl mx-auto text-center font-mono">
+        <div className="w-16 h-16 rounded-full bg-[#f2ca50]/10 border border-[#f2ca50]/30 flex items-center justify-center mx-auto mb-4 text-[#f2ca50]">
+          <span className="material-symbols-outlined text-3xl">gavel</span>
+        </div>
+        <h2 className="text-2xl font-serif text-[#e2e2ea]">
+          Perfil de Leiloeiro Oficial ({user.publicCode})
+        </h2>
+        <p className="mt-2 text-xs text-[#99907c] leading-relaxed">
+          O Leiloeiro Oficial não realiza lances nem arremata obras. Sua função exclusiva é pesquisar o acervo da API pública, publicar pregões e receber a receita das liquidações.
+        </p>
+        <div className="mt-6 flex items-center justify-center gap-3">
+          <Link
+            href="/auctioneer"
+            className="inline-flex items-center gap-2 rounded-lg bg-[#f2ca50] px-5 py-2.5 text-xs text-[#07090E] font-bold hover:bg-[#e6bd3f] transition uppercase"
+          >
+            <span className="material-symbols-outlined text-sm">gavel</span>
+            <span>Ir para o Painel do Leiloeiro</span>
+          </Link>
+        </div>
+      </div>
+    )
+  }
+
   const displayedList =
     activeTab === 'ACTIVE'
       ? data.activeParticipations
@@ -303,16 +328,25 @@ export default function MyBidsPage() {
                 </div>
 
                 {/* Card Action Buttons */}
-                <div className="p-5 pt-0">
-                  {item.hasWon && item.receiptCode ? (
-                    <div className="flex items-center gap-2">
+                <div className="p-5 pt-0 space-y-2">
+                  {item.hasWon ? (
+                    <div className="flex flex-col gap-2">
                       <Link
-                        href={`/receipts/${item.receiptCode}`}
-                        className="flex-1 py-2.5 rounded-lg bg-[#4edea3] text-[#07090E] font-mono text-xs font-bold uppercase tracking-wider hover:bg-[#43c490] transition text-center flex items-center justify-center gap-2"
+                        href={`/audit/${item.lotId}`}
+                        className="w-full py-2.5 rounded-lg bg-[#4edea3] text-[#07090E] font-mono text-xs font-bold uppercase tracking-wider hover:bg-[#43c490] transition text-center flex items-center justify-center gap-2 shadow-lg shadow-[#4edea3]/10"
                       >
-                        <span className="material-symbols-outlined text-sm">verified</span>
-                        <span>Ver Comprovante Oficial</span>
+                        <span className="material-symbols-outlined text-sm">verified_user</span>
+                        <span>Acessar Certificado & Auditoria</span>
                       </Link>
+                      {item.receiptCode && (
+                        <Link
+                          href={`/receipts/${item.receiptCode}`}
+                          className="w-full py-2 rounded-lg bg-[#14161b] border border-[#d4af37]/40 text-[#f2ca50] font-mono text-[11px] font-bold uppercase tracking-wider hover:bg-[#1d2025] transition text-center flex items-center justify-center gap-1.5"
+                        >
+                          <span className="material-symbols-outlined text-xs">receipt_long</span>
+                          <span>Comprovante Compartilhável ({item.receiptCode})</span>
+                        </Link>
+                      )}
                     </div>
                   ) : item.status === 'LIVE' ? (
                     <Link
@@ -324,11 +358,11 @@ export default function MyBidsPage() {
                     </Link>
                   ) : (
                     <Link
-                      href={`/audit/${item.lotId}`}
+                      href={`/lots/${item.lotId}`}
                       className="w-full py-2.5 rounded-lg bg-[#14161b] border border-[#282a30] text-[#99907c] font-mono text-xs uppercase tracking-wider hover:text-[#e2e2ea] transition text-center flex items-center justify-center gap-2"
                     >
-                      <span className="material-symbols-outlined text-sm">history_edu</span>
-                      <span>Auditoria do Lote</span>
+                      <span className="material-symbols-outlined text-sm">gavel</span>
+                      <span>Pregão Encerrado (Superado)</span>
                     </Link>
                   )}
                 </div>

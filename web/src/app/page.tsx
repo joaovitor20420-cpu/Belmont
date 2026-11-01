@@ -31,6 +31,8 @@ export default function CatalogVitrinePage() {
   const [lots, setLots] = useState<LotItem[]>([])
   const [activeTab, setActiveTab] = useState<'LIVE' | 'SCHEDULED' | 'ENDED'>('LIVE')
   const [counts, setCounts] = useState({ live: 0, scheduled: 0, ended: 0, total: 0 })
+  const [metrics, setMetrics] = useState({ totalVolumeInCents: 0, totalBids: 0 })
+  const [sortBy, setSortBy] = useState<'DEFAULT' | 'PRICE_DESC' | 'PRICE_ASC' | 'BIDS_DESC'>('DEFAULT')
   const [isLoading, setIsLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
   const [now, setNow] = useState(Date.now())
@@ -65,9 +67,14 @@ export default function CatalogVitrinePage() {
           total: all.length,
         })
 
-        // Seleciona de acordo com o activeTab
+        setMetrics({
+          totalVolumeInCents: all.reduce((acc, l) => acc + Number(l.currentPrice || l.startPrice || 0), 0),
+          totalBids: all.reduce((acc, l) => acc + Number(l.bidsCount || 0), 0),
+        })
+
+        // Seleciona de acordo com o activeTab (sem misturar estados)
         if (activeTab === 'LIVE') {
-          setLots(liveLots.length > 0 ? liveLots : all)
+          setLots(liveLots)
         } else if (activeTab === 'SCHEDULED') {
           setLots(scheduledLots)
         } else {
@@ -87,11 +94,18 @@ export default function CatalogVitrinePage() {
   const spotlightLot =
     lots.find((l) => l.status === 'LIVE') || lots[0] || null
 
-  const filteredLots = lots.filter(
-    (lot) =>
-      lot.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (lot.artist && lot.artist.toLowerCase().includes(searchTerm.toLowerCase())),
-  )
+  const filteredLots = lots
+    .filter(
+      (lot) =>
+        lot.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (lot.artist && lot.artist.toLowerCase().includes(searchTerm.toLowerCase())),
+    )
+    .sort((a, b) => {
+      if (sortBy === 'PRICE_DESC') return (b.currentPrice || b.startPrice) - (a.currentPrice || a.startPrice)
+      if (sortBy === 'PRICE_ASC') return (a.currentPrice || a.startPrice) - (b.currentPrice || b.startPrice)
+      if (sortBy === 'BIDS_DESC') return (b.bidsCount || 0) - (a.bidsCount || 0)
+      return 0
+    })
 
   const heroMins = Math.floor(timeRemainingSeconds / 60)
   const heroSecs = timeRemainingSeconds % 60
@@ -197,32 +211,32 @@ export default function CatalogVitrinePage() {
               </div>
             </div>
 
-            {/* RUNNING PROTOCOL TELEMETRY */}
-            <div className="flex items-center gap-8 pt-3 text-[#d0c5af]">
+            {/* REAL CATALOG METRICS FROM DATABASE */}
+            <div className="flex items-center gap-8 pt-3 text-[#d0c5af] font-mono tabular-nums">
               <div>
-                <div className="font-mono text-[10px] uppercase tracking-wider text-[#99907c]">
-                  Garantia em Custódia
+                <div className="text-[10px] uppercase tracking-wider text-[#99907c]">
+                  Volume no Catálogo
                 </div>
-                <div className="font-mono text-base font-bold text-[#e2e2ea]">
-                  R$ 14.850.000,00
+                <div className="text-base font-bold text-[#e2e2ea]">
+                  {formatCurrency(metrics.totalVolumeInCents)}
                 </div>
               </div>
               <div className="w-px h-8 bg-[#282a30]" />
               <div>
-                <div className="font-mono text-[10px] uppercase tracking-wider text-[#99907c]">
-                  Latência SSE
+                <div className="text-[10px] uppercase tracking-wider text-[#99907c]">
+                  Pregões Ativos
                 </div>
-                <div className="font-mono text-base font-bold text-[#4edea3]">
-                  12ms • Estável
+                <div className="text-base font-bold text-[#4edea3]">
+                  {counts.live} {counts.live === 1 ? 'Lote Ao Vivo' : 'Lotes Ao Vivo'}
                 </div>
               </div>
               <div className="w-px h-8 bg-[#282a30]" />
               <div>
-                <div className="font-mono text-[10px] uppercase tracking-wider text-[#99907c]">
-                  Auditoria do Bloco
+                <div className="text-[10px] uppercase tracking-wider text-[#99907c]">
+                  Lances Registrados
                 </div>
-                <div className="font-mono text-base font-bold text-[#f2ca50]">
-                  #894-GEN
+                <div className="text-base font-bold text-[#f2ca50]">
+                  {metrics.totalBids} {metrics.totalBids === 1 ? 'Lance' : 'Lances'}
                 </div>
               </div>
             </div>
@@ -301,7 +315,7 @@ export default function CatalogVitrinePage() {
                       <span>
                         Líder:{' '}
                         <strong className="text-[#e2e2ea] font-normal">
-                          {spotlightLot.currentWinner?.publicCode || 'LIC-0001 (Carlos D.)'}
+                          {spotlightLot.currentWinner?.publicCode || 'Sem lances'}
                         </strong>
                       </span>
                       <span className="text-[#4d4635]">• {spotlightLot.bidsCount} lances</span>
@@ -347,8 +361,29 @@ export default function CatalogVitrinePage() {
                 </div>
               </div>
             ) : (
-              <div className="h-[440px] rounded-xl bg-[#14171f] flex items-center justify-center text-[#99907c] font-mono text-sm border border-[#282a30]">
-                Carregando catálogo fiduciário...
+              <div className="h-[440px] rounded-xl bg-[#14171f] p-8 flex flex-col items-center justify-center text-center border border-[#282a30] space-y-4">
+                <div className="w-14 h-14 rounded-full bg-[#1d2025] border border-[#d4af37]/30 flex items-center justify-center text-[#f2ca50]">
+                  <span className="material-symbols-outlined text-2xl">gavel</span>
+                </div>
+                <div className="space-y-1 max-w-md">
+                  <h3 className="font-serif text-xl text-[#e2e2ea]">
+                    {isLoading ? 'Sincronizando Catálogo...' : 'Nenhum Pregão Ativo no Momento'}
+                  </h3>
+                  <p className="font-mono text-xs text-[#99907c] leading-relaxed">
+                    {isLoading
+                      ? 'Consultando lotes homologados pelo Leiloeiro Oficial...'
+                      : 'O catálogo oficial está limpo e pronto para receber novos lotes publicados pelo Leiloeiro Oficial.'}
+                  </p>
+                </div>
+                {user?.role === 'AUCTIONEER' && !isLoading && (
+                  <Link
+                    href="/auctioneer"
+                    className="px-5 py-2.5 bg-[#d4af37] text-[#1c1400] font-mono text-xs uppercase tracking-widest font-bold rounded shadow-lg hover:bg-[#f2ca50] transition-all flex items-center gap-2"
+                  >
+                    <span className="material-symbols-outlined text-sm">add_circle</span>
+                    <span>Publicar Novo Lote no Painel do Leiloeiro</span>
+                  </Link>
+                )}
               </div>
             )}
           </div>
@@ -431,11 +466,21 @@ export default function CatalogVitrinePage() {
                 />
               </div>
 
-              <div className="px-4 py-2.5 bg-[#1d2025] text-[#e2e2ea] border border-[#4d4635]/40 rounded font-mono text-xs uppercase tracking-wider flex items-center gap-2 shrink-0">
+              <div className="px-3 py-2 bg-[#1d2025] text-[#e2e2ea] border border-[#4d4635]/40 rounded font-mono text-xs flex items-center gap-2 shrink-0">
                 <span className="material-symbols-outlined text-base text-[#f2ca50]">
-                  tune
+                  sort
                 </span>
-                <span className="hidden sm:inline">Filtros Ativos</span>
+                <select
+                  aria-label="Ordenar lotes do catálogo"
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value as any)}
+                  className="bg-transparent text-[#e2e2ea] font-mono text-xs uppercase tracking-wider focus:outline-none cursor-pointer"
+                >
+                  <option value="DEFAULT" className="bg-[#14171f]">Ordenação Padrão</option>
+                  <option value="PRICE_DESC" className="bg-[#14171f]">Maior Valor</option>
+                  <option value="PRICE_ASC" className="bg-[#14171f]">Menor Valor</option>
+                  <option value="BIDS_DESC" className="bg-[#14171f]">Mais Disputados</option>
+                </select>
               </div>
             </div>
           </div>
@@ -544,7 +589,7 @@ export default function CatalogVitrinePage() {
                       <div className="flex items-center justify-between text-[#d0c5af] font-mono text-[10px]">
                         <span>
                           {isEnded ? (
-                            <>Vencedor: <strong className="text-[#4edea3]">{lot.currentWinner?.publicCode || 'LIC-0001'}</strong></>
+                            <>Vencedor: <strong className="text-[#4edea3]">{lot.currentWinner?.publicCode || 'Sem lances'}</strong></>
                           ) : isMyLead ? (
                             <span className="text-[#4edea3] font-bold">Você é o Líder!</span>
                           ) : (
@@ -557,15 +602,27 @@ export default function CatalogVitrinePage() {
 
                     {/* ACTION BUTTON */}
                     {isEnded ? (
-                      <Link
-                        href={`/audit/${lot.id}`}
-                        className="w-full py-2.5 bg-[#1d2025] hover:bg-[#282a30] text-[#e2e2ea] rounded font-mono text-[11px] uppercase tracking-widest font-semibold transition-all shadow cursor-pointer flex items-center justify-center gap-1.5 border border-[#4d4635]/40"
-                      >
-                        <span className="material-symbols-outlined text-sm text-[#4edea3]">
-                          verified_user
-                        </span>
-                        <span>Ver Auditoria & Certificado</span>
-                      </Link>
+                      isMyLead ? (
+                        <Link
+                          href="/my-bids"
+                          className="w-full py-2.5 bg-[#4edea3]/15 hover:bg-[#4edea3]/25 text-[#4edea3] rounded font-mono text-[11px] uppercase tracking-widest font-bold transition-all shadow cursor-pointer flex items-center justify-center gap-1.5 border border-[#4edea3]/40"
+                        >
+                          <span className="material-symbols-outlined text-sm text-[#4edea3]">
+                            verified_user
+                          </span>
+                          <span>Arrematado por Você • Ver Certificado</span>
+                        </Link>
+                      ) : (
+                        <Link
+                          href={`/lots/${lot.id}`}
+                          className="w-full py-2.5 bg-[#1d2025] hover:bg-[#282a30] text-[#99907c] rounded font-mono text-[11px] uppercase tracking-widest font-semibold transition-all shadow cursor-pointer flex items-center justify-center gap-1.5 border border-[#282a30]"
+                        >
+                          <span className="material-symbols-outlined text-sm">
+                            gavel
+                          </span>
+                          <span>Pregão Encerrado</span>
+                        </Link>
+                      )
                     ) : (
                       <Link
                         href={`/lots/${lot.id}`}
@@ -627,23 +684,27 @@ export default function CatalogVitrinePage() {
               </div>
             </div>
 
-            {/* TELEMETRY / ENGINE STATUS BAR CHART */}
+            {/* REAL CATALOG STATUS SUMMARY */}
             <div className="lg:col-span-8 bg-[#0c0e13] p-4 lg:p-6 rounded-lg border border-[#282a30] flex flex-col md:flex-row items-center justify-between gap-6 shadow-inner">
               <div className="flex-1 w-full space-y-2">
                 <div className="flex items-center justify-between font-mono text-xs text-[#d0c5af]">
-                  <span>Capacidade de Processamento de Lances</span>
-                  <span className="text-[#f2ca50] font-bold">4.200 req/s • Zero Fila</span>
+                  <span>Distribuição Real do Catálogo</span>
+                  <span className="text-[#f2ca50] font-bold">
+                    {counts.live} Ao Vivo • {counts.scheduled} Agendados • {counts.ended} Encerrados
+                  </span>
                 </div>
-                {/* PROGRESS BAR */}
+                {/* REAL PROGRESS BAR */}
                 <div className="w-full bg-[#282a30] h-2 rounded-full overflow-hidden">
                   <div
                     className="bg-[#f2ca50] h-full rounded-full transition-all duration-500"
-                    style={{ width: '28%' }}
+                    style={{
+                      width: `${counts.total > 0 ? Math.max(8, Math.round((counts.live / counts.total) * 100)) : 0}%`,
+                    }}
                   />
                 </div>
                 <div className="flex items-center justify-between font-mono text-[10px] text-[#99907c]">
-                  <span>Anti-Concorrência: Sem Colisão</span>
-                  <span>Replicação Geográfica: GRU – ORD – GVA</span>
+                  <span>Concorrência Pessimista Ativa (FOR UPDATE)</span>
+                  <span>Volume em Catálogo: {formatCurrency(metrics.totalVolumeInCents)}</span>
                 </div>
               </div>
 
@@ -652,13 +713,13 @@ export default function CatalogVitrinePage() {
               <div className="shrink-0 flex items-center gap-6">
                 <div className="text-right">
                   <div className="font-mono text-[10px] text-[#99907c] uppercase tracking-wider">
-                    Último Timestamp
+                    Relógio Oficial
                   </div>
-                  <div className="font-mono text-xs text-[#e2e2ea]">
+                  <div className="font-mono text-xs text-[#e2e2ea] tabular-nums">
                     {new Date(now).toLocaleTimeString('pt-BR')} BRT
                   </div>
                 </div>
-                <div className="w-3 h-3 rounded-full bg-[#4edea3] animate-ping" />
+                <div className="w-3 h-3 rounded-full bg-[#4edea3]" />
               </div>
             </div>
           </div>

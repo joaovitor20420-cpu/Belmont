@@ -299,12 +299,9 @@ export default function ShareableReceiptPage({
 
             <div className="pt-4 border-t border-[#282a30] flex items-center justify-between font-mono text-[10px] text-[#99907c]">
               <span>Em conformidade com o Decreto Federal nº 21.981/32</span>
-              <Link
-                href={`/audit/${receipt.lot.id}`}
-                className="text-[#f2ca50] hover:underline"
-              >
-                Conferir Verificador Criptográfico →
-              </Link>
+              <span className="text-[#4edea3] font-semibold">
+                Registro Público Verificado • {receipt.code}
+              </span>
             </div>
           </div>
         </div>

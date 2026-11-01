@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { apiRequest } from '@/lib/api'
 import { useAuth } from '@/contexts/AuthContext'
-import { formatCurrency } from '@/lib/utils'
+import { formatCurrency, formatTimeRemaining } from '@/lib/utils'
 
 interface ArtworkSearchResult {
   id: string
@@ -19,16 +19,10 @@ interface ArtworkSearchResult {
 
 export default function AuctioneerMasterCockpitPage() {
   const router = useRouter()
-  const { user, login } = useAuth()
+  const { user } = useAuth()
 
-  // Telemetria SSE simulada
-  const [latencyMs, setLatencyMs] = useState(8)
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setLatencyMs(Math.floor(Math.random() * 5) + 7)
-    }, 3500)
-    return () => clearInterval(interval)
-  }, [])
+  // Estado de confirmação em 2 passos para ações irreversíveis do Leiloeiro
+  const [confirmAction, setConfirmAction] = useState<'hammer' | 'cancel' | null>(null)
 
   // Busca de obras na API pública
   const [artQuery, setArtQuery] = useState('Vincent van Gogh')
@@ -36,19 +30,19 @@ export default function AuctioneerMasterCockpitPage() {
   const [isSearchingArt, setIsSearchingArt] = useState(false)
   const [searchError, setSearchError] = useState('')
 
-  // Formulário Oficial de Publicação de Lote
-  const [title, setTitle] = useState('The Bedroom (O Quarto em Arles)')
-  const [artist, setArtist] = useState('Vincent van Gogh (1853–1890)')
-  const [techniqueDimensions, setTechniqueDimensions] = useState('Óleo sobre tela • 72 × 90 cm')
-  const [imageUrl, setImageUrl] = useState('/arles.png')
-  const [externalApiId, setExternalApiId] = useState('28560')
-  const [manifestUrl, setManifestUrl] = useState('https://openaccess-api.clevelandart.org/api/artworks/28560')
-  const [startPriceBRL, setStartPriceBRL] = useState('350000') // R$ 350.000,00
-  const [minIncrementBRL, setMinIncrementBRL] = useState('10000') // R$ 10.000,00
+  // Formulário Oficial de Publicação de Lote (Preenchido exclusivamente via API pública)
+  const [title, setTitle] = useState('')
+  const [artist, setArtist] = useState('')
+  const [techniqueDimensions, setTechniqueDimensions] = useState('')
+  const [imageUrl, setImageUrl] = useState('')
+  const [externalApiId, setExternalApiId] = useState('')
+  const [manifestUrl, setManifestUrl] = useState('')
+  const [startPriceBRL, setStartPriceBRL] = useState('50000') // R$ 50.000,00
+  const [minIncrementBRL, setMinIncrementBRL] = useState('5000') // R$ 5.000,00
   const [antiSnipingEnabled, setAntiSnipingEnabled] = useState(true)
   const [durationMinutes, setDurationMinutes] = useState('30')
   const [isPublishing, setIsPublishing] = useState(false)
-  const [publishStatus, setPublishStatus] = useState('Aguardando comando do Leiloeiro')
+  const [publishStatus, setPublishStatus] = useState('Selecione uma obra na API ao lado para configurar o lote')
 
   // Lote ao vivo ativo para controle do martelo
   const [activeLiveLot, setActiveLiveLot] = useState<any | null>(null)
@@ -61,7 +55,7 @@ export default function AuctioneerMasterCockpitPage() {
   const [endedLots, setEndedLots] = useState<any[]>([])
   const [totalReceivedInCents, setTotalReceivedInCents] = useState(0)
 
-  // Realizar busca inicial de obras
+  // Realizar busca inicial de obras na API Pública
   const searchMuseumArtworks = async (queryText: string) => {
     setIsSearchingArt(true)
     setSearchError('')
@@ -69,7 +63,18 @@ export default function AuctioneerMasterCockpitPage() {
       const data = await apiRequest<{ items: ArtworkSearchResult[] }>(
         `/artworks/search?query=${encodeURIComponent(queryText)}&limit=6`,
       )
-      setArtworks(data.items || [])
+      const list = data.items || []
+      setArtworks(list)
+      if (list.length > 0 && !title) {
+        const first = list[0]
+        setTitle(first.title)
+        setArtist(first.artistTitle || 'Mestre da Pintura')
+        setTechniqueDimensions(`${first.mediumDisplay || 'Óleo sobre tela'} • ${first.dateDisplay || 'Acervo Histórico'}`)
+        setImageUrl(first.imageUrl || '')
+        setExternalApiId(String(first.id))
+        setManifestUrl(`https://openaccess-api.clevelandart.org/api/artworks/${first.id}`)
+        setPublishStatus(`Obra #${first.id} carregada da API pública`)
+      }
     } catch (err: any) {
       setSearchError(err.message || 'Erro ao consultar acervo do museu.')
     } finally {
@@ -78,8 +83,10 @@ export default function AuctioneerMasterCockpitPage() {
   }
 
   useEffect(() => {
-    searchMuseumArtworks('Monet')
-  }, [])
+    if (user?.role === 'AUCTIONEER') {
+      searchMuseumArtworks('Monet')
+    }
+  }, [user])
 
   // Buscar resultados de lotes encerrados e total recebido
   const refreshEndedLots = async () => {
@@ -105,9 +112,11 @@ export default function AuctioneerMasterCockpitPage() {
       if (res.lots && res.lots.length > 0) {
         setActiveLiveLot(res.lots[0])
       } else {
-        const allRes = await apiRequest<{ lots: any[] }>('/lots')
-        if (allRes.lots && allRes.lots.length > 0) {
-          setActiveLiveLot(allRes.lots[0])
+        const schedRes = await apiRequest<{ lots: any[] }>('/lots?status=SCHEDULED')
+        if (schedRes.lots && schedRes.lots.length > 0) {
+          setActiveLiveLot(schedRes.lots[0])
+        } else {
+          setActiveLiveLot(null)
         }
       }
     } catch {}
@@ -226,47 +235,58 @@ export default function AuctioneerMasterCockpitPage() {
     }
   }
 
-  // Ações de intervenção do Leiloeiro
-  const handleAuctionAction = async (action: 'hammer' | 'three' | 'pause' | 'cancel_bid') => {
+  // Ação oficial de liquidação do Leiloeiro (somente ações reais no servidor)
+  const handleSettleActiveLot = async () => {
     if (!activeLiveLot) return
 
-    if (action === 'hammer') {
-      setIsSettling(true)
-      try {
-        const res = await apiRequest<{
-          settled: boolean
-          receiptCode: string
-        }>(`/lots/${activeLiveLot.id}/settle`, { method: 'POST' })
+    setIsSettling(true)
+    setConfirmAction(null)
+    try {
+      const res = await apiRequest<{
+        settled: boolean
+        receiptCode: string
+      }>(`/lots/${activeLiveLot.id}/settle`, { method: 'POST' })
 
-        setActionFeedback({
-          text: `MARTELO BATIDO! Lote ${activeLiveLot.title} adjudicado oficialmente. Certificado emitido: ${res.receiptCode}`,
-          color: 'text-[#4edea3] font-bold',
-        })
-        refreshActiveLot()
-      } catch (err: any) {
-        setActionFeedback({
-          text: err.message || 'Erro ao bater martelo e liquidar.',
-          color: 'text-rose-400 font-bold',
-        })
-      } finally {
-        setIsSettling(false)
-      }
-    } else if (action === 'three') {
       setActionFeedback({
-        text: "PREGÃO: 'DOU-LHE TRÊS' anunciado no pregão! Cronômetro final de arrematação iniciado.",
-        color: 'text-[#f2ca50] font-semibold',
+        text: `MARTELO BATIDO! Lote "${activeLiveLot.title}" adjudicado oficialmente.${res.receiptCode ? ` Certificado emitido: ${res.receiptCode}` : ''}`,
+        color: 'text-[#4edea3] font-bold',
       })
-    } else if (action === 'pause') {
+      refreshActiveLot()
+      refreshEndedLots()
+    } catch (err: any) {
       setActionFeedback({
-        text: 'SALA EM SUSPENSÃO TEMPORÁRIA: Pregão pausado pelo leiloeiro oficial.',
-        color: 'text-[#e2e2ea] font-semibold',
+        text: err.message || 'Erro ao bater martelo e liquidar.',
+        color: 'text-rose-400 font-bold',
       })
-    } else if (action === 'cancel_bid') {
-      setActionFeedback({
-        text: 'INTERVENÇÃO: Advertência notarial emitida aos licitantes conectados.',
-        color: 'text-rose-400 font-semibold',
-      })
+    } finally {
+      setIsSettling(false)
     }
+  }
+
+  // Proteção Estrita de Rota: somente o Leiloeiro Oficial pode acessar o Painel do Leiloeiro
+  if (!user || user.role !== 'AUCTIONEER') {
+    return (
+      <div className="w-full pt-32 pb-20 px-6 max-w-xl mx-auto text-center font-mono">
+        <div className="w-16 h-16 rounded-full bg-rose-500/10 border border-rose-500/30 flex items-center justify-center mx-auto mb-4 text-rose-400">
+          <span className="material-symbols-outlined text-3xl">lock</span>
+        </div>
+        <h2 className="text-2xl font-serif text-[#e2e2ea]">
+          Acesso Exclusivo ao Leiloeiro Oficial
+        </h2>
+        <p className="mt-2 text-xs text-[#99907c] leading-relaxed">
+          Usuários licitantes e visitantes não possuem permissão para acessar o Painel do Leiloeiro. Somente o Leiloeiro Oficial autenticado pode pesquisar o acervo da API pública e publicar novos lotes de leilão.
+        </p>
+        <div className="mt-6 flex items-center justify-center gap-3">
+          <Link
+            href="/"
+            className="inline-flex items-center gap-2 rounded-lg bg-[#1d2025] border border-[#d4af37]/40 px-5 py-2.5 text-xs text-[#f2ca50] hover:bg-[#282a30] transition uppercase font-bold"
+          >
+            <span className="material-symbols-outlined text-sm">arrow_back</span>
+            <span>Voltar ao Catálogo</span>
+          </Link>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -291,47 +311,193 @@ export default function AuctioneerMasterCockpitPage() {
 
             <div className="flex items-center gap-2 px-3 py-1 bg-[#4edea3]/10 border border-[#4edea3]/30 rounded">
               <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#4edea3] opacity-75" />
+                {activeLiveLot && (
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#4edea3] opacity-75" />
+                )}
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-[#4edea3]" />
               </span>
               <span className="font-mono text-[10px] uppercase tracking-widest text-[#4edea3] font-bold">
-                MARTELO ELETRÔNICO • SALA AO VIVO ATIVA
+                {activeLiveLot
+                  ? `PREGÃO AO VIVO • ${activeLiveLot.title}`
+                  : 'PAINEL PRONTO PARA PUBLICAÇÃO'}
               </span>
             </div>
-
-            {/* Quick Login if not logged as auctioneer */}
-            {(!user || user.role !== 'AUCTIONEER') && (
-              <button
-                onClick={() => login('auctioneer@belmont.com', 'password123')}
-                className="px-3 py-1 bg-[#f2ca50] text-[#1c1400] font-mono text-xs font-bold uppercase rounded hover:bg-[#ffe088] transition-colors cursor-pointer"
-              >
-                Autenticar como Leiloeiro Oficial (1 Clique)
-              </button>
-            )}
           </div>
 
-          {/* Network Telemetry & Cryptographic Heartbeat */}
+          {/* Real Operational Metrics */}
           <div className="flex items-center gap-6 font-mono text-xs">
             <div className="flex items-center gap-1.5">
-              <span className="material-symbols-outlined text-[#99907c] text-sm">
-                network_check
+              <span className="material-symbols-outlined text-[#f2ca50] text-sm">
+                gavel
               </span>
-              <span className="text-[#99907c]">LATÊNCIA SSE:</span>
-              <span className="text-[#4edea3] font-bold">{latencyMs}ms</span>
+              <span className="text-[#99907c]">LOTES ENCERRADOS:</span>
+              <span className="text-[#e2e2ea] font-bold">{endedLots.length}</span>
             </div>
             <div className="flex items-center gap-1.5">
-              <span className="material-symbols-outlined text-[#f2ca50] text-sm">
-                schedule
+              <span className="material-symbols-outlined text-[#4edea3] text-sm">
+                payments
               </span>
-              <span className="text-[#99907c]">SINCRONIA NTP:</span>
-              <span className="text-[#f2ca50] font-bold">ESTÁVEL (±0.002s)</span>
-            </div>
-            <div className="px-3 py-1 bg-[#282a30] rounded text-[#99907c]">
-              AUDIT ID: <span className="text-[#e2e2ea] font-semibold">0x7F2...8C91</span>
+              <span className="text-[#99907c]">CAIXA TOTAL:</span>
+              <span className="text-[#4edea3] font-bold">
+                {formatCurrency(totalReceivedInCents)}
+              </span>
             </div>
           </div>
         </div>
       </section>
+
+      {/* TOP LIVE LOT CONTROL COCKPIT (Visível no topo para acesso imediato do Leiloeiro) */}
+      {(activeLiveLot || actionFeedback) && (
+        <section className="w-full max-w-[1600px] mx-auto px-6 lg:px-12 pt-6">
+          <div className="bg-[#0c0e13] rounded-xl p-6 border border-[#d4af37]/40 shadow-2xl flex flex-col gap-4">
+            {actionFeedback && (
+              <div className="p-3 bg-[#1d2025] rounded-lg border border-[#d4af37]/40 flex items-center justify-between font-mono text-xs">
+                <span className={actionFeedback.color}>{actionFeedback.text}</span>
+                <button
+                  type="button"
+                  aria-label="Fechar aviso"
+                  onClick={() => setActionFeedback(null)}
+                  className="text-[#99907c] hover:text-[#e2e2ea]"
+                >
+                  ✕
+                </button>
+              </div>
+            )}
+
+            {activeLiveLot && (
+              <>
+                <div className="flex flex-wrap items-center justify-between gap-4 pb-3 border-b border-[#282a30]">
+                  <div className="flex items-center gap-3">
+                    <div className="w-3 h-3 rounded-full bg-[#4edea3] animate-pulse" />
+                    <div className="flex flex-col">
+                      <span className="font-serif text-lg text-[#e2e2ea]">
+                        Console de Controle do Pregão Ativo
+                      </span>
+                      <span className="font-mono text-xs text-[#f2ca50]">
+                        LOTE #{activeLiveLot.id.slice(0, 4).toUpperCase()} • {activeLiveLot.artist}, &ldquo;{activeLiveLot.title}&rdquo;
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3 font-mono text-xs">
+                    <span className="text-[#99907c] uppercase tracking-wider">Cronômetro:</span>
+                    <span className="text-[#f2ca50] font-bold px-3 py-1 bg-[#1d2025] rounded border border-[#282a30] tabular-nums">
+                      {formatTimeRemaining(activeLiveLot.endTime)}
+                    </span>
+                    <Link
+                      href={`/lots/${activeLiveLot.id}`}
+                      className="px-3 py-1 bg-[#282a30] hover:bg-[#343740] text-[#e2e2ea] rounded transition"
+                    >
+                      Abrir Sala Ao Vivo →
+                    </Link>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-[#14171f] rounded-lg border border-[#282a30]">
+                  <div className="flex flex-col">
+                    <span className="font-mono text-[10px] text-[#99907c] uppercase">
+                      Lance Líder Atual
+                    </span>
+                    <span className="font-serif text-2xl text-[#f2ca50] font-bold mt-0.5">
+                      {formatCurrency(activeLiveLot.currentPrice)}
+                    </span>
+                    <span className="font-mono text-xs text-[#4edea3] mt-0.5">
+                      Líder: {activeLiveLot.currentWinner?.publicCode || 'Sem lances registrados'}
+                    </span>
+                  </div>
+
+                  <div className="flex flex-col">
+                    <span className="font-mono text-[10px] text-[#99907c] uppercase">
+                      Total de Lances no Lote
+                    </span>
+                    <span className="font-serif text-2xl text-[#e2e2ea] font-bold mt-0.5">
+                      {activeLiveLot.bidsCount || 0} Lances
+                    </span>
+                    <span className="font-mono text-xs text-[#99907c] mt-0.5">
+                      Próximo lance mínimo: {formatCurrency(activeLiveLot.currentPrice + activeLiveLot.minIncrement)}
+                    </span>
+                  </div>
+
+                  <div className="flex flex-col justify-center gap-2">
+                    {confirmAction === 'hammer' ? (
+                      <div className="p-3 rounded-lg bg-[#0c0e13] border border-[#4edea3] space-y-2 font-mono">
+                        <span className="block text-xs text-[#e2e2ea] font-bold">
+                          Confirmar batida de martelo e liquidação definitiva?
+                        </span>
+                        <div className="grid grid-cols-2 gap-2">
+                          <button
+                            type="button"
+                            onClick={handleSettleActiveLot}
+                            disabled={isSettling}
+                            className="py-2 bg-[#4edea3] text-[#07090e] text-xs font-bold uppercase rounded cursor-pointer"
+                          >
+                            Confirmar
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setConfirmAction(null)}
+                            className="py-2 bg-[#282a30] text-[#e2e2ea] text-xs uppercase rounded cursor-pointer"
+                          >
+                            Voltar
+                          </button>
+                        </div>
+                      </div>
+                    ) : confirmAction === 'cancel' ? (
+                      <div className="p-3 rounded-lg bg-[#0c0e13] border border-rose-500 space-y-2 font-mono">
+                        <span className="block text-xs text-rose-300 font-bold">
+                          Confirmar cancelamento definitivo deste lote sem lances?
+                        </span>
+                        <div className="grid grid-cols-2 gap-2">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setConfirmAction(null)
+                              handleCancelLot()
+                            }}
+                            disabled={isCancelling}
+                            className="py-2 bg-rose-600 text-white text-xs font-bold uppercase rounded cursor-pointer"
+                          >
+                            Confirmar Cancelamento
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setConfirmAction(null)}
+                            className="py-2 bg-[#282a30] text-[#e2e2ea] text-xs uppercase rounded cursor-pointer"
+                          >
+                            Voltar
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex flex-wrap items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setConfirmAction('hammer')}
+                          disabled={isSettling}
+                          className="flex-1 py-3 px-4 bg-[#4edea3] text-[#07090e] font-mono text-xs uppercase tracking-wider font-bold rounded-lg flex items-center justify-center gap-2 hover:bg-emerald-400 shadow-lg cursor-pointer disabled:opacity-50"
+                        >
+                          <span className="material-symbols-outlined text-base">gavel</span>
+                          <span>{isSettling ? 'LIQUIDANDO...' : 'BATER MARTELO & LIQUIDAR'}</span>
+                        </button>
+                        {activeLiveLot.bidsCount === 0 && (
+                          <button
+                            type="button"
+                            onClick={() => setConfirmAction('cancel')}
+                            disabled={isCancelling}
+                            className="py-3 px-4 bg-rose-600/20 text-rose-300 border border-rose-500/40 font-mono text-xs uppercase tracking-wider font-bold rounded-lg hover:bg-rose-600/30 transition cursor-pointer disabled:opacity-50"
+                          >
+                            Cancelar Lote (0 Lances)
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+        </section>
+      )}
 
       {/* Main Institutional Workspace: 2-Column High-Density Grid */}
       <section className="w-full max-w-[1600px] mx-auto px-6 lg:px-12 py-8">
@@ -623,8 +789,8 @@ export default function AuctioneerMasterCockpitPage() {
                           className="w-full bg-[#0c0e13] text-[#e2e2ea] font-mono text-xs font-bold pl-10 pr-3 py-2.5 rounded-lg border border-[#282a30] focus:outline-none focus:border-[#d4af37]"
                         />
                       </div>
-                      <span className="font-mono text-[9px] text-[#99907c]">
-                        Garantia bancária mínima (10%): {formatCurrency(Math.round(parseFloat(startPriceBRL || '0') * 10))}
+                      <span className="font-mono text-[10px] text-[#99907c]">
+                        Garantia integral exigida (100%): {formatCurrency(Math.round(parseFloat(startPriceBRL || '0') * 100))}
                       </span>
                     </div>
 
@@ -810,7 +976,7 @@ export default function AuctioneerMasterCockpitPage() {
                             className="inline-flex items-center gap-1 px-3 py-1 rounded bg-[#282a30] hover:bg-[#343740] text-[10px] text-[#e2e2ea] transition"
                           >
                             <span className="material-symbols-outlined text-xs">verified</span>
-                            <span>Ver Auditoria</span>
+                            <span>Trilha de Auditoria</span>
                           </Link>
                         </td>
                       </tr>
@@ -820,166 +986,6 @@ export default function AuctioneerMasterCockpitPage() {
               </table>
             </div>
           )}
-        </div>
-      </section>
-
-      {/* BOTTOM OPERATIONAL MONITOR & LEILÃO CONTROL COCKPIT */}
-      <section className="w-full max-w-[1600px] mx-auto px-6 lg:px-12 pb-12">
-        <div className="bg-[#0c0e13] rounded-xl p-6 border border-[#282a30] shadow-2xl flex flex-col gap-4">
-          {/* Panel Header */}
-          <div className="flex flex-wrap items-center justify-between gap-4 pb-3 border-b border-[#282a30]">
-            <div className="flex items-center gap-3">
-              <div className="w-3 h-3 rounded-full bg-[#4edea3] animate-pulse" />
-              <div className="flex flex-col">
-                <span className="font-serif text-lg text-[#e2e2ea]">
-                  Console de Intervenção em Tempo Real
-                </span>
-                <span className="font-mono text-[10px] text-[#99907c]">
-                  LOTE ATUALMENTE NO TABLADO:{' '}
-                  {activeLiveLot
-                    ? `LOT-${activeLiveLot.id.slice(0, 4).toUpperCase()} • ${activeLiveLot.artist}, "${activeLiveLot.title}"`
-                    : 'Aguardando publicação...'}
-                </span>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2 font-mono text-xs">
-              <span className="text-[#99907c] uppercase tracking-wider">Cronômetro de Batida:</span>
-              <span className="text-[#f2ca50] font-bold px-3 py-1 bg-[#1d2025] rounded border border-[#282a30]">
-                00:01:42
-              </span>
-            </div>
-          </div>
-
-          {/* Live Bidding Data Barometer */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 bg-[#14171f] rounded-lg border border-[#282a30]">
-            <div className="flex flex-col">
-              <span className="font-mono text-[10px] text-[#99907c] uppercase">
-                Lance Mais Alto Homologado
-              </span>
-              <span className="font-serif text-2xl text-[#f2ca50] font-bold mt-0.5">
-                {activeLiveLot ? formatCurrency(activeLiveLot.currentPrice) : 'R$ 0,00'}
-              </span>
-              <span className="font-mono text-[10px] text-[#4edea3] mt-0.5">
-                Líder: {activeLiveLot?.currentWinner?.publicCode || 'Aguardando lance'}
-              </span>
-            </div>
-
-            <div className="flex flex-col">
-              <span className="font-mono text-[10px] text-[#99907c] uppercase">
-                Total de Lances Válidos
-              </span>
-              <span className="font-serif text-2xl text-[#e2e2ea] font-bold mt-0.5">
-                {activeLiveLot ? `${activeLiveLot.bidsCount || 0} Registros` : '0'}
-              </span>
-              <span className="font-mono text-[10px] text-[#99907c] mt-0.5">
-                Auditados na trilha criptográfica
-              </span>
-            </div>
-
-            <div className="flex flex-col">
-              <span className="font-mono text-[10px] text-[#99907c] uppercase">
-                Estado Atual da Oferta
-              </span>
-              <div className="flex items-center gap-2 mt-1">
-                <span className="px-2 py-0.5 bg-[#f2ca50]/20 text-[#f2ca50] font-mono text-[10px] rounded uppercase font-bold">
-                  DOU-LHE DUAS
-                </span>
-                <span className="font-mono text-[10px] text-[#99907c]">
-                  Aguardando contraoferta
-                </span>
-              </div>
-              <span className="font-mono text-[10px] text-[#99907c] mt-1">
-                Próximo piso: {activeLiveLot ? formatCurrency(activeLiveLot.currentPrice + activeLiveLot.minIncrement) : 'R$ 0,00'}
-              </span>
-            </div>
-
-            <div className="flex flex-col">
-              <span className="font-mono text-[10px] text-[#99907c] uppercase">
-                Garantia em Custódia (Escrow)
-              </span>
-              <span className="font-serif text-2xl text-[#4edea3] font-bold mt-0.5">
-                100% Coberta
-              </span>
-              <span className="font-mono text-[10px] text-[#99907c] mt-0.5">
-                Depósito fiduciário segregado
-              </span>
-            </div>
-          </div>
-
-          {/* Action Feedback Banner */}
-          {actionFeedback && (
-            <div className="p-3 bg-[#1d2025] rounded-lg border border-[#d4af37]/40 flex items-center justify-between font-mono text-xs">
-              <span className={actionFeedback.color}>{actionFeedback.text}</span>
-              <button
-                onClick={() => setActionFeedback(null)}
-                className="text-[#99907c] hover:text-[#e2e2ea]"
-              >
-                ✕
-              </button>
-            </div>
-          )}
-
-          {/* Action Overrides: Official Auctioneer Emergency Buttons */}
-          <div className="flex flex-wrap items-center justify-between gap-4 pt-2">
-            <div className="flex flex-wrap items-center gap-3">
-              {/* Bater Martelo (Primary Authority Act) */}
-              <button
-                type="button"
-                onClick={() => handleAuctionAction('hammer')}
-                disabled={isSettling || !activeLiveLot}
-                className="px-5 py-3 bg-[#4edea3] text-[#07090e] font-mono text-xs uppercase tracking-wider font-bold rounded-lg flex items-center gap-2 hover:bg-emerald-400 shadow-lg cursor-pointer disabled:opacity-50"
-              >
-                <span className="material-symbols-outlined text-lg">gavel</span>
-                <span>{isSettling ? 'HOMOLOGANDO...' : 'BATER MARTELO & LIQUIDAR LOTE'}</span>
-              </button>
-
-              {/* Declarar Dou-lhe Três */}
-              <button
-                type="button"
-                onClick={() => handleAuctionAction('three')}
-                className="px-5 py-3 bg-[#d4af37] text-[#1c1400] font-mono text-xs uppercase tracking-wider font-bold rounded-lg flex items-center gap-2 hover:bg-[#f2ca50] shadow-lg cursor-pointer"
-              >
-                <span className="material-symbols-outlined text-lg">campaign</span>
-                <span>DECLARAR DOU-LHE TRÊS</span>
-              </button>
-
-              {/* Pausar Pregão */}
-              <button
-                type="button"
-                onClick={() => handleAuctionAction('pause')}
-                className="px-5 py-3 bg-[#282a30] text-[#e2e2ea] hover:text-[#f2ca50] font-mono text-xs uppercase tracking-wider font-semibold rounded-lg flex items-center gap-2 transition-colors cursor-pointer"
-              >
-                <span className="material-symbols-outlined text-lg">pause_circle</span>
-                <span>PAUSAR PREGÃO</span>
-              </button>
-            </div>
-
-            <div className="flex items-center gap-3">
-              {/* Cancelar Lote Sem Lances (Regra de Negócio Central) */}
-              {activeLiveLot && activeLiveLot.bidsCount === 0 && (
-                <button
-                  type="button"
-                  onClick={handleCancelLot}
-                  disabled={isCancelling}
-                  className="px-5 py-3 bg-rose-600/20 text-rose-300 border border-rose-500/40 font-mono text-xs uppercase tracking-wider font-bold rounded-lg flex items-center gap-2 hover:bg-rose-600/30 transition-colors cursor-pointer disabled:opacity-50"
-                >
-                  <span className="material-symbols-outlined text-lg">block</span>
-                  <span>{isCancelling ? 'CANCELANDO...' : 'CANCELAR LOTE (0 LANCES)'}</span>
-                </button>
-              )}
-
-              {/* Cancelar Lance Ilícito */}
-              <button
-                type="button"
-                onClick={() => handleAuctionAction('cancel_bid')}
-                className="px-5 py-3 bg-rose-950/40 text-rose-300 border border-rose-500/30 font-mono text-xs uppercase tracking-wider font-semibold rounded-lg flex items-center gap-2 hover:bg-rose-900/50 transition-colors cursor-pointer"
-              >
-                <span className="material-symbols-outlined text-lg">cancel</span>
-                <span>EMITIR ADVERTÊNCIA NOTARIAL</span>
-              </button>
-            </div>
-          </div>
         </div>
       </section>
     </div>
