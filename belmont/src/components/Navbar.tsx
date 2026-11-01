@@ -214,11 +214,8 @@ export function Navbar() {
           <Link href="/" className="flex items-center gap-3.5 shrink-0 group">
             <img
               alt="Belmont Auctions Crest"
-              className="h-8 w-auto object-contain transition-transform group-hover:scale-105"
-              src="/belmont-crest.png"
-              onError={(e) => {
-                e.currentTarget.style.display = 'none'
-              }}
+              className="h-9 w-9 object-contain transition-transform group-hover:scale-105"
+              src="/belmont-crest.svg"
             />
             <div className="flex flex-col">
               <span className="font-serif text-lg tracking-wider text-[#e2e2ea] font-medium leading-tight">

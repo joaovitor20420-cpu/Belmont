@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none">
+  <defs>
+    <linearGradient id="goldGrad" x1="16" y1="8" x2="112" y2="120" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FFE58F" />
+      <stop offset="35%" stop-color="#F2CA50" />
+      <stop offset="70%" stop-color="#D4AF37" />
+      <stop offset="100%" stop-color="#9A7418" />
+    </linearGradient>
+    <linearGradient id="shieldBg" x1="64" y1="10" x2="64" y2="118" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#171A24" />
+      <stop offset="100%" stop-color="#07090E" />
+    </linearGradient>
+  </defs>
+
+  <!-- Outer Heraldic Shield -->
+  <path
+    d="M64 8L18 24V58C18 88.5 37.6 113.2 64 121C90.4 113.2 110 88.5 110 58V24L64 8Z"
+    fill="url(#shieldBg)"
+    stroke="url(#goldGrad)"
+    stroke-width="5"
+  />
+
+  <!-- Inner Filigree Shield Border -->
+  <path
+    d="M64 15L25 28.8V57.5C25 83.6 41.6 105.1 64 112.2C86.4 105.1 103 83.6 103 57.5V28.8L64 15Z"
+    fill="none"
+    stroke="url(#goldGrad)"
+    stroke-width="1.5"
+    stroke-opacity="0.55"
+    stroke-dasharray="3 2"
+  />
+
+  <!-- Top Crown / Gallery Arch -->
+  <path
+    d="M48 31L54 24L64 30L74 24L80 31H48Z"
+    fill="url(#goldGrad)"
+  />
+  <circle cx="54" cy="21.5" r="2.2" fill="#FFE58F" />
+  <circle cx="64" cy="19.5" r="2.6" fill="#FFE58F" />
+  <circle cx="74" cy="21.5" r="2.2" fill="#FFE58F" />
+
+  <!-- Central Serif Monogram "B" -->
+  <path
+    d="M44 41H66.5C75.5 41 81 45.2 81 51.8C81 56.8 77.6 60.5 72.2 61.8C78.8 63 83 67.3 83 73.5C83 81.2 76.5 86 66.2 86H44V82.2H48.5V44.8H44V41ZM56.5 59.8H64.8C70.2 59.8 73.2 56.9 73.2 52.3C73.2 47.7 70 45 64.5 45H56.5V59.8ZM56.5 82H65.5C71.5 82 74.8 78.8 74.8 73.4C74.8 67.8 71.2 64.2 64.8 64.2H56.5V82Z"
+    fill="url(#goldGrad)"
+  />
+
+  <!-- Bottom 1894 Banner Curve -->
+  <path
+    d="M46 95C52 99 58 101 64 101C70 101 76 99 82 95"
+    stroke="url(#goldGrad)"
+    stroke-width="2"
+    stroke-linecap="round"
+  />
+  <circle cx="64" cy="105" r="2.2" fill="url(#goldGrad)" />
+</svg>

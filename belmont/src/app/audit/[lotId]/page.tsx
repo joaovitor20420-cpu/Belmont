@@ -329,7 +329,7 @@ export default function CertificadosAuditoriaPage({
                   <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pb-6 border-b border-[#282a30]">
                     <div className="flex items-center gap-4">
                       <div className="w-16 h-16 rounded-full bg-[#0c0e13] flex items-center justify-center text-[#f2ca50] shadow-inner border border-[#d4af37]/30">
-                        <span className="material-symbols-outlined text-3xl">local_police</span>
+                        <img src="/belmont-crest.svg" alt="Belmont Crest" className="w-10 h-10 object-contain" />
                       </div>
                       <div className="flex flex-col text-center sm:text-left">
                         <span className="font-mono text-xs uppercase tracking-widest text-[#f2ca50] font-bold">

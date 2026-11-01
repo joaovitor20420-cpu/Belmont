@@ -1,5 +1,10 @@
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3333'
+const rawApiUrl =
+  process.env.NEXT_PUBLIC_API_URL ||
+  (typeof window !== 'undefined' && window.location.hostname !== 'localhost'
+    ? 'https://belmont-api-a5n6.onrender.com'
+    : 'http://localhost:3333')
+
+const API_BASE_URL = rawApiUrl.replace(/\/+$/, '')
 
 export interface UserSession {
   id: string

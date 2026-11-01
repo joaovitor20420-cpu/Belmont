@@ -25,9 +25,14 @@ const jetbrainsMono = JetBrains_Mono({
 })
 
 export const metadata: Metadata = {
-  title: 'Belmont Fine Art Auctions — Catálogo Institucional & Vitrine',
+  title: 'Belmont Fine Art Auctions ? Cat?logo Institucional & Vitrine',
   description:
-    'Belmont Auctions Est. 1894. Custódia fiduciária auditada e licitações concorrentes em microssegundos com tecnologia SSE e trilha criptográfica HMAC-SHA256.',
+    'Belmont Auctions Est. 1894. Cust?dia fiduci?ria auditada e licita??es concorrentes em microssegundos com tecnologia SSE e trilha criptogr?fica HMAC-SHA256.',
+  icons: {
+    icon: '/belmont-crest.svg',
+    shortcut: '/belmont-crest.svg',
+    apple: '/belmont-crest.svg',
+  },
 }
 
 export default function RootLayout({
@@ -69,12 +74,19 @@ export default function RootLayout({
               <main className="flex-1 w-full">{children}</main>
               <footer className="w-full bg-[#0c0e13] border-t border-[#d4af37]/20 mt-12 py-8">
                 <div className="max-w-[1600px] mx-auto px-6 lg:px-12 flex flex-col md:flex-row items-center justify-between gap-6">
-                  <div className="flex flex-col gap-1 text-left">
-                    <div className="font-serif text-lg tracking-wide text-[#e2e2ea]">
-                      BELMONT AUCTIONS
-                    </div>
-                    <div className="text-xs text-[#99907c]">
-                      © 1894–2026 Belmont Fine Art Institutional Trust. Todos os direitos reservados.
+                  <div className="flex items-center gap-3.5 text-left">
+                    <img
+                      src="/belmont-crest.svg"
+                      alt="Belmont Auctions Crest"
+                      className="h-10 w-10 object-contain shrink-0"
+                    />
+                    <div className="flex flex-col gap-0.5">
+                      <div className="font-serif text-lg tracking-wide text-[#e2e2ea]">
+                        BELMONT AUCTIONS
+                      </div>
+                      <div className="text-xs text-[#99907c]">
+                        ? 1894?2026 Belmont Fine Art Institutional Trust. Todos os direitos reservados.
+                      </div>
                     </div>
                   </div>
                   <div className="flex items-center gap-2 text-xs text-[#d0c5af] border border-[#4d4635]/40 px-3 py-1.5 rounded bg-[#14171f]">
