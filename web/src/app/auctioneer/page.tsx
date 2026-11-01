@@ -199,7 +199,7 @@ export default function AuctioneerMasterCockpitPage() {
     }
   }
 
-  // Cancelar lote sem lances (Regra de Negócio Oficial)
+  // Cancelar lote (sem lances ou com estorno automático do saldo comprometido do líder)
   const handleCancelLot = async () => {
     if (!activeLiveLot) return
     if (!user || user.role !== 'AUCTIONEER') {
@@ -210,19 +210,18 @@ export default function AuctioneerMasterCockpitPage() {
       return
     }
 
-    if (activeLiveLot.bidsCount > 0) {
-      setActionFeedback({
-        text: 'REGULAMENTO: Não é permitido cancelar um lote que já possui lances registrados.',
-        color: 'text-rose-400 font-bold',
-      })
-      return
-    }
-
     setIsCancelling(true)
     try {
-      await apiRequest(`/lots/${activeLiveLot.id}/cancel`, { method: 'POST' })
+      const res = await apiRequest<{
+        cancelled: boolean
+        refundedAmountInCents?: number
+      }>(`/lots/${activeLiveLot.id}/cancel?autoRefund=true`, { method: 'POST' })
+      const refundMsg =
+        res.refundedAmountInCents && res.refundedAmountInCents > 0
+          ? ` Estorno automático de ${formatCurrency(res.refundedAmountInCents)} realizado para o licitante líder.`
+          : ' O lote foi removido da vitrine pública.'
       setActionFeedback({
-        text: `LOTE #${activeLiveLot.id.slice(0, 4).toUpperCase()} CANCELADO COM SUCESSO! O lote foi removido da vitrine pública.`,
+        text: `LOTE #${activeLiveLot.id.slice(0, 4).toUpperCase()} CANCELADO COM SUCESSO!${refundMsg}`,
         color: 'text-[#4edea3] font-bold',
       })
       refreshActiveLot()
@@ -555,7 +554,9 @@ export default function AuctioneerMasterCockpitPage() {
                     ) : confirmAction === 'cancel' ? (
                       <div className="p-3 rounded-lg bg-[#0c0e13] border border-rose-500 space-y-2 font-mono">
                         <span className="block text-xs text-rose-300 font-bold">
-                          Confirmar cancelamento definitivo deste lote sem lances?
+                          {activeLiveLot.bidsCount > 0
+                            ? `Confirmar cancelamento e estorno automático de ${formatCurrency(activeLiveLot.currentPrice)} ao líder?`
+                            : 'Confirmar cancelamento definitivo deste lote sem lances?'}
                         </span>
                         <div className="grid grid-cols-2 gap-2">
                           <button
@@ -589,16 +590,16 @@ export default function AuctioneerMasterCockpitPage() {
                           <span className="material-symbols-outlined text-base">gavel</span>
                           <span>{isSettling ? 'LIQUIDANDO...' : 'BATER MARTELO & LIQUIDAR'}</span>
                         </button>
-                        {activeLiveLot.bidsCount === 0 && (
-                          <button
-                            type="button"
-                            onClick={() => setConfirmAction('cancel')}
-                            disabled={isCancelling}
-                            className="py-3 px-4 bg-rose-600/20 text-rose-300 border border-rose-500/40 font-mono text-xs uppercase tracking-wider font-bold rounded-lg hover:bg-rose-600/30 transition cursor-pointer disabled:opacity-50"
-                          >
-                            Cancelar Lote (0 Lances)
-                          </button>
-                        )}
+                        <button
+                          type="button"
+                          onClick={() => setConfirmAction('cancel')}
+                          disabled={isCancelling}
+                          className="py-3 px-4 bg-rose-600/20 text-rose-300 border border-rose-500/40 font-mono text-xs uppercase tracking-wider font-bold rounded-lg hover:bg-rose-600/30 transition cursor-pointer disabled:opacity-50"
+                        >
+                          {activeLiveLot.bidsCount > 0
+                            ? 'Cancelar c/ Estorno'
+                            : 'Cancelar Lote (0 Lances)'}
+                        </button>
                       </div>
                     )}
                   </div>

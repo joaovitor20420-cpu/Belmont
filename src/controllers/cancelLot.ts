@@ -13,6 +13,10 @@ export async function cancelLotController(
   })
 
   const { id } = cancelParamsSchema.parse(request.params)
+  const query = (request.query as Record<string, string | undefined>) || {}
+  const body = (request.body as Record<string, unknown> | undefined) || {}
+  const autoRefund =
+    query.autoRefund === 'true' || body.autoRefund === true
 
   try {
     const cancelLotUseCase = makeCancelLotUseCase()
@@ -21,6 +25,7 @@ export async function cancelLotController(
       lotId: id,
       userId: request.user.sub,
       userRole: request.user.role,
+      autoRefund,
     })
 
     return reply.status(200).send(result)

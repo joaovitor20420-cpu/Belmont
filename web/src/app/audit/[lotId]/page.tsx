@@ -57,7 +57,7 @@ export default function CertificadosAuditoriaPage({
   const [data, setData] = useState<AuditResponse | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
-  const [currentView, setCurrentView] = useState<'cert' | 'ledger'>('cert')
+  const [currentView, setCurrentView] = useState<'cert' | 'ledger'>('ledger')
 
   // Simulador de adulteração
   const [isTampered, setIsTampered] = useState(false)
@@ -154,7 +154,7 @@ export default function CertificadosAuditoriaPage({
     )
   }
 
-  // Regra Estrita: O Certificado de Arremate e a Auditoria pertencem exclusivamente ao Vencedor que arrematou o lote (ou consulta técnica da trilha pelo Leiloeiro Oficial)
+  // Regra Estrita: O Certificado Oficial de Arremate pertence ao Vencedor, enquanto a Auditoria do Histórico de Lances (Hash Chain) é pública mesmo sem login
   const isWinner = Boolean(
     user &&
       data.lot.status === 'ENDED' &&
@@ -162,40 +162,6 @@ export default function CertificadosAuditoriaPage({
       user.publicCode === data.lot.winner.publicCode,
   )
   const isAuctioneer = user?.role === 'AUCTIONEER'
-
-  if (!isWinner && !isAuctioneer) {
-    return (
-      <div className="w-full pt-32 pb-20 px-6 max-w-xl mx-auto text-center font-mono">
-        <div className="w-16 h-16 rounded-full bg-rose-500/10 border border-rose-500/30 flex items-center justify-center mx-auto mb-4 text-rose-400">
-          <span className="material-symbols-outlined text-3xl">lock</span>
-        </div>
-        <h2 className="text-2xl font-serif text-[#e2e2ea]">
-          Certificado Exclusivo do Arrematante Vencedor
-        </h2>
-        <p className="mt-2 text-xs text-[#99907c] leading-relaxed">
-          {data.lot.status !== 'ENDED'
-            ? 'Este lote ainda não foi encerrado/liquidado. O Certificado de Arrematação só é emitido após o encerramento oficial do pregão.'
-            : 'Você não foi o arrematante vencedor desta obra. Por segurança fiduciária, o Certificado de Propriedade e a Auditoria do Arremate ficam disponíveis exclusivamente para o vencedor na aba "Meus Arremates".'}
-        </p>
-        <div className="mt-6 flex items-center justify-center gap-3">
-          {user?.role === 'BIDDER' && (
-            <Button asChild variant="secondary">
-              <Link href="/my-bids">
-                <span className="material-symbols-outlined text-sm">trophy</span>
-                <span>Ir para Meus Arremates</span>
-              </Link>
-            </Button>
-          )}
-          <Button asChild variant="outline" className="border-[#d4af37]/40 text-[#f2ca50]">
-            <Link href="/">
-              <span className="material-symbols-outlined text-sm">arrow_back</span>
-              <span>Voltar ao Catálogo</span>
-            </Link>
-          </Button>
-        </div>
-      </div>
-    )
-  }
 
   return (
     <div className="w-full pt-32 md:pt-20 bg-[#07090E] min-h-[calc(100vh-80px)] text-[#e2e2ea]">
@@ -299,8 +265,39 @@ export default function CertificadosAuditoriaPage({
             </div>
           </div>
 
-          {/* VIEW 1: OFFICIAL SHAREABLE CERTIFICATE */}
-          {currentView === 'cert' && (
+          {/* VIEW 1: OFFICIAL SHAREABLE CERTIFICATE (Restrito ao Vencedor / Leiloeiro) */}
+          {currentView === 'cert' && !isWinner && !isAuctioneer && (
+            <div className="py-16 px-6 max-w-xl mx-auto text-center font-mono bg-[#14171f] rounded-2xl border border-[#282a30]">
+              <div className="w-16 h-16 rounded-full bg-rose-500/10 border border-rose-500/30 flex items-center justify-center mx-auto mb-4 text-rose-400">
+                <span className="material-symbols-outlined text-3xl">lock</span>
+              </div>
+              <h2 className="text-2xl font-serif text-[#e2e2ea]">
+                Certificado Exclusivo do Arrematante Vencedor
+              </h2>
+              <p className="mt-2 text-xs text-[#99907c] leading-relaxed">
+                {data.lot.status !== 'ENDED'
+                  ? 'Este lote ainda não foi encerrado. O Certificado Oficial de Propriedade só é emitido após a liquidação do pregão.'
+                  : 'O Certificado de Propriedade pertence exclusivamente ao licitante vencedor. Qualquer visitante pode auditar livremente o histórico completo de lances na aba "Verificador Hash Chain".'}
+              </p>
+              <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+                <Button
+                  type="button"
+                  onClick={() => setCurrentView('ledger')}
+                >
+                  <span className="material-symbols-outlined text-sm">hub</span>
+                  <span>Auditar Histórico de Lances (Público)</span>
+                </Button>
+                <Button asChild variant="outline" className="border-[#d4af37]/40 text-[#f2ca50]">
+                  <Link href="/">
+                    <span className="material-symbols-outlined text-sm">arrow_back</span>
+                    <span>Voltar ao Catálogo</span>
+                  </Link>
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {currentView === 'cert' && (isWinner || isAuctioneer) && (
             <div className="flex flex-col gap-6">
               <div className="relative bg-[#0c0e13] p-4 sm:p-8 md:p-12 rounded-2xl shadow-2xl overflow-hidden border border-[#d4af37]/40">
                 {/* Guilloché Geometric SVG Overlay */}

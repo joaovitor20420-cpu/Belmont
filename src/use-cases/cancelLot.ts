@@ -8,6 +8,7 @@ interface CancelLotRequest {
   lotId: string
   userId: string
   userRole?: string
+  autoRefund?: boolean
 }
 
 interface CancelLotResponse {
@@ -18,6 +19,7 @@ interface CancelLotResponse {
     bidsCount: number
   }
   cancelled: boolean
+  refundedAmountInCents?: number
 }
 
 export class CancelLotUseCase {
@@ -25,6 +27,7 @@ export class CancelLotUseCase {
     lotId,
     userId,
     userRole,
+    autoRefund = false,
   }: CancelLotRequest): Promise<CancelLotResponse> {
     if (userRole && userRole !== 'AUCTIONEER') {
       throw new Error('Apenas o Leiloeiro Oficial tem permissão para cancelar lotes.')
@@ -50,6 +53,7 @@ export class CancelLotUseCase {
             bidsCount: lot.bidsCount,
           },
           cancelled: true,
+          refundedAmountInCents: 0,
         }
       }
 
@@ -57,11 +61,41 @@ export class CancelLotUseCase {
         throw new Error('Não é permitido cancelar um lote que já foi encerrado.')
       }
 
-      // Regra de Negócio Central: cancelamento apenas permitido se ainda NÃO recebeu lances
+      let refundedAmountInCents = 0
+
+      // Regra de Negócio Central + Opcional Verzel (Cancelamento com estorno automático)
       if (lot.bidsCount > 0) {
-        throw new LotCancellationError(
-          'Não é permitido cancelar um lote que já possui lances registrados no pregão.',
-        )
+        if (!autoRefund) {
+          throw new LotCancellationError(
+            'Não é permitido cancelar um lote que já possui lances registrados no pregão.',
+          )
+        }
+
+        // Estorno automático do saldo comprometido do líder atual
+        if (lot.currentWinnerId && lot.currentPrice > BigInt(0)) {
+          const updatedWinner = await tx.user.update({
+            where: { id: lot.currentWinnerId },
+            data: {
+              balanceCommitted: {
+                decrement: lot.currentPrice,
+              },
+            },
+          })
+
+          await tx.walletTransaction.create({
+            data: {
+              userId: lot.currentWinnerId,
+              lotId: lot.id,
+              type: 'BID_RELEASE',
+              amount: lot.currentPrice,
+              balanceAfter:
+                updatedWinner.balanceTotal - updatedWinner.balanceCommitted,
+              description: `Estorno automático por cancelamento do lote "${lot.title}"`,
+            },
+          })
+
+          refundedAmountInCents = Number(lot.currentPrice)
+        }
       }
 
       const updated = await tx.lot.update({
@@ -79,6 +113,7 @@ export class CancelLotUseCase {
           bidsCount: updated.bidsCount,
         },
         cancelled: true,
+        refundedAmountInCents,
       }
     })
 
@@ -87,6 +122,7 @@ export class CancelLotUseCase {
       type: 'LOT_CANCELLED',
       lotId: result.lot.id,
       title: result.lot.title,
+      refundedAmountInCents: result.refundedAmountInCents,
     })
 
     return result

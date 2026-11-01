@@ -648,12 +648,15 @@ export default function CatalogVitrinePage() {
 
                   {/* AUDIT STRIP */}
                   <div className="px-4 py-2 bg-[#0c0e13] flex items-center justify-between font-mono text-[10px] text-[#99907c] border-t border-[#1d2025]">
-                    <span className="truncate max-w-[160px]">
+                    <span className="truncate max-w-[150px]">
                       SHA: {lot.lotSealHash ? lot.lotSealHash.slice(0, 16) + '...' : '8b1a99...3d10'}
                     </span>
-                    <span className="text-[#4edea3]">
-                      {isEnded ? 'Custódia Registrada' : isLive ? 'SSE em Tempo Real' : 'Pronto para Pregão'}
-                    </span>
+                    <Link
+                      href={`/audit/${lot.id}`}
+                      className="text-[#4edea3] hover:text-[#f2ca50] underline transition-colors"
+                    >
+                      Auditar Lote →
+                    </Link>
                   </div>
                 </article>
               )

@@ -178,6 +178,11 @@ export function Navbar() {
     })
   }
 
+  navLinks.push({
+    label: 'Auditoria Pública',
+    path: '/audit',
+  })
+
   if (user?.role === 'BIDDER') {
     // Usuário licitante vê Meus Arremates e Carteira Digital (NUNCA vê Painel do Leiloeiro)
     navLinks.push({ label: 'Meus Arremates', path: '/my-bids' })

@@ -311,6 +311,11 @@ export default function LiveAuctionRoomPage({
 
   const isMyBid =
     user && lot.currentWinner?.publicCode === user.publicCode
+  const hasUserBidOnThisLot = Boolean(
+    user &&
+      lot.bids?.some((b) => b.bidder?.publicCode === user.publicCode),
+  )
+  const isOutbid = Boolean(hasUserBidOnThisLot && !isMyBid)
 
   // Saldo Disponível para Lance
   const requiredCollateral = minAllowedBid
@@ -753,17 +758,17 @@ export default function LiveAuctionRoomPage({
                         <span className="material-symbols-outlined text-sm">verified_user</span>
                         <span>LAUDO PERICIAL ASSINADO (HASH MATCH)</span>
                       </div>
-                      {(isMyBid && isEnded) && (
-                        <div className="flex items-center gap-1.5 text-[#99907c] font-mono text-[10px]">
-                          <span className="material-symbols-outlined text-sm">api</span>
-                          <Link
-                            href={`/audit/${lot.id}`}
-                            className="underline hover:text-[#f2ca50] transition-colors"
-                          >
-                            Certificado & Auditoria do Meu Arremate
-                          </Link>
-                        </div>
-                      )}
+                      <div className="flex items-center gap-1.5 text-[#99907c] font-mono text-[10px]">
+                        <span className="material-symbols-outlined text-sm">api</span>
+                        <Link
+                          href={`/audit/${lot.id}`}
+                          className="underline hover:text-[#f2ca50] transition-colors"
+                        >
+                          {isMyBid && isEnded
+                            ? 'Certificado & Auditoria do Meu Arremate'
+                            : 'Auditar Histórico de Lances (Público)'}
+                        </Link>
+                      </div>
                     </div>
                     <div className="font-mono text-[10px] text-[#99907c] select-all">
                       UUID: {lot.id}
@@ -791,13 +796,20 @@ export default function LiveAuctionRoomPage({
                   className={
                     isMyBid
                       ? 'bg-[#4edea3]/20 text-[#4edea3] border-[#4edea3]/40 px-3 py-1'
-                      : 'bg-[#1d2025] text-[#d0c5af] px-3 py-1'
+                      : isOutbid
+                        ? 'bg-rose-500/20 text-rose-300 border-rose-500/40 px-3 py-1'
+                        : 'bg-[#1d2025] text-[#d0c5af] px-3 py-1'
                   }
                 >
-                  <span className="material-symbols-outlined text-xs">gavel</span>
+                  <span className="material-symbols-outlined text-xs">
+                    {isMyBid ? 'trophy' : isOutbid ? 'warning' : 'gavel'}
+                  </span>
                   <span>
-                    Líder: {lot.currentWinner?.publicCode || 'Sem lances'}
-                    {isMyBid ? ' (Você)' : ''}
+                    {isMyBid
+                      ? 'VOCÊ ESTÁ GANHANDO'
+                      : isOutbid
+                        ? 'VOCÊ FOI SUPERADO'
+                        : `Líder: ${lot.currentWinner?.publicCode || 'Sem lances'}`}
                   </span>
                 </Badge>
               </div>
