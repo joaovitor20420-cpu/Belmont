@@ -436,7 +436,7 @@ export default function AuctioneerMasterCockpitPage() {
         <div className="mt-6 flex flex-col sm:flex-row items-center justify-center gap-3">
           <button
             type="button"
-            onClick={() => login('leiloeiro@belmont.com', 'password123')}
+            onClick={() => login('auctioneer@belmont.com', 'password123')}
             className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-lg bg-[#d4af37] text-[#1c1400] px-5 py-2.5 text-xs font-bold hover:bg-[#f2ca50] transition uppercase cursor-pointer shadow-lg active:scale-95"
           >
             <span className="material-symbols-outlined text-sm">key</span>
